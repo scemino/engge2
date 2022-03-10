@@ -1,5 +1,30 @@
-# This is just an example to get you started. A typical binary package
-# uses this file as the main entry point of the application.
+import std/logging
+import sys/app
+import gfx/graphics
+import gfx/color
+import sys/input
+import glm
 
-when isMainModule:
-  echo("Hello, World!")
+proc render() =
+  gfxClear(Yellow)
+
+proc onKey(key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey) = 
+  echo key, scancode, action, mods
+
+proc onMouseButton(button: int32, action: InputAction) = 
+  echo button, action
+
+proc onMouseMove(pos: Vec2f) = 
+  echo pos
+
+proc main() =
+  addHandler(newConsoleLogger())
+  addHandler(newFileLogger("log.txt"))
+  info("# Welcome to ngnim")
+  app.init(title = "ngnim")
+  app.setKeyCallback(onKey)
+  app.setMouseButtonCallback(onMouseButton)
+  app.setMouseMoveCallback(onMouseMove)
+  app.run(render)
+
+main()
