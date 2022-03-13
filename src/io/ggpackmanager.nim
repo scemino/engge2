@@ -15,7 +15,7 @@ proc newGGPackFileSystemManager*(root: string, directories: varargs[string]): GG
   result.root = root
   result.directories = directories.toSeq
   
-var ggpackMgr*: GGPackManager
+var gGGPackMgr*: GGPackManager
 
 method loadStream*(self: GGPackManager, path: string): Stream {.base.} =
   # override this base method

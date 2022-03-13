@@ -8,7 +8,7 @@ type Image* = object
   data*: seq[byte]
 
 proc newImage*(filename: string): Image =
-  let fs = gGGPackMgr.loadStream(filename)
+  let fs = ggpackMgr.loadStream(filename)
   let str = fs.readAll
   let bytes = newSeq[byte](str.len)
   copyMem(bytes[0].unsafeAddr, str[0].unsafeAddr, str.len)

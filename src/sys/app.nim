@@ -32,13 +32,14 @@ proc init*(title = "", size = vec2(1280, 720)) =
   glContext = glCreateContext(w)
 
   discard glMakeCurrent(w, glContext)
-  doAssert glInit()
   discard glSetSwapInterval(1)
 
+  doAssert glInit()
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   gfxInit()
+  glViewport(0.GLint, 0.GLint, size.x.GLsizei, size.y.GLsizei)
 
 proc toInputKey(key: cint): InputKey =
   cast[InputKey](key)
