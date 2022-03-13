@@ -19,7 +19,7 @@ script bounceImage(sheet)
             x += dx
             y += dy
             objectAt(image, x, y)
-            breaktime(0.01)
+            breakhere(1)
         }
     }
 }

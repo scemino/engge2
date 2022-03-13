@@ -57,6 +57,5 @@ proc resume*(self: Thread) =
     discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
 
 proc suspend*(self: Thread) =
-  if self.isSuspended:
-    return
-  discard sq_suspendvm(self.getThread())
+  if not self.isSuspended:
+    discard sq_suspendvm(self.getThread())

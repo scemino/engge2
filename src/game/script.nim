@@ -103,21 +103,31 @@ proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushinteger(v, thread.id)
   return 1
 
+proc breakfunc(v: HSQUIRRELVM, funcFactory: proc (v: HSQUIRRELVM): Function): SQInteger =
+  for t in gThreads:
+    if t.getThread() == v:
+      t.suspend()
+      gEngine.funcs.add(funcFactory(v))
+      return -666
+  sq_throwerror(v, "failed to get thread")
+
+proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var numFrames: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 2, numFrames)):
+    return sq_throwerror(v, "failed to get numFrames")
+  breakfunc(v, proc (v: HSQUIRRELVM): Function = newBreakHereFunction(v, numFrames))
+
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var time: SQFloat
   if SQ_FAILED(sq_getfloat(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
-
-  for t in gThreads:
-    if t.getThread() == v:
-      t.suspend()
-      gEngine.funcs.add(newBreakTimeFunction(v, time))
-      return -666
-  sq_throwerror(v, "failed to get thread")
+  breakfunc(v, proc (v: HSQUIRRELVM): Function = newBreakTimeFunction(v, time))
 
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(createObject, "createObject")
   v.regGblFun(sysRandom, "random")
   v.regGblFun(objectAt, "objectAt")
   v.regGblFun(startglobalthread, "startglobalthread")
+  v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
+  

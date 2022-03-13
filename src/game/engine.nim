@@ -15,7 +15,7 @@ type Engine* = ref object of RootObj
   spriteSheets: Table[string, SpriteSheet]
   textures: Table[string, Texture]
   objects*: seq[Object]
-  funcs*: SharedList[BreakTimeFunction]
+  funcs*: SharedList[Function]
 
 var gEngine*: Engine
 
@@ -42,7 +42,7 @@ proc createObject*(self: Engine, v: HSQUIRRELVM, sheet: string, anims: seq[strin
   self.objects.add(Object(sheet: sheet, anims: anims, obj: result))
 
 proc update(self: Engine) =
-  self.funcs.iterAndMutate(proc (f: BreakTimeFunction): bool = f.update(1/120))
+  self.funcs.iterAndMutate(proc (f: Function): bool = f.update(1/120))
 
 proc render*(self: Engine) =
   self.update()
