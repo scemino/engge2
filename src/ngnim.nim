@@ -1,5 +1,4 @@
 import std/[logging, os]
-import sqnim
 import sys/[app, input]
 import game/[engine, vm, script]
 import io/ggpackmanager
@@ -12,6 +11,12 @@ proc onKey(key: InputKey, scancode: int32, action: InputAction,
 proc render() =
   gEngine.render()
 
+proc runVm() =
+  var vm = vm.newVM()
+  register_gameconstants(vm.v)
+  register_gamelib(vm.v)
+  vm.execNutFile("ng.nut")
+
 proc main() =
   addHandler(newConsoleLogger())
   addHandler(newFileLogger("log.txt"))
@@ -23,11 +28,7 @@ proc main() =
   if fileExists("ThimbleweedPark.ggpack1"):
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
     discard newEngine()
-    var vm = vm.newVM()
-    vm.v.regConsts(@[("FALSE", 0), ("TRUE", 1)])
-    register_gamelib(vm.v)
-    vm.execNutFile("ng.nut")
-
+    runVm()
     app.run(render)
   else:
     error "ThimbleweedPark.ggpack1 not found"
