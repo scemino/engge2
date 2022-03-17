@@ -8,14 +8,13 @@ import ../gfx/recti
 import ../gfx/color
 import ../io/ggpackmanager
 import room
-import functions
+import thread
 
 type Engine* = ref object of RootObj
   rand*: Rand
   spriteSheets: Table[string, SpriteSheet]
   textures: Table[string, Texture]
   objects*: seq[Object]
-  funcs*: SharedList[Function]
 
 var gEngine*: Engine
 
@@ -23,7 +22,6 @@ proc newEngine*(): Engine =
   new(result)
   gEngine = result
   result.rand = initRand()
-  result.funcs.init()
 
 proc createObject*(self: Engine, v: HSQUIRRELVM, sheet: string, anims: seq[string]): HSQOBJECT =
   let content = gGGPackMgr.loadStream(sheet & ".json").readAll
@@ -42,7 +40,9 @@ proc createObject*(self: Engine, v: HSQUIRRELVM, sheet: string, anims: seq[strin
   self.objects.add(Object(sheet: sheet, anims: anims, obj: result))
 
 proc update(self: Engine) =
-  self.funcs.iterAndMutate(proc (f: Function): bool = f.update(1/120))
+  var elapsed = 1/60
+  for thread in gThreads:
+    thread.update(elapsed)
 
 proc render*(self: Engine) =
   self.update()

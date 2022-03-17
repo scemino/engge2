@@ -1,10 +1,9 @@
-import std/[logging, random, sharedlist]
+import std/[logging, random]
 import glm
 import sqnim
 import thread
 import vm
 import engine
-import functions
 import squtils
 
 proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -91,24 +90,20 @@ proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let threadName = if not name.isNil: name else: "anonymous"
   var thread = newThread($threadName, true, v, thread_obj, env_obj, closureObj, args)
   sq_pop(v, 1)
-  info("start thread (" & $threadName & ")")
+  info("create thread (" & $threadName & ")")
   if not name.isNil:
     sq_pop(v, 1) # pop name
   sq_pop(v, 1) # pop closure
   gThreads.add(thread)
 
-  # call the closure in the thread
-  if not thread.call():
-    return sq_throwerror(v, "call failed")
-
   sq_pushinteger(v, thread.id)
   return 1
 
-proc breakfunc(v: HSQUIRRELVM, funcFactory: proc (v: HSQUIRRELVM): Function): SQInteger =
+proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: Thread)): SQInteger =
   for t in gThreads:
     if t.getThread() == v:
       t.suspend()
-      gEngine.funcs.add(funcFactory(v))
+      setConditionFactory(t)
       return -666
   sq_throwerror(v, "failed to get thread")
 
@@ -116,13 +111,13 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var numFrames: SQInteger
   if SQ_FAILED(sq_getinteger(v, 2, numFrames)):
     return sq_throwerror(v, "failed to get numFrames")
-  breakfunc(v, proc (v: HSQUIRRELVM): Function = newBreakHereFunction(v, numFrames))
+  breakfunc(v, proc (t: Thread) = t.numFrames = numFrames)
 
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var time: SQFloat
   if SQ_FAILED(sq_getfloat(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
-  breakfunc(v, proc (v: HSQUIRRELVM): Function = newBreakTimeFunction(v, time))
+  breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(createObject, "createObject")

@@ -1,12 +1,15 @@
 import sqnim
 
-type Thread* = ref object of RootObj
-  id*: int
-  threadName*: string
-  global*: bool
-  v*: HSQUIRRELVM
-  thread_obj*, env_obj*, closureObj*: HSQOBJECT
-  args*: seq[HSQOBJECT]
+type
+  Thread* = ref object of RootObj
+    id*: int
+    threadName*: string
+    global*: bool
+    v*: HSQUIRRELVM
+    thread_obj, env_obj*, closureObj*: HSQOBJECT
+    args*: seq[HSQOBJECT]
+    waitTime*: float
+    numFrames*: int
 
 var gNumThreads = 0
 var gThreads*: seq[Thread]
@@ -23,7 +26,7 @@ proc newThread*(threadName: string, global: bool, v: HSQUIRRELVM, thread_obj, en
   result.closureObj = closureObj
   result.args = args
 
-  sq_addref(result.v, result.threadObj)
+  sq_addref(result.v, result.thread_obj)
   sq_addref(result.v, result.envObj)
   sq_addref(result.v, result.closureObj)
 
@@ -33,13 +36,12 @@ proc getThread*(self: Thread): HSQUIRRELVM =
 proc isSuspended*(self: Thread): bool =
   let state = sq_getvmstate(self.getThread())
   return state != 1
-
 # proc destroy(self: Thread) =
 #   sq_release(result.v, result.threadObj)
 #   sq_release(result.v, result.envObj)
 #   sq_release(result.v, result.closureObj)
 
-proc call*(self: Thread): bool =
+proc call(self: Thread): bool =
   let thread = self.getThread()
   # call the closure in the thread
   let top = sq_gettop(thread)
@@ -59,3 +61,16 @@ proc resume*(self: Thread) =
 proc suspend*(self: Thread) =
   if not self.isSuspended:
     discard sq_suspendvm(self.getThread())
+
+proc update*(self: Thread, elapsed: float) =
+  if self.waitTime > 0:
+    self.waitTime -= elapsed
+    if self.waitTime <= 0:
+      self.waitTime = 0
+      self.resume()
+  elif self.numFrames > 0:
+    self.numFrames -= 1
+    self.numFrames = 0
+    self.resume()
+  else:
+    discard self.call()
