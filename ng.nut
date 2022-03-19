@@ -24,6 +24,9 @@ script bounceImage(sheet)
     }
 }
 
+print("rnd1: " + random(0, 180) + "\n")
+print("rnd2: " + random(100.0, 150.0) + "\n")
+
 for (local i = 1 ; i <= 10 ; i++) 
 {
   startglobalthread(bounceImage, "RaySheet");

@@ -12,6 +12,7 @@ proc newVM*(): VM =
   result.v = sq_open(1024)
   sqstd_register_stringlib(result.v)
   sq_setprintfunc(result.v, printfunc, printfunc)
+  sqstd_seterrorhandlers(result.v)
   sq_setcompilererrorhandler(result.v, onError)
 
 proc destroy*(self: VM) =

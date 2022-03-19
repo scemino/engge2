@@ -1,4 +1,4 @@
-import std/[random, sharedlist, streams, tables, logging]
+import std/[random, streams, tables, logging]
 import sqnim
 import ../gfx/spritesheet
 import ../gfx/texture

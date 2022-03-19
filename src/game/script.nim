@@ -1,24 +1,90 @@
-import std/[logging, random]
+import std/[logging, random, tables]
+import std/random as sysrnd
 import glm
 import sqnim
 import thread
 import vm
 import engine
 import squtils
+import ggobj
+import togg
 
-proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj: HSQOBJECT
-  discard sq_getstackobj(v, 2, obj)
-  var x, y: int
-  if SQ_FAILED(sq_getinteger(v, 3, x)):
-    return sq_throwerror(v, "objectAt invalid type " & $sq_gettype(v, 3))
-  if SQ_FAILED(sq_getinteger(v, 4, y)):
-    return sq_throwerror(v, "objectAt invalid type " & $sq_gettype(v, 4))
-  for o in gEngine.objects.mitems:
-    if o.obj == obj:
-      o.pos = vec2f(x.float32, y.float32)
-  0
+# util
+proc toHSQObject(v: HSQUIRRELVM, obj: GGNode, res: var HSQOBJECT)  =
+  case obj.kind:
+  of GGNull:
+    sq_pushnull(v)
+  of GGInt:
+    sq_pushinteger(v, obj.num.SQInteger)
+  of GGString:
+    sq_pushstring(v, $obj.str, -1)
+  of GGFloat:
+    sq_pushfloat(v, obj.fnum)
+  of GGArray:
+    sq_newarray(v, 0)
+    var o: HSQOBJECT
+    sq_resetobject(o)
+    discard sq_getstackobj(v, -1, o)
+    for i in obj.elems:
+      var elem: HSQOBJECT
+      toHSQObject(v, i, elem)
+      push(v, elem)
+      discard sq_arrayappend(v, -2)
+    sq_pop(v, 1)
+  of GGObject:
+    sq_newtable(v)
+    var o: HSQOBJECT
+    sq_resetobject(o)
+    discard sq_getstackobj(v, -1, o)
+    for k,val in obj.fields:
+      var elem: HSQOBJECT
+      sq_pushstring(v, k.toSQString, -1)
+      toHSQObject(v, val, elem)
+      push(v, elem)
+      discard sq_newslot(v, -3, false)
+    sq_pop(v, 1)
+  sq_resetobject(res)
+  sq_addref(v, res)
+  discard sq_getstackobj(v, -1, res)
 
+proc toGGObject(v: HSQUIRRELVM, obj: var HSQOBJECT): GGNode =
+  case obj.objType:
+  of OT_NULL:
+    result = newGGNull()
+  of OT_INTEGER:
+    result = newGGInt(obj.value.nInteger)
+  of OT_FLOAT:
+    result = newGGFloat(obj.value.fFloat)
+  of OT_STRING:
+    result = newGGString($sq_objtostring(obj))
+  of OT_ARRAY:
+    result = newGGArray()
+    sq_pushobject(v, obj)
+    sq_pushnull(v)  #null iterator
+    var value: HSQOBJECT
+    while SQ_SUCCEEDED(sq_next(v,-2)):
+        # here -1 is the value and -2 is the key
+        discard sq_getstackobj(v, -1, value)
+        result.elems.add(toGGObject(v, value))
+        sq_pop(v,2) #pops key and val before the nex iteration
+    sq_pop(v,2)
+  of OT_TABLE:
+    result = newGGObject()
+    sq_pushobject(v, obj)
+    sq_pushnull(v)  #null iterator
+    var key: cstring
+    var value: HSQOBJECT
+    while SQ_SUCCEEDED(sq_next(v,-2)):
+        # here -1 is the value and -2 is the key
+        discard sq_getstackobj(v, -1, value)
+        discard sq_getstring(v, -2, key)
+        result.fields[$key] = toGGObject(v, value)
+        sq_pop(v,2) #pops key and val before the nex iteration
+    sq_pop(v,2)
+  else:
+    result = newGGNull()
+
+# provate methods
 proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let numArgs = sq_gettop(v)
   if numArgs == 3:
@@ -38,22 +104,6 @@ proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return 1
   else:
     return sq_throwerror(v, "createObject called with invalid type")
-
-proc sysRandom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  if sq_gettype(v, 2) == OT_INTEGER:
-    var min, max: int
-    discard sq_getinteger(v, 2, min)
-    discard sq_getinteger(v, 3, max)
-    let value = gEngine.rand.rand(min..max)
-    sq_pushinteger(v, value)
-    return 1
-  else:
-    var min, max: SQFloat
-    discard sq_getfloat(v, 2, min)
-    discard sq_getfloat(v, 3, max)
-    let value = gEngine.rand.rand(min..max)
-    sq_pushfloat(v, value)
-    return 1
 
 proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let size = sq_gettop(v)
@@ -119,17 +169,30 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get time")
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
+#public methods
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(createObject, "createObject")
-  v.regGblFun(sysRandom, "random")
-  v.regGblFun(objectAt, "objectAt")
   v.regGblFun(startglobalthread, "startglobalthread")
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
+  sqBind(v):
+    proc objectAt(obj: HSQOBJECT, x: int, y: int) =
+      for o in gEngine.objects.mitems:
+        if o.obj == obj:
+          o.pos = vec2f(x.float32, y.float32)
+          return
+    
+    proc random(min: GGNode, max: GGNode): GGNode =
+      case min.kind:
+      of GGInt: 
+        gEngine.rand.rand(min.toInt..max.toInt).toGGobj
+      of GGFloat:
+        gEngine.rand.rand(min.toFloat..max.toFloat).toGGobj
+      else:
+        nil.toGGobj
 
 proc register_gameconstants*(v: HSQUIRRELVM) =
   sqBind(v):
-    # declare constants
     const 
       ALL = 1
       HERE = 0
