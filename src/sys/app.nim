@@ -39,7 +39,10 @@ proc init*(title = "", size = vec2(1280, 720)) =
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
   gfxInit()
-  glViewport(0.GLint, 0.GLint, size.x.GLsizei, size.y.GLsizei)
+
+  var wi, he: cint
+  glGetDrawableSize(w, wi, he)
+  glViewport(0.GLint, 0.GLint, wi.GLsizei, he.GLsizei)
 
 proc toInputKey(key: cint): InputKey =
   cast[InputKey](key)

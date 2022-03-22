@@ -10,13 +10,14 @@ type
     args*: seq[HSQOBJECT]
     waitTime*: float
     numFrames*: int
+    stopRequest: bool
 
 var gNumThreads = 0
 var gThreads*: seq[Thread]
 
 proc newThread*(threadName: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
   new(result)
-  gNumThreads+=1
+  gNumThreads += 1
   result.id = gNumThreads
   result.threadName = threadName
   result.global = global
@@ -36,10 +37,15 @@ proc getThread*(self: Thread): HSQUIRRELVM =
 proc isSuspended*(self: Thread): bool =
   let state = sq_getvmstate(self.getThread())
   return state != 1
-# proc destroy(self: Thread) =
-#   sq_release(result.v, result.threadObj)
-#   sq_release(result.v, result.envObj)
-#   sq_release(result.v, result.closureObj)
+
+proc isDead*(self: Thread): bool =
+  let state = sq_getvmstate(self.getThread())
+  self.stopRequest or state == 0
+
+proc destroy*(self: Thread) =
+  discard sq_release(self.v, self.threadObj)
+  discard sq_release(self.v, self.envObj)
+  discard sq_release(self.v, self.closureObj)
 
 proc call(self: Thread): bool =
   let thread = self.getThread()
@@ -62,7 +68,11 @@ proc suspend*(self: Thread) =
   if not self.isSuspended:
     discard sq_suspendvm(self.getThread())
 
-proc update*(self: Thread, elapsed: float) =
+proc stop*(self: Thread) =
+  self.stopRequest = true
+  self.suspend()
+
+proc update*(self: Thread, elapsed: float): bool =
   if self.waitTime > 0:
     self.waitTime -= elapsed
     if self.waitTime <= 0:
@@ -74,3 +84,4 @@ proc update*(self: Thread, elapsed: float) =
     self.resume()
   else:
     discard self.call()
+  self.isDead()

@@ -109,3 +109,57 @@ macro sqBind*(vm, body): untyped =
         stmts, pragmas = newNimNode(nnkPragma).add(ident("cdecl"))))
       result.add(regStmt)
       # echo result.repr
+
+proc rootTbl*(v: HSQUIRRELVM): HSQOBJECT =
+  sq_resetobject(result)
+  sq_pushroottable(v)
+  discard sq_getstackobj(v, -1, result)
+  sq_pop(v, 1)
+
+proc getArr*(v: HSQUIRRELVM, o: HSQOBJECT, arr: var seq[string]) =
+  sq_pushobject(v, o)
+  sq_pushnull(v)
+  while SQ_SUCCEEDED(sq_next(v, -2)):
+    var str: cstring
+    discard sq_getstring(v, -1, str)
+    arr.add($str)
+    sq_pop(v, 2)
+  sq_pop(v, 1)
+
+proc get(v: HSQUIRRELVM, i: int, value: var int) =
+  discard sq_getinteger(v, i, value)
+
+proc get(v: HSQUIRRELVM, i: int, value: var float) =
+  var val: SQFloat
+  discard sq_getfloat(v, i, val)
+  value = val.float
+
+proc get(v: HSQUIRRELVM, i: int, value: var string) =
+  var val: SQString
+  discard sq_getstring(v, i, val)
+  value = $val
+
+proc get(v: HSQUIRRELVM, i: int, value: var HSQOBJECT) =
+  discard sq_getstackobj(v, i, value)
+
+template get*[T](v: HSQUIRRELVM, index: int, value: var T) =
+  discard sq_get(v, index)
+  get(v, -1, value)
+
+template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
+  sq_pushobject(v, o)
+  sq_pushstring(v, name, -1)
+  if SQ_FAILED(sq_get(v, -2)):
+    sq_pop(v, 1)
+  else:
+    get(v, -1, value)
+    sq_pop(v, 1)
+
+proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string) =
+  sq_pushobject(v, o)
+  sq_pushstring(v, name, -1)
+  discard sq_get(v, -2)
+
+  sq_pushobject(v, o)
+  discard sq_call(v, 1, SQFalse, SQTrue)
+  sq_pop(v, 1)

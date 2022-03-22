@@ -1,34 +1,78 @@
-script bounceImage(sheet)
-{
-    local image = createObject(sheet,["fstand_bodyA1"])
-    local x = random(0, 320)
-    local y = random(0, 180)
-
-    do
-    {
-        local steps = random(100.0, 150.0)
-
-        local end_x = random(0, 320)
-        local end_y = random(0, 180)
-
-        local dx = (end_x - x) / steps
-        local dy = (end_y - y) / steps
-
-        for (local i = 0; i < steps; i++)
-        {
-            x += dx
-            y += dy
-            objectAt(image, x, y)
-            breakhere(1)
-        }
-    }
-}
-
 print("rnd1: " + random(0, 180) + "\n")
 print("rnd2: " + random(100.0, 150.0) + "\n")
+print("chr(36): " + chr(36) + "\n")
 
-for (local i = 1 ; i <= 10 ; i++) 
-{
-  startglobalthread(bounceImage, "RaySheet");
-  startglobalthread(bounceImage, "ReyesSheet");
+function hideAll() {
+  foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
 }
+
+script twinkleStar(obj, fadeRange1, fadeRange2, alphaRange1, alphaRange2) {
+  local timeOff, timeOn, fadeIn, fadeOut
+  objectAlpha(obj, randomfrom(alphaRange1, alphaRange2))
+  if (randomOdds(1.0)) {
+    do {
+      fadeIn = random(fadeRange1, fadeRange2)
+      objectAlphaTo(obj, alphaRange2, fadeIn)
+      breaktime(fadeIn)
+      fadeOut = random(fadeRange1, fadeRange2)
+      objectAlphaTo(obj, alphaRange1, fadeOut)
+      breaktime(fadeOut)
+    }
+  }
+}
+
+Opening <-
+{
+ background = "Opening"
+ enter = function()
+ {
+    print("Room entered\n")
+    hideAll()
+ }
+
+ playOpening = function() {
+    return startglobalthread(@() {
+      objectHidden(opening1987, NO)
+      //roomFade(FADE_IN, 2.0)
+      breaktime(4.0)
+      hideAll()
+      breaktime(2.0)
+  
+      objectHidden(openingLightBackground, NO)
+      objectHidden(openingLight, NO)
+
+      for (local i = 1; i <= 3; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.5, 1))
+      }
+
+      for (local i = 4; i <= 16; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.1, 0.5))
+      }
+      
+      breaktime(3.0)
+
+      hideAll()
+
+      for (local i = 1; i <= 16; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, YES)
+        stopthread(star.tid)
+      }	
+    })
+ }
+
+ openingSign = { name = "openingSign" }
+ openingPop = { name = "openingPop" }
+ openingBulletHole = { name = "openingBulletHole" }
+ opening1987 = { name = "opening1987" }
+}
+
+defineRoom(Opening)
+
+Opening.playOpening()

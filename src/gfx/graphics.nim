@@ -54,12 +54,12 @@ void main() {
   emptyImage: Image
   emptyTexture: Texture
 
-proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32)
+proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32; color = White)
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex])
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32])
 
-proc newVertex*(x, y, u, v: float32): Vertex =
-  Vertex(pos: vec2(x, y), color: vec4(1f,1f,1f,1f), texCoords: vec2(u, v))
+proc newVertex*(x, y, u, v: float32; color = White): Vertex =
+  Vertex(pos: vec2(x, y), color: color, texCoords: vec2(u, v))
 
 proc newVertex*(x, y: float32, color: Color): Vertex =
   Vertex(pos: vec2(x, y), color: color, texCoords: vec2(0f))
@@ -118,36 +118,36 @@ proc gfxClear*(color: Color) =
   glClearColor(color.r, color.g, color.b, color.a)
   glClear(GL_COLOR_BUFFER_BIT)
 
-proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]) = 
+proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]; color = White) =
   drawPrimitives(GL_TRIANGLES, vertices, indices)
 
-proc gfxDrawSprite*(pos: Vec2f, texture: Texture) =
+proc gfxDrawSprite*(pos: Vec2f, texture: Texture; color = White) =
   texture.bindTexture()
-  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32)
+  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32, color)
 
-proc gfxDrawSprite*(pos: Vec2f, w,h: float, texture: Texture) =
+proc gfxDrawSprite*(pos: Vec2f, w,h: float, texture: Texture; color = White) =
   texture.bindTexture()
-  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), w.float32, h.float32)
+  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), w.float32, h.float32, color)
 
-proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture) =
+proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White) =
   let w = textRect.w * texture.width.float32
   let h = textRect.h * texture.height.float32
   texture.bindTexture()
-  drawSpriteCore(pos, textRect, w, h)
+  drawSpriteCore(pos, textRect, w, h, color)
 
 proc gfxDrawLines*(pos: var openArray[Vertex]) =
   drawPrimitives(GL_LINES, pos)
 
-proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32) =
+proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32; color = White) =
   let l = textRect.x.float32
   let r = (textRect.x + textRect.w).float32
   let t = textRect.y.float32
   let b = (textRect.y + textRect.h).float32
   var vertices = [
-    newVertex(pos.x+w, pos.y+h, r, t),
-    newVertex(pos.x+w, pos.y, r, b),
-    newVertex(pos.x, pos.y, l, b),
-    newVertex(pos.x, pos.y+h, l, t)
+    newVertex(pos.x+w, pos.y+h, r, t, color),
+    newVertex(pos.x+w, pos.y, r, b, color),
+    newVertex(pos.x, pos.y, l, b, color),
+    newVertex(pos.x, pos.y+h, l, t, color)
   ]
   gfxDraw(vertices, quadIndices)
 

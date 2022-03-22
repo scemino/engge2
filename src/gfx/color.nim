@@ -2,8 +2,14 @@ import glm
 
 type Color* = Vec4f
 
-proc rgb*(r,g,b: byte): Color =
-  vec4(r.float32/255f, g.float32/255f, b.float32/255f, 1'f32)
+proc rgb*(r,g,b: byte, a = 255): Color =
+  vec4(r.float32/255f, g.float32/255f, b.float32/255f, a.float32/255f)
+
+proc rgbf*(r,g,b: float32, a = 1'f32): Color =
+  vec4(r, g, b, a)
+
+proc rgbf*(c: Color, a = 1'f32): Color =
+  vec4(c[0], c[1], c[2], a)
 
 const
   Black* = rgb(0x0, 0x0, 0x0)

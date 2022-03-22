@@ -13,6 +13,7 @@ proc render() =
 
 proc runVm() =
   var vm = vm.newVM()
+  discard newEngine(vm.v)
   register_gameconstants(vm.v)
   register_gamelib(vm.v)
   vm.execNutFile("ng.nut")
@@ -27,7 +28,6 @@ proc main() =
 
   if fileExists("ThimbleweedPark.ggpack1"):
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
-    discard newEngine()
     runVm()
     app.run(render)
   else:
