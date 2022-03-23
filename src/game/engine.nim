@@ -1,5 +1,6 @@
 import std/[random, streams, tables, strutils, sequtils]
 import sqnim
+import glm
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
@@ -8,6 +9,7 @@ import ../io/ggpackmanager
 import room
 import thread
 import squtils
+import ../util/tween
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -17,6 +19,7 @@ type Engine* = ref object of RootObj
   roomTable: HSQOBJECT
   room*: Room
   background: string
+  fade*: Tween[float]
 
 var gEngine*: Engine
 
@@ -55,8 +58,6 @@ proc setRoom*(self: Engine, roomTable: HSQOBJECT) =
       sq_pushobject(self.v, oTbl)
       discard sq_newslot(self.v, -3, false)
       sq_pop(self.v, 1)
-    else:
-      echo obj.name & ": " & oTbl.objType.toHex
 
   call(self.v, self.roomTable, "enter")
 
@@ -65,17 +66,13 @@ proc update(self: Engine) =
   for thread in gThreads.toSeq:
     if thread.update(elapsed):
       gThreads.del gThreads.find(thread)
+  self.fade.update(elapsed)
   self.room.update(elapsed)
   
 proc render*(self: Engine) =
   self.update()
   
-  #camera(320, 180)
   gfxClear(Gray)
   self.room.render()
-  # gfxDrawSprite(Vec2f(), rect(0'f32,0'f32, 320'f32, 180'f32), self.textures[self.background])
-  # for obj in self.objects:
-  #   let frame = self.spriteSheets[obj.sheet].frames.getFrame(obj.anims[0])
-  #   let size = self.spriteSheets[obj.sheet].meta.size
-  #   gfxDrawSprite(obj.pos, rectf(frame.frame/size), self.textures[obj.sheet])
-
+  
+  gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, self.fade.current()))

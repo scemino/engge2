@@ -8,6 +8,7 @@ function hideAll() {
 
 script twinkleStar(obj, fadeRange1, fadeRange2, alphaRange1, alphaRange2) {
   local timeOff, timeOn, fadeIn, fadeOut
+  //print("twinkleStar\n")
   objectAlpha(obj, randomfrom(alphaRange1, alphaRange2))
   if (randomOdds(1.0)) {
     do {
@@ -33,8 +34,10 @@ Opening <-
  playOpening = function() {
     return startglobalthread(@() {
       objectHidden(opening1987, NO)
-      //roomFade(FADE_IN, 2.0)
+      roomFade(FADE_IN, 2.0)
       breaktime(4.0)
+      roomFade(FADE_OUT, 2.0)
+      breaktime(2.0)
       hideAll()
       breaktime(2.0)
   
@@ -55,15 +58,42 @@ Opening <-
         star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.1, 0.5))
       }
       
+      roomFade(FADE_IN, 3.0)
       breaktime(3.0)
 
-      hideAll()
-
-      for (local i = 1; i <= 16; i += 1) {
+      local tid = startthread(@() {
+        do {
+        //objectState(openingLight, 1)
+        //playSound(soundTowerLight)
+        breaktime(2.5)
+        //objectState(openingLight, 0)
+        //playSound(soundTowerLight2)
+        breaktime(1.0)
+        }
+        })
+        breaktime(10.0)
+       
+        //fadeOutSound(sid, 3.0)
+        stopthread(tid)
+        roomFade(FADE_OUT, 3.0)
+        breaktime(3.0)
+        hideAll()
+       
+        for (local i = 1; i <= 16; i += 1) {
         local star = Opening["openingStar"+i]
         objectHidden(star, YES)
         stopthread(star.tid)
-      }	
+        }	
+       
+        
+        objectHidden(openingFenceBackground, NO)
+        objectHidden(openingChain, NO)
+        objectHidden(openingLock, NO)
+        //objectState(openingLock, 0)
+       
+        //sid = loopSound(soundWindBirds, -1, 3.0)
+        roomFade(FADE_IN, 3.0)
+        breaktime(1.0)
     })
  }
 

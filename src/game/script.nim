@@ -8,6 +8,8 @@ import squtils
 import room
 import alphato
 import ../gfx/color
+import ../util/tween
+import ../util/easing
 
 # private methods
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -136,17 +138,6 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj: HSQOBJECT
   discard sq_getstackobj(v, 2, obj)
-  if obj.objType == OT_TABLE:
-    var name: string
-    getf(v, obj, "name", name)
-  elif obj.objType == OT_STRING:
-    var name: string
-    get(v, 2, name)
-    echo name & ": string"
-  elif obj.objType == OT_CLOSURE:
-    echo "closure"
-  else:
-    echo obj.objType.toHex & " (" & OT_TABLE.toHex & ")"
   push(v, obj.objType == OT_TABLE)
   1
 
@@ -160,7 +151,6 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   for o in gEngine.room.objects.mitems:
     if o.name == name:
       o.visible = hidden == 0
-  echo "objectHidden: " & name & ": " & $hidden
   0
 
 proc getObj(v: HSQUIRRELVM, i: int): Option[Object] =
@@ -220,6 +210,19 @@ proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_push(v, 2 + index)
   1
 
+proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var fadeType: SQInteger
+  var t: SQFloat
+  if SQ_FAILED(sq_getinteger(v, 2, fadeType)):
+    return sq_throwerror(v, "failed to get fadeType")
+  if SQ_FAILED(sq_getfloat(v, 3, t)):
+    return sq_throwerror(v, "failed to get time")
+  if fadeType == 0: # FadeIn
+    gEngine.fade = newTween[float](1.0f, 0.0f, t, linear)
+  elif fadeType == 1: # FadeOut
+    gEngine.fade = newTween[float](0.0f, 1.0f, t, linear)
+  0
+
 #public methods
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(startglobalthread, "startglobalthread")
@@ -236,6 +239,7 @@ proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")
+  v.regGblFun(roomFade, "roomFade")
 
 proc register_gameconstants*(v: HSQUIRRELVM) =
   sqBind(v):

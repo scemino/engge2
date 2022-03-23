@@ -118,7 +118,7 @@ proc gfxClear*(color: Color) =
   glClearColor(color.r, color.g, color.b, color.a)
   glClear(GL_COLOR_BUFFER_BIT)
 
-proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]; color = White) =
+proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]) =
   drawPrimitives(GL_TRIANGLES, vertices, indices)
 
 proc gfxDrawSprite*(pos: Vec2f, texture: Texture; color = White) =
@@ -149,6 +149,18 @@ proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32; color = White) =
     newVertex(pos.x, pos.y, l, b, color),
     newVertex(pos.x, pos.y+h, l, t, color)
   ]
+  gfxDraw(vertices, quadIndices)
+
+proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White) =
+  var w = size.x
+  var h = size.y
+  var vertices = [
+    newVertex(pos.x+w, pos.y+h, 1, 0, color),
+    newVertex(pos.x+w, pos.y,   1, 1, color),
+    newVertex(pos.x,   pos.y,   0, 1, color),
+    newVertex(pos.x,   pos.y+h, 0, 0, color)
+  ]
+  noTexture()
   gfxDraw(vertices, quadIndices)
 
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]) = 

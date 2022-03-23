@@ -1,28 +1,20 @@
 import motor
 import room
 import glm
+import ../util/tween
+import ../util/easing
 
 type AlphaTo = ref object of Motor
-    elapsed: float
-    time: float
     obj: Object
-    frm: float
-    to: float
-    speed: float
+    tween: Tween[float]
 
-proc newAlphaTo*(time: float, obj: var Object, to: float): AlphaTo =
+proc newAlphaTo*(duration: float, obj: var Object, to: float): AlphaTo =
   new(result)
-  result.time = time
   result.obj = obj
-  result.frm = obj.color[3]
-  result.to = to
-  result.speed = to - result.frm
+  result.tween = newTween[float](obj.color[3], to, duration, linear)
   result.enabled = true
 
 method update(self: AlphaTo, el: float) =
-  self.elapsed += el
-  if self.elapsed > self.time:
-    self.elapsed = self.time
-    self.enabled = false
-  let f = clamp(self.elapsed / self.time, 0, 1)
-  self.obj.color[3] = self.frm + f * self.speed
+  self.tween.update(el)
+  self.obj.color[3] = self.tween.current()
+  self.enabled = self.tween.running()
