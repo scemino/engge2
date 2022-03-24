@@ -355,16 +355,17 @@ proc render*(self: var Room) =
   # draw foreground layers
   self.drawLayers(x => x < 0)  
 
-proc play*(self: var Object) =
+proc play*(self: Object) =
+  self.elapsedMs = 0
   self.state = asPlay
   self.frameIndex = 0
 
-proc pause*(self: var Object) =
+proc pause*(self: Object) =
   self.state = asPause
 
-proc update*(self: var Object, elapsedMs: float) =
+proc update*(self: Object, elapsedSec: float) =
   if not self.alphaTo.isNil and self.alphaTo.enabled:
-    self.alphaTo.update(elapsedMs)
+    self.alphaTo.update(elapsedSec)
     
   if self.visible and self.animations.len > 0 and self.animationIndex >= 0 and self.animationIndex < self.animations.len:
     let animation = self.animations[self.animationIndex]
@@ -375,7 +376,7 @@ proc update*(self: var Object, elapsedMs: float) =
         if self.frameIndex >= animation.frames.len:
           self.frameIndex = 0
         else:
-          self.elapsedMs += elapsedMs
+          self.elapsedMs += elapsedSec*1000f
           var fps = animation.fps
           if fps == 0:
             fps = 10
@@ -387,9 +388,9 @@ proc update*(self: var Object, elapsedMs: float) =
             else:
               self.pause()
 
-proc update*(self: var Room, elapsedMs: float) = 
+proc update*(self: var Room, elapsedSec: float) = 
   for obj in self.objects.mitems:
-    obj.update(elapsedMs)
+    obj.update(elapsedSec)
 
 proc distanceSquared(vector1, vector2: Vec2f): float =
   let dx = vector1.x - vector2.x

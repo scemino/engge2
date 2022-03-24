@@ -1,4 +1,4 @@
-import std/[logging, strutils, options]
+import std/[logging, options, strformat]
 import std/random as rnd
 import sqnim
 import thread
@@ -223,6 +223,41 @@ proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.fade = newTween[float](0.0f, 1.0f, t, linear)
   0
 
+proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let obj = getObj(v, 2)
+  var state: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 3, state)):
+    return sq_throwerror(v, "failed to get state")
+  obj.get.animationIndex = state
+  0
+
+proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = getObj(v, 2)
+  var state: string
+  if obj.isNone:
+    return sq_throwerror(v, "failed to get object")
+  if sq_gettype(v, 3) == OT_INTEGER:
+    var index: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 3, index)):
+      return sq_throwerror(v, "failed to get state")
+    state = "state" & $index
+  elif sq_gettype(v, 3) == OT_STRING:
+    var sqState: SQString
+    if SQ_FAILED(sq_getstring(v, 3, sqState)):
+      return sq_throwerror(v, "failed to get state")
+    state = $sqState
+  else:
+    return sq_throwerror(v, "failed to get state")
+  
+  for i in 0..<obj.get.animations.len:
+    let anim = obj.get.animations[i].name
+    if anim == state:
+      info fmt"playObjectState {obj.get.name}, {state} ({i})"
+      obj.get.animationIndex = i
+      obj.get.play()
+      return 0
+  0
+
 #public methods
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(startglobalthread, "startglobalthread")
@@ -237,6 +272,8 @@ proc register_gamelib*(v: HSQUIRRELVM) =
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
+  v.regGblFun(objectState, "objectState")
+  v.regGblFun(playObjectState, "playObjectState")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")
   v.regGblFun(roomFade, "roomFade")
