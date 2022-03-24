@@ -155,11 +155,13 @@ template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
     get(v, -1, value)
     sq_pop(v, 1)
 
-proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string) =
+proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
   sq_pushobject(v, o)
   sq_pushstring(v, name, -1)
   discard sq_get(v, -2)
 
   sq_pushobject(v, o)
-  discard sq_call(v, 1, SQFalse, SQTrue)
+  for arg in args:
+    sq_pushobject(v, arg)
+  discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)

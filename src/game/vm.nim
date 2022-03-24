@@ -7,6 +7,8 @@ proc onError(v: HSQUIRRELVM, desc: SQString, source: SQString, line: SQInteger, 
 type VM* = ref object of RootObj
   v*: HSQUIRRELVM
 
+var gVm*: VM
+
 proc newVM*(): VM =
   new(result)
   result.v = sq_open(1024)
@@ -14,6 +16,7 @@ proc newVM*(): VM =
   sq_setprintfunc(result.v, printfunc, printfunc)
   sqstd_seterrorhandlers(result.v)
   sq_setcompilererrorhandler(result.v, onError)
+  gVm = result
 
 proc destroy*(self: VM) =
   sq_close(self.v)

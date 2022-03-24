@@ -1,14 +1,15 @@
 import std/[random, streams, tables, sequtils]
 import sqnim
 import glm
+import room
+import thread
+import squtils
+import callback
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
 import ../io/ggpackmanager
-import room
-import thread
-import squtils
 import ../util/tween
 
 type Engine* = ref object of RootObj
@@ -20,6 +21,7 @@ type Engine* = ref object of RootObj
   room*: Room
   background: string
   fade*: Tween[float]
+  callbacks*: seq[Callback]
 
 var gEngine*: Engine
 
@@ -66,6 +68,9 @@ proc update(self: Engine) =
   for thread in gThreads.toSeq:
     if thread.update(elapsed):
       gThreads.del gThreads.find(thread)
+  for cb in self.callbacks.toSeq:
+    if cb.update(elapsed):
+      self.callbacks.del self.callbacks.find(cb)
   self.fade.update(elapsed)
   self.room.update(elapsed)
   

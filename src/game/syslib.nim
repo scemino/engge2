@@ -3,6 +3,44 @@ import sqnim
 import thread
 import vm
 import squtils
+import callback
+import engine
+
+proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  error("TODO: activeController: not implemented")
+  # harcode mouse
+  sq_pushinteger(v, 1)
+  1
+
+proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let count = sq_gettop(v)
+  var duration: SQFloat
+  if SQ_FAILED(sq_getfloat(v, 2, duration)):
+    return sq_throwerror(v, "failed to get duration")
+  var meth: HSQOBJECT;
+  sq_resetobject(meth);
+  if SQ_FAILED(sq_getstackobj(v, 3, meth)) or not sq_isclosure(meth):
+    return sq_throwerror(v, "failed to get method")
+
+  var methodName: string
+  if SQ_SUCCEEDED(sq_getclosurename(v, 3)):
+    var tmpMethodName: SQString
+    discard sq_getstring(v, -1, tmpMethodName)
+    methodName = $tmpMethodName
+
+  var args: seq[HSQOBJECT]
+  for i in 4..count:
+    var arg: HSQOBJECT
+    sq_resetobject(arg)
+    if SQ_FAILED(sq_getstackobj(v, i, arg)):
+      return sq_throwerror(v, "failed to get argument " & $i)
+    args.add(arg)
+
+  let callback = newCallback(duration, methodName, args)
+  gEngine.callbacks.add(callback)
+
+  sq_pushinteger(v, callback.id)
+  return 1
 
 proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: Thread)): SQInteger =
   for t in gThreads:
@@ -98,6 +136,8 @@ proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   pstartthread(v, true)
 
 proc register_syslib*(v: HSQUIRRELVM) =
+  v.regGblFun(activeController, "activeController")
+  v.regGblFun(addCallback, "addCallback")
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
   v.regGblFun(sqChr, "chr")
