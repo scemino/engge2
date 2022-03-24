@@ -1,4 +1,4 @@
-import std/[random, streams, tables, strutils, sequtils]
+import std/[random, streams, tables, sequtils]
 import sqnim
 import glm
 import ../gfx/spritesheet

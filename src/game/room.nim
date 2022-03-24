@@ -1,5 +1,3 @@
-import ../sys/opengl
-import ../sys/app
 import glm
 import sqnim
 import std/[os, json, parseutils, options, sequtils, streams, algorithm, sugar, strformat]
