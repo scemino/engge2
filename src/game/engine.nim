@@ -22,6 +22,7 @@ type Engine* = ref object of RootObj
   background: string
   fade*: Tween[float]
   callbacks*: seq[Callback]
+  time*: float # time in seconds
 
 var gEngine*: Engine
 
@@ -65,6 +66,7 @@ proc setRoom*(self: Engine, roomTable: HSQOBJECT) =
 
 proc update(self: Engine) =
   var elapsed = 1/60
+  self.time += elapsed
   for thread in gThreads.toSeq:
     if thread.update(elapsed):
       gThreads.del gThreads.find(thread)

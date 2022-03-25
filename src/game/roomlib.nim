@@ -23,6 +23,9 @@ proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc register_roomlib*(v: HSQUIRRELVM) =
+  ## Registers the game room library
+  ## 
+  ## It adds all the room functions in the given Squirrel virtual machine.
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(roomFade, "roomFade")
   

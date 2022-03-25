@@ -95,6 +95,9 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc register_objlib*(v: HSQUIRRELVM) =
+  ## Registers the game object library
+  ## 
+  ## It adds all the object functions in the given Squirrel virtual machine.
   v.regGblFun(isObject, "isObject")
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectAlpha, "objectAlpha")

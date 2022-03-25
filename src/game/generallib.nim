@@ -52,6 +52,9 @@ proc randomOdds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc register_generallib*(v: HSQUIRRELVM) =
+  ## Registers the game general library
+  ## 
+  ## It adds all the general functions in the given Squirrel virtual machine.
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")
