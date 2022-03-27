@@ -64,6 +64,7 @@ type
     color*: Color
     alphaTo*: Motor
     table*: HSQOBJECT
+    touchable*: bool
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -77,6 +78,7 @@ type
     texture: Texture
     spriteSheet*: SpriteSheet
     table*: HSQOBJECT
+    overlay*: Color
   RoomParser = object
     input: Stream
     filename: string
@@ -206,6 +208,7 @@ proc parseRoom(self: var RoomParser): Room =
   result.height = height.int32
   result.roomSize =  roomSize
   result.fullscreen = fullscreen.int32
+  result.overlay = Transparent
 
   # backgrounds
   var names: seq[string]
@@ -251,6 +254,7 @@ proc parseRoom(self: var RoomParser): Room =
       obj.hotspot = parseRecti(jObject["hotspot"].getStr)
       obj.zsort = jObject["zsort"].getInt().int32
       obj.objType = toObjectType(jObject)
+      obj.touchable = true
       obj.visible = true
       obj.color = White
       if jObject.hasKey("animations"):

@@ -8,10 +8,10 @@ type AlphaTo = ref object of Motor
     obj: Object
     tween: Tween[float]
 
-proc newAlphaTo*(duration: float, obj: var Object, to: float): AlphaTo =
+proc newAlphaTo*(duration: float, obj: var Object, to: float, im: InterpolationMethod): AlphaTo =
   new(result)
   result.obj = obj
-  result.tween = newTween[float](obj.color[3], to, duration, linear)
+  result.tween = newTween[float](obj.color[3], to, duration, im)
   result.enabled = true
 
 method update(self: AlphaTo, el: float) =

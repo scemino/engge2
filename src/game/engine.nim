@@ -107,3 +107,4 @@ proc render*(self: Engine) =
     self.room.render()
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
+    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)

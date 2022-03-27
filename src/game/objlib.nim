@@ -1,21 +1,29 @@
-import std/[logging, options, strformat]
+import std/[logging, strformat]
 import sqnim
 import glm
 import vm
-import engine
 import squtils
 import utils
 import room
 import alphato
+import ../util/easing
 import ../gfx/color
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns true if the object is actually an object and not something else. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## if (isObject(obj) && objectValidUsePos(obj) && objectTouchable(obj)) {
   var obj: HSQOBJECT
   discard sq_getstackobj(v, 2, obj)
   push(v, obj.objType == OT_TABLE)
   1
 
 proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectHidden(oldRags, YES)
   var table: HSQOBJECT
   discard sq_getstackobj(v, 2, table)
   var hidden: int
@@ -24,30 +32,27 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   obj.visible = hidden == 0
   0
 
-proc getObj(v: HSQUIRRELVM, i: int): Option[Object] =
-  var obj: HSQOBJECT
-  discard sq_getstackobj(v, i, obj)
-  var name: string
-  getf(v, obj, "name", name)
-  for o in gEngine.room.objects.mitems:
-    if o.name == name:
-      return some(o)
-  none(Object)
-
 proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = getObj(v, 2)
-  if obj.isSome:
+  ## Sets an object's alpha (transparency) in the range of 0.0 to 1.0.
+  ## Setting an object's color will set it's alpha back to 1.0, ie completely opaque. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectAlpha(cloud, 0.5)
+  var obj = obj(v, 2)
+  if not obj.isNil:
     var alpha = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
     alpha = clamp(alpha, 0.0f, 1.0f);
-    let color = obj.get.color
-    obj.get.color = rgbf(color, alpha)
+    obj.color = rgbf(obj.color, alpha)
   0
 
 proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = getObj(v, 2)
-  if obj.isSome:
+  ## Changes an object's alpha from its current state to the specified alpha over the time period specified by time.
+  ## If an interpolationMethod is used, the change will follow the rules of the easing method, e.g. LINEAR, EASE_INOUT.
+  ## See also stopObjectMotors. 
+  var obj = obj(v, 2)
+  if not obj.isNil:
     var alpha = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
@@ -55,12 +60,15 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var t = 0.0f
     if SQ_FAILED(sq_getfloat(v, 4, t)):
       return sq_throwerror(v, "failed to get time")
-    obj.get.alphaTo = newAlphaTo(t, obj.get, alpha)
+    var interpolation: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 5, interpolation)):
+      interpolation = 0
+    obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
   0
 
 proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = getObj(v, 2)
-  if obj.isNone:
+  var obj = obj(v, 2)
+  if obj.isNil:
     sq_throwerror(v, "failed to get object")
   else:
     var x, y: SQInteger
@@ -68,21 +76,30 @@ proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(sq_getinteger(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    obj.get.pos = vec2(x.float32, y.float32)
+    obj.pos = vec2(x.float32, y.float32)
     0
 
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  let obj = getObj(v, 2)
+  let obj = obj(v, 2)
   var state: SQInteger
   if SQ_FAILED(sq_getinteger(v, 3, state)):
     return sq_throwerror(v, "failed to get state")
-  obj.get.animationIndex = state
+  obj.animationIndex = state
+  0
+
+proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets if an object is player touchable. 
+  let obj = obj(v, 2)
+  var touchable: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 3, touchable)):
+    return sq_throwerror(v, "failed to get touchable")
+  obj.touchable = touchable != 0
   0
 
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = getObj(v, 2)
+  var obj = obj(v, 2)
   var state: string
-  if obj.isNone:
+  if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   if sq_gettype(v, 3) == OT_INTEGER:
     var index: SQInteger
@@ -97,12 +114,12 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   else:
     return sq_throwerror(v, "failed to get state")
   
-  for i in 0..<obj.get.animations.len:
-    let anim = obj.get.animations[i].name
+  for i in 0..<obj.animations.len:
+    let anim = obj.animations[i].name
     if anim == state:
-      info fmt"playObjectState {obj.get.name}, {state} ({i})"
-      obj.get.animationIndex = i
-      obj.get.play()
+      info fmt"playObjectState {obj.name}, {state} ({i})"
+      obj.animationIndex = i
+      obj.play()
       return 0
   0
 
@@ -116,4 +133,5 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
   v.regGblFun(objectState, "objectState")
+  v.regGblFun(objectTouchable, "objectTouchable")
   v.regGblFun(playObjectState, "playObjectState")
