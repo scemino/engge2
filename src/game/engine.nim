@@ -73,6 +73,7 @@ proc loadRoom*(name: string): Room =
 
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
+    self.fade.enabled = false
     self.room = room
     call(self.v, self.room.table, "enter")
 
@@ -104,4 +105,5 @@ proc render*(self: Engine) =
   gfxClear(Gray)
   if not self.room.isNil:
     self.room.render()
-    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, self.fade.current()))
+    let fade = if self.fade.enabled: self.fade.current() else: 0.0
+    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))

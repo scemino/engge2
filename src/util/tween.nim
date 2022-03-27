@@ -5,18 +5,20 @@ type
     elapsed, duration: float # duration in ms
     value: T
     easing: EasingFunc
+    enabled*: bool
 
 proc newTween*[T](frm, to: T, duration: float, easing: EasingFunc): Tween[T] =
-  Tween[T](frm: frm, to: to, delta: to - frm, duration: duration, value: frm, easing: easing)
+  Tween[T](frm: frm, to: to, delta: to - frm, duration: duration, value: frm, easing: easing, enabled: true)
 
 proc update*[T](self: var Tween[T], elapsed: float) =
-  self.elapsed += elapsed
-  if self.elapsed > self.duration:
-    self.elapsed = self.duration
-  var f = self.elapsed / self.duration
-  if not self.easing.isNil:
-    f = self.easing(f)
-    self.value = self.frm + f * self.delta
+  if self.enabled:
+    self.elapsed += elapsed
+    if self.elapsed > self.duration:
+      self.elapsed = self.duration
+    var f = self.elapsed / self.duration
+    if not self.easing.isNil:
+      f = self.easing(f)
+      self.value = self.frm + f * self.delta
 
 proc current*[T](self: Tween[T]): T {.inline.} =
   self.value
