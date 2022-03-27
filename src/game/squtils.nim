@@ -1,5 +1,6 @@
 import std/macros
 import sqnim
+import vm
 
 proc regGblFun*(v: HSQUIRRELVM, f: SQFUNCTION, fname: cstring) =
   sq_pushroottable(v)
@@ -165,3 +166,19 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
     sq_pushobject(v, arg)
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
+
+proc rawsafeget*(v: HSQUIRRELVM): SQInteger =
+  let value = if SQ_SUCCEEDED(sq_rawget(v, -2)): 1 else: 0
+  sq_pushinteger(v, value)
+  1
+
+proc getId*(o: HSQOBJECT): int =
+  result = 0
+  if rawsafeget(gVm.v) == 1:
+    getf(gVm.v, o, "_id", result)
+
+proc setId*(o: HSQOBJECT, id: int) =
+  sq_pushobject(gVm.v, o)
+  sq_pushstring(gVm.v, "_id", -1)
+  sq_pushinteger(gVm.v, id)
+  discard sq_newslot(gVm.v, -3, false)

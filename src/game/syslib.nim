@@ -1,10 +1,12 @@
-import std/logging
+import std/[logging, strformat]
 import sqnim
 import thread
 import vm
 import squtils
 import callback
 import engine
+import ids
+import task
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
@@ -64,12 +66,13 @@ proc addFolder(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: Thread)): SQInteger =
-  for t in gThreads:
-    if t.getThread() == v:
-      t.suspend()
-      setConditionFactory(t)
-      return -666
-  sq_throwerror(v, "failed to get thread")
+  let t = thread(v)
+  if t.isNil:
+    sq_throwerror(v, "failed to get thread")
+  else:
+    t.suspend()
+    setConditionFactory(t)
+    return -666
 
 proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for count frames. 
@@ -96,6 +99,41 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getfloat(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
+
+proc getThread(id: int): Thread =
+  for t in gThreads:
+    if t.id == id:
+      return t
+
+proc getThread(v: HSQUIRRELVM): Thread =
+  echo "find thread " & $(cast[int](v.unsafeAddr))
+  for t in gThreads:
+    echo "thread id=" & $t.id & " " & t.name & " " & $(cast[int](t.v.unsafeAddr))
+    if t.getThread() == v:
+      return t
+
+proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var id = 0
+  if sq_gettype(v, 2) == OT_INTEGER:
+    discard sq_getinteger(v, 2, id)
+  info "breakwhilerunning: " & $id
+  
+  if isThread(id):
+    var curThread = getThread(v)
+    if curThread.isNil:
+      return sq_throwerror(v, "Current thread should be created with startthread")
+    
+    info "curThread.id: " & $curThread.id
+    var t = getThread(id);
+    if t.isNil:
+      warn "thread not found: " & $id
+      return 0
+
+    info fmt"add BreakWhileRunning pid={curThread.id} id={id}"
+    #curThread.suspend()
+    gEngine.tasks.add newBreakWhileRunning(curThread.id, id)
+    return -666
+  0
 
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Converts an integer to a char. 
@@ -177,16 +215,17 @@ proc removeCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
   let size = sq_gettop(v)
+
   var env_obj: HSQOBJECT
   sq_resetobject(env_obj)
   if SQ_FAILED(sq_getstackobj(v, 1, env_obj)):
     return sq_throwerror(v, "Couldn't get environment from stack")
 
   # create thread and store it on the stack
-  discard sq_newthread(v, 1024)
+  discard sq_newthread(gVm.v, 1024)
   var thread_obj: HSQOBJECT
   sq_resetobject(thread_obj)
-  if SQ_FAILED(sq_getstackobj(v, -1, thread_obj)):
+  if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
     return sq_throwerror(v, "Couldn't get coroutine thread from stack")
 
   var args: seq[HSQOBJECT]
@@ -208,13 +247,18 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
     discard sq_getstring(v, -1, name)
 
   let threadName = if not name.isNil: name else: "anonymous"
-  var thread = newThread($threadName, global, v, thread_obj, env_obj, closureObj, args)
-  sq_pop(v, 1)
-  info("create thread (" & $threadName & ")")
+  var thread = newThread($threadName, global, gVm.v, thread_obj, env_obj, closureObj, args)
+  sq_pop(gVm.v, 1)
+  info("create thread (" & $threadName & ")" & " id: " & $thread.id & " v=" & $(cast[int](thread.v.unsafeAddr)))
   if not name.isNil:
     sq_pop(v, 1) # pop name
   sq_pop(v, 1) # pop closure
+  
   gThreads.add(thread)
+
+  # call the closure in the thread
+  if not thread.call():
+    return sq_throwerror(v, "call failed")
 
   sq_pushinteger(v, thread.id)
   return 1
@@ -251,11 +295,9 @@ proc stopthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_pushinteger(v, 0)
     return 1
 
-  for t in gThreads:
-    if t.id == id:
-      t.stop()
-      sq_pushinteger(v, 0)
-      return 1
+  let t = thread(id)
+  if not t.isNil:
+    t.stop()
 
   sq_pushinteger(v, 0)
   1
@@ -306,6 +348,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(addFolder, "addFolder")
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
+  v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(sqChr, "chr")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")

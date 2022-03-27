@@ -14,10 +14,11 @@ proc update*[T](self: var Tween[T], elapsed: float) =
   if self.elapsed > self.duration:
     self.elapsed = self.duration
   var f = self.elapsed / self.duration
-  f = self.easing(f)
-  self.value = self.frm + f * self.delta
+  if not self.easing.isNil:
+    f = self.easing(f)
+    self.value = self.frm + f * self.delta
 
-proc current*[T](self: Tween[T]): T =
+proc current*[T](self: Tween[T]): T {.inline.} =
   self.value
 
 proc running*[T](self: Tween[T]): bool =

@@ -1,13 +1,36 @@
 import engine
 import sqnim
 import squtils
+import utils
+import ids
 import ../util/tween
 import ../util/easing
 
 proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var room: HSQOBJECT
-  discard sq_getstackobj(v, 2, room)
-  gEngine.setRoom(room)
+  var table: HSQOBJECT
+  sq_resetobject(table)
+  discard sq_getstackobj(v, 2, table)
+  var name: string
+  v.getf(table, "background", name)
+  var room = loadRoom(name)
+  gEngine.rooms.add room
+  0
+
+proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var table: HSQOBJECT
+  sq_resetobject(table)
+  discard sq_getstackobj(v, 2, table)
+  let id = table.getId()
+  if id == 0:
+    return sq_throwerror(v, "failed to get room 1")
+  if id >= START_ROOMID and id < END_ROOMID:
+    gEngine.setRoom(room(id))
+  if id >= START_OBJECTID and id < END_OBJECTID:
+    let room = objRoom(table)
+    if room.isNil:
+      return sq_throwerror(v, "failed to get room 2")
+    gEngine.setRoom(room)
+  0
 
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var fadeType: SQInteger
@@ -26,6 +49,7 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
+  v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(roomFade, "roomFade")
   

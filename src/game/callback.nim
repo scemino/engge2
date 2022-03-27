@@ -1,8 +1,8 @@
 import sqnim
 import squtils
 import vm
+import ids
 
-const START_CALLBACKID = 8000000
 var gCallbackId = START_CALLBACKID
 
 type Callback* = ref object of RootObj

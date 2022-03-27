@@ -1,25 +1,30 @@
+import std/logging
+import std/strformat
+import std/sequtils
 import sqnim
+import ids
 
 type
   Thread* = ref object of RootObj
     id*: int
-    threadName*: string
+    name*: string
     global*: bool
     v*: HSQUIRRELVM
-    thread_obj, env_obj*, closureObj*: HSQOBJECT
+    thread_obj*, env_obj*, closureObj*: HSQOBJECT
     args*: seq[HSQOBJECT]
     waitTime*: float
     numFrames*: int
+    init: bool
     stopRequest: bool
 
-var gNumThreads = 0
+var gNumThreads = START_THREAD_ID
 var gThreads*: seq[Thread]
 
-proc newThread*(threadName: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
+proc newThread*(name: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
   new(result)
   gNumThreads += 1
   result.id = gNumThreads
-  result.threadName = threadName
+  result.name = name
   result.global = global
   result.v = v
   result.thread_obj = thread_obj
@@ -43,11 +48,12 @@ proc isDead*(self: Thread): bool =
   self.stopRequest or state == 0
 
 proc destroy*(self: Thread) =
+  echo fmt"destroy thread {self.id}"
   discard sq_release(self.v, self.threadObj)
   discard sq_release(self.v, self.envObj)
   discard sq_release(self.v, self.closureObj)
 
-proc call(self: Thread): bool =
+proc call*(self: Thread): bool =
   let thread = self.getThread()
   # call the closure in the thread
   let top = sq_gettop(thread)
@@ -61,8 +67,11 @@ proc call(self: Thread): bool =
   return true
 
 proc resume*(self: Thread) =
-  if self.isSuspended:
-    discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
+  if not self.isDead:
+    let state = sq_getvmstate(self.getThread())
+    info fmt"resume thread {self.id}, state={state}"
+    if self.isSuspended:
+      discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
 
 proc suspend*(self: Thread) =
   if not self.isSuspended:
@@ -82,6 +91,18 @@ proc update*(self: Thread, elapsed: float): bool =
     self.numFrames -= 1
     self.numFrames = 0
     self.resume()
-  else:
-    discard self.call()
   self.isDead()
+
+proc thread*(v: HSQUIRRELVM): Thread =
+  var ts = gThreads.toSeq
+  for t in ts:
+    if t.getThread() == v:
+      return t
+  nil
+
+proc thread*(id: int): Thread =
+  var ts = gThreads.toSeq
+  for t in ts:
+    if t.id == id:
+      return t
+  nil

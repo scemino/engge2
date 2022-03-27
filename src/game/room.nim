@@ -1,13 +1,12 @@
 import glm
 import sqnim
-import std/[os, json, parseutils, options, sequtils, streams, algorithm, sugar, strformat]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat]
 import ../gfx/recti
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/image
 import ../gfx/graphics
 import ../gfx/color
-import ../io/ggpackmanager
 import motor
 
 type
@@ -51,7 +50,7 @@ type
   Object* = ref object of RootObj
     name*: string
     visible*: bool
-    pos*: Vec2i
+    pos*: Vec2f
     usePos*: Vec2i
     useDir*: Direction
     hotspot*: Recti
@@ -64,6 +63,7 @@ type
     elapsedMs: float
     color*: Color
     alphaTo*: Motor
+    table*: HSQOBJECT
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -76,6 +76,7 @@ type
     objects*: seq[Object]
     texture: Texture
     spriteSheet*: SpriteSheet
+    table*: HSQOBJECT
   RoomParser = object
     input: Stream
     filename: string
@@ -243,7 +244,7 @@ proc parseRoom(self: var RoomParser): Room =
     for jObject in jRoom["objects"]:
       var obj = new(Object)
       obj.name = jObject["name"].getStr
-      obj.pos = parseVec2i(jObject["pos"].getStr)
+      obj.pos = vec2f(parseVec2i(jObject["pos"].getStr))
       obj.usePos = parseVec2i(jObject["usepos"].getStr)
       let useDir = jObject.getNode("usedir")
       obj.useDir = if useDir.isSome: parseUseDir(useDir.get) else: dNone
@@ -284,13 +285,6 @@ proc parseRoom*(s: Stream, filename: string = ""): Room =
 
 proc parseRoom*(buffer: string): Room =
   result = parseRoom(newStringStream(buffer), "input")
-
-proc loadRoom*(path: string): Room =
-  let (_, filename) = splitPath(path)
-  let stream = gGGPackMgr.loadStream(filename)
-  if stream == nil:
-    raise newException(IOError, "cannot read from file: " & path)
-  result = parseRoom(stream, path)
 
 proc getScreenSize(self: var Room, roomHeight: int): Vec2i =
   case roomHeight:

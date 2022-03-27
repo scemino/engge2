@@ -1,8 +1,10 @@
 import std/[logging, options, strformat]
 import sqnim
+import glm
 import vm
 import engine
 import squtils
+import utils
 import room
 import alphato
 import ../gfx/color
@@ -14,15 +16,12 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj: HSQOBJECT
-  discard sq_getstackobj(v, 2, obj)
+  var table: HSQOBJECT
+  discard sq_getstackobj(v, 2, table)
   var hidden: int
   discard sq_getinteger(v, 3, hidden)
-  var name: string
-  getf(v, obj, "name", name)
-  for o in gEngine.room.objects.mitems:
-    if o.name == name:
-      o.visible = hidden == 0
+  var obj = obj(table)
+  obj.visible = hidden == 0
   0
 
 proc getObj(v: HSQUIRRELVM, i: int): Option[Object] =
@@ -58,6 +57,19 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get time")
     obj.get.alphaTo = newAlphaTo(t, obj.get, alpha)
   0
+
+proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = getObj(v, 2)
+  if obj.isNone:
+    sq_throwerror(v, "failed to get object")
+  else:
+    var x, y: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(sq_getinteger(v, 4, y)):
+      return sq_throwerror(v, "failed to get y")
+    obj.get.pos = vec2(x.float32, y.float32)
+    0
 
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let obj = getObj(v, 2)
@@ -102,5 +114,6 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
+  v.regGblFun(objectAt, "objectAt")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(playObjectState, "playObjectState")

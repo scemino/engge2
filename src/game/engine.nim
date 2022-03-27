@@ -1,10 +1,13 @@
-import std/[random, streams, tables, sequtils]
+import std/[random, streams, tables, sequtils, strformat, logging]
 import sqnim
 import glm
 import room
 import thread
 import squtils
 import callback
+import vm
+import ids
+import task
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
@@ -17,69 +20,88 @@ type Engine* = ref object of RootObj
   spriteSheets: Table[string, SpriteSheet]
   textures: Table[string, Texture]
   v: HSQUIRRELVM
-  roomTable: HSQOBJECT
+  rooms*: seq[Room]
   room*: Room
   background: string
   fade*: Tween[float]
   callbacks*: seq[Callback]
+  tasks*: seq[Task]
   time*: float # time in seconds
 
 var gEngine*: Engine
+var gRoomId = START_ROOMID
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
   gEngine = result
   result.rand = initRand()
   result.v = v
-  sq_resetobject(result.roomTable)
 
-proc loadRoom(entry: string): Room =
-  let content = gGGPackMgr.loadStream(entry).readAll
-  parseRoom(content)
+proc loadRoom*(name: string): Room =
+  echo "room background: " & name
+  let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
+  result = parseRoom(content)
+  getf(gVm.v, gVm.v.rootTbl(), name, result.table)
+  result.table.setId(gRoomId)
+  gRoomId += 1
+  for obj in result.objects:
+    sq_resetobject(obj.table)
+    getf(gVm.v, result.table, obj.name, obj.table)
+    # check if the object exists in Squirrel VM
+    if obj.table.objType == OT_NULL:
+      info fmt"create table for obj: {obj.name}"
+      # this object does not exist, so create it
+      sq_newtable(gVm.v)
+      discard sq_getstackobj(gVm.v, -1, obj.table)
+      sq_addref(gVm.v, obj.table)
+      sq_pop(gVm.v, 1)
 
-proc setRoom*(self: Engine, roomTable: HSQOBJECT) =
-  self.roomTable = roomTable
-  self.v.getf(self.roomTable, "background", self.background)
-  self.room = loadRoom(self.background & ".wimpy")
-  for obj in self.room.objects:
-    var oTbl: HSQOBJECT
-    sq_resetobject(oTbl)
-    getf(self.v, roomTable, obj.name, oTbl)
-    if oTbl.objType == OT_NULL:
-      sq_newtable(self.v)
-      discard sq_getstackobj(self.v, -1, oTbl)
-      sq_addref(self.v, oTbl)
-      sq_pop(self.v, 1)
-
-      sq_pushobject(self.v, oTbl)
-      sq_pushstring(self.v, "name", -1)
-      sq_pushstring(self.v, obj.name, -1)
-      discard sq_newslot(self.v, -3, false)
+      # assign a name
+      sq_pushobject(gVm.v, obj.table)
+      sq_pushstring(gVm.v, "name", -1)
+      sq_pushstring(gVm.v, obj.name, -1)
+      discard sq_newslot(gVm.v, -3, false)
       
-      sq_pushobject(self.v, roomTable)
-      sq_pushstring(self.v, obj.name, -1)
-      sq_pushobject(self.v, oTbl)
-      discard sq_newslot(self.v, -3, false)
-      sq_pop(self.v, 1)
+      # adds the object to the room table
+      sq_pushobject(gVm.v, result.table)
+      sq_pushstring(gVm.v, obj.name, -1)
+      sq_pushobject(gVm.v, obj.table)
+      discard sq_newslot(gVm.v, -3, false)
+      sq_pop(gVm.v, 1)
+    else:
+      echo "obj.name: " & obj.name
 
-  call(self.v, self.roomTable, "enter")
+proc setRoom*(self: Engine, room: Room) =
+  if self.room != room:
+    self.room = room
+    call(self.v, self.room.table, "enter")
 
 proc update(self: Engine) =
   var elapsed = 1/60
   self.time += elapsed
   for thread in gThreads.toSeq:
     if thread.update(elapsed):
+      #info fmt"thread {thread.name} is dead"
       gThreads.del gThreads.find(thread)
   for cb in self.callbacks.toSeq:
     if cb.update(elapsed):
       self.callbacks.del self.callbacks.find(cb)
+  for t in self.tasks:
+    #info("updating task: " & t.name)
+    if t.update(elapsed):
+      #info("delete task: " & t.name)
+      self.tasks.del self.tasks.find(t)
+      #info("task updated")
+      break
+    #info("task updated")
   self.fade.update(elapsed)
-  self.room.update(elapsed)
+  if not self.room.isNil:
+    self.room.update(elapsed)
   
 proc render*(self: Engine) =
   self.update()
   
   gfxClear(Gray)
-  self.room.render()
-  
-  gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, self.fade.current()))
+  if not self.room.isNil:
+    self.room.render()
+    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, self.fade.current()))
