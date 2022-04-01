@@ -339,6 +339,15 @@ TitleCards <-
 defineRoom(Opening)
 defineRoom(TitleCards)
 
+willie <- { 
+  _key = "willie"
+  name = "willie"
+ }
+
+createActor(willie)
+actorCostume(willie, "WillieSittingAnimation")
+
+
 startglobalthread(@()
  {
   breakwhilerunning(Opening.playOpening())

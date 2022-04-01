@@ -2,6 +2,7 @@ import sqnim
 import squtils
 import engine
 import room
+import actor
 import ../util/easing
 
 proc room*(id: int): Room =
@@ -9,6 +10,32 @@ proc room*(id: int): Room =
     if room.table.getId() == id:
       return room
   nil
+
+proc room*(table: HSQOBJECT): Room =
+  for room in gEngine.rooms:
+    if room.table == table:
+      return room
+  nil
+
+proc room*(v: HSQUIRRELVM, i: int): Room =
+  var table: HSQOBJECT
+  if SQ_SUCCEEDED(get(v, i, table)):
+    room(table)
+  else:
+    nil
+
+proc actor*(table: HSQOBJECT): Actor =
+  for actor in gEngine.actors:
+    if actor.table == table:
+      return actor
+  nil
+
+proc actor*(v: HSQUIRRELVM, i: int): Actor =
+  var table: HSQOBJECT
+  if SQ_SUCCEEDED(get(v, i, table)):
+    actor(table)
+  else:
+    nil
 
 proc obj*(table: HSQOBJECT): Object =
   for room in gEngine.rooms:

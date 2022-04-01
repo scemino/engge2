@@ -127,25 +127,24 @@ proc getArr*(v: HSQUIRRELVM, o: HSQOBJECT, arr: var seq[string]) =
     sq_pop(v, 2)
   sq_pop(v, 1)
 
-proc get(v: HSQUIRRELVM, i: int, value: var int) =
-  discard sq_getinteger(v, i, value)
+proc get(v: HSQUIRRELVM, i: int, value: var int): SQRESULT =
+  sq_getinteger(v, i, value)
 
-proc get(v: HSQUIRRELVM, i: int, value: var float) =
+proc get(v: HSQUIRRELVM, i: int, value: var float): SQRESULT =
   var val: SQFloat
-  discard sq_getfloat(v, i, val)
+  result = sq_getfloat(v, i, val)
   value = val.float
 
-proc get(v: HSQUIRRELVM, i: int, value: var string) =
+proc get(v: HSQUIRRELVM, i: int, value: var string): SQRESULT =
   var val: SQString
-  discard sq_getstring(v, i, val)
+  result = sq_getstring(v, i, val)
   value = $val
 
-proc get(v: HSQUIRRELVM, i: int, value: var HSQOBJECT) =
-  discard sq_getstackobj(v, i, value)
+proc get(v: HSQUIRRELVM, i: int, value: var HSQOBJECT): SQRESULT =
+  sq_getstackobj(v, i, value)
 
-template get*[T](v: HSQUIRRELVM, index: int, value: var T) =
-  discard sq_get(v, index)
-  get(v, -1, value)
+template get*[T](v: HSQUIRRELVM, index: int, value: var T): SQRESULT =
+  get(v, index, value)
 
 template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
   sq_pushobject(v, o)
@@ -153,8 +152,11 @@ template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
   if SQ_FAILED(sq_get(v, -2)):
     sq_pop(v, 1)
   else:
-    get(v, -1, value)
+    discard get(v, -1, value)
     sq_pop(v, 1)
+
+template getf*[T](o: HSQOBJECT, name: string, value: var T) =
+  getf(gVm.v, o, name, value)
 
 proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
   sq_pushobject(v, o)

@@ -138,7 +138,7 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Converts an integer to a char. 
   var value: int
-  get(v, 2, value)
+  discard get(v, 2, value)
   var s: string
   s.add(chr(value))
   push(v, s)

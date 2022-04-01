@@ -2,6 +2,7 @@ import std/[random, streams, tables, sequtils, strformat, logging]
 import sqnim
 import glm
 import room
+import actor
 import thread
 import squtils
 import callback
@@ -21,6 +22,7 @@ type Engine* = ref object of RootObj
   textures: Table[string, Texture]
   v: HSQUIRRELVM
   rooms*: seq[Room]
+  actors*: seq[Actor]
   room*: Room
   background: string
   fade*: Tween[float]
@@ -108,3 +110,6 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
+
+  for actor in self.actors:
+    actor.draw()

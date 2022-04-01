@@ -39,19 +39,20 @@ type
     polygon*: seq[Vec2i]
     name*: string
     visible*: bool
-  ObjectAnimation* = object
+  ObjectAnimation* = ref object of RootObj
     name*: string
     frames*: seq[string]
     layers*: seq[ObjectAnimation]
     triggers*: seq[string]
     loop*: bool
     fps*: float32
-    flags: int
+    flags*: int
+    frameIndex*: int
   Object* = ref object of RootObj
     name*: string
     visible*: bool
     pos*: Vec2f
-    usePos*: Vec2i
+    usePos*: Vec2f
     useDir*: Direction
     hotspot*: Recti
     objType*: ObjectType
@@ -65,6 +66,7 @@ type
     alphaTo*: Motor
     table*: HSQOBJECT
     touchable*: bool
+    room*: Room
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -129,6 +131,7 @@ proc parseScaling(node: JsonNode): Scaling =
     result.values.add(ScalingValue(scale: scale, y: y))
 
 proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
+  new(result)
   result.name = jAnim["name"].getStr()
   result.loop = toBool(jAnim, "loop")
   result.fps = if jAnim.hasKey("fps") and jAnim["fps"].kind == JFloat: jAnim["fps"].getFloat else: 0
@@ -148,7 +151,7 @@ proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
     for jTrigger in jAnim["triggers"].items:
       result.triggers.add(jTrigger.getStr)
 
-proc parseObjectAnimations(jAnims: JsonNode): seq[ObjectAnimation] =
+proc parseObjectAnimations*(jAnims: JsonNode): seq[ObjectAnimation] =
   for jAnim in jAnims:
     result.add(parseObjectAnimation(jAnim))
 
@@ -248,7 +251,7 @@ proc parseRoom(self: var RoomParser): Room =
       var obj = new(Object)
       obj.name = jObject["name"].getStr
       obj.pos = vec2f(parseVec2i(jObject["pos"].getStr))
-      obj.usePos = parseVec2i(jObject["usepos"].getStr)
+      obj.usePos = vec2f(parseVec2i(jObject["usepos"].getStr))
       let useDir = jObject.getNode("usedir")
       obj.useDir = if useDir.isSome: parseUseDir(useDir.get) else: dNone
       obj.hotspot = parseRecti(jObject["hotspot"].getStr)
