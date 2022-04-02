@@ -13,6 +13,8 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
+import ../gfx/fntfont
+import ../gfx/text
 import ../io/ggpackmanager
 import ../util/tween
 
@@ -29,6 +31,8 @@ type Engine* = ref object of RootObj
   callbacks*: seq[Callback]
   tasks*: seq[Task]
   time*: float # time in seconds
+  font: FntFont
+  text: Text
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -38,6 +42,12 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   gEngine = result
   result.rand = initRand()
   result.v = v
+  result.font = parseFntFont("/Users/scemino/CLionProjects/resources/TinyFont.fnt")
+  result.text = newText(result.font)
+  result.text.maxWidth = 160'f32
+  result.text.text = "Thimbleweed #ff0080Park #008000is #0020FFan #0020FFawesome #10608Fadventure #8020FFgame"
+  result.text.color = White
+  result.text.update()
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -113,3 +123,4 @@ proc render*(self: Engine) =
 
   for actor in self.actors:
     actor.draw()
+  self.text.draw(rotate(translate(mat4(1.0'f32), vec3(20.0'f32, 100.0'f32, 0.0'f32)), 1.0, 0.0, 0.0, 1.0))

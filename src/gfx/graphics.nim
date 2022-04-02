@@ -54,9 +54,9 @@ void main() {
   emptyImage: Image
   emptyTexture: Texture
 
-proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32; color = White)
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex])
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32])
+proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0))
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0))
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0))
 
 proc newVertex*(x, y, u, v: float32; color = White): Vertex =
   Vertex(pos: vec2(x, y), color: color, texCoords: vec2(u, v))
@@ -118,40 +118,46 @@ proc gfxClear*(color: Color) =
   glClearColor(color.r, color.g, color.b, color.a)
   glClear(GL_COLOR_BUFFER_BIT)
 
-proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]) =
-  drawPrimitives(GL_TRIANGLES, vertices, indices)
+proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0)) =
+  drawPrimitives(GL_TRIANGLES, vertices, indices, transf)
 
-proc gfxDrawSprite*(pos: Vec2f, texture: Texture; color = White) =
+proc gfxDraw*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
+  drawPrimitives(GL_TRIANGLES, vertices, transf)
+
+proc gfxDrawSprite*(texture: Texture; color = White; transf = mat4f(1.0)) =
   texture.bindTexture()
-  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32, color)
+  drawSpriteCore(rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32, color, transf)
 
-proc gfxDrawSprite*(pos: Vec2f, w,h: float, texture: Texture; color = White) =
+proc gfxDrawSprite*(w,h: float, texture: Texture; color = White; transf = mat4f(1.0)) =
   texture.bindTexture()
-  drawSpriteCore(pos, rect(0f, 0f, 1f, 1f), w.float32, h.float32, color)
+  drawSpriteCore(rect(0f, 0f, 1f, 1f), w.float32, h.float32, color, transf)
 
-proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White) =
+proc gfxDrawSprite*(textRect: Rectf, texture: Texture; color = White; transf = mat4f(1.0)) =
   let w = textRect.w * texture.width.float32
   let h = textRect.h * texture.height.float32
   texture.bindTexture()
-  drawSpriteCore(pos, textRect, w, h, color)
+  drawSpriteCore(textRect, w, h, color, transf)
 
-proc gfxDrawLines*(pos: var openArray[Vertex]) =
-  drawPrimitives(GL_LINES, pos)
+proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White) =
+  gfxDrawSprite(textRect, texture, color, translate(mat4f(1.0), vec3(pos, 0.0)))
 
-proc drawSpriteCore(pos: Vec2f, textRect: Rectf, w, h: float32; color = White) =
+proc gfxDrawLines*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
+  drawPrimitives(GL_LINES, vertices, transf)
+
+proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0)) =
   let l = textRect.x.float32
   let r = (textRect.x + textRect.w).float32
   let t = textRect.y.float32
   let b = (textRect.y + textRect.h).float32
   var vertices = [
-    newVertex(pos.x+w, pos.y+h, r, t, color),
-    newVertex(pos.x+w, pos.y, r, b, color),
-    newVertex(pos.x, pos.y, l, b, color),
-    newVertex(pos.x, pos.y+h, l, t, color)
+    newVertex(w, h, r, t, color),
+    newVertex(w, 0, r, b, color),
+    newVertex(0, 0, l, b, color),
+    newVertex(0, h, l, t, color)
   ]
-  gfxDraw(vertices, quadIndices)
+  gfxDraw(vertices, quadIndices, transf)
 
-proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White) =
+proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White; transf = mat4f(1.0)) =
   var w = size.x
   var h = size.y
   var vertices = [
@@ -161,9 +167,9 @@ proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White) =
     newVertex(pos.x,   pos.y+h, 0, 0, color)
   ]
   noTexture()
-  gfxDraw(vertices, quadIndices)
+  gfxDraw(vertices, quadIndices, transf)
 
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]) = 
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) = 
   # set blending
   glEnable(GL_BLEND)
   glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD)
@@ -171,7 +177,7 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]) =
   checkGLError()
 
   state.shader.ensureProgramActive:
-    state.shader.setUniform("u_transform", state.mvp)
+    state.shader.setUniform("u_transform", state.mvp * transf)
 
     glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
     glDrawArrays(primitivesType, 0, vertices.len.GLsizei)
@@ -179,7 +185,7 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]) =
   
   glDisable(GL_BLEND)
 
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]) = 
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0)) = 
   # set blending
   glEnable(GL_BLEND)
   glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD)
@@ -187,7 +193,7 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], in
   checkGLError()
 
   state.shader.ensureProgramActive:
-    state.shader.setUniform("u_transform", state.mvp)
+    state.shader.setUniform("u_transform", state.mvp * transf)
 
     glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cint(cuint.sizeof * indices.len), indices[0].addr, GL_STATIC_DRAW)
