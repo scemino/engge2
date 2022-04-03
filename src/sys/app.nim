@@ -1,5 +1,6 @@
 import glm
 import sdl2
+import sdl2/mixer
 import ../sys/opengl
 import ../gfx/graphics
 import ../sys/input
@@ -16,7 +17,9 @@ var appOnMouseMove: proc(pos: Vec2f)
 # public procedures
 proc init*(title = "", size = vec2(1280, 720)) =
   sdl2.init(INIT_EVERYTHING)
-
+  discard mixer.openAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096)
+  discard mixer.allocateChannels(32)
+  
   discard glSetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
   discard glSetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
   discard glSetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3)
@@ -27,6 +30,7 @@ proc init*(title = "", size = vec2(1280, 720)) =
   w = createWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, size.x.int32, size.y.int32, SDL_WINDOW_ALLOW_HIGHDPI or SDL_WINDOW_OPENGL or SDL_WINDOW_SHOWN or SDL_WINDOW_RESIZABLE)
   if w == nil:
     w.destroyWindow()
+    mixer.closeAudio()
     quit(-1)
 
   glContext = glCreateContext(w)
@@ -90,6 +94,7 @@ proc run*(render: proc()) =
     glSwapWindow(w)
 
   w.destroyWindow()
+  mixer.closeAudio()
   sdl2.quit()
 
 proc setDropCallback*(onDrop: proc (paths: seq[string])) =

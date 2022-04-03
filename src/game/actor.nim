@@ -42,7 +42,6 @@ proc getName*(self: Actor): string =
 proc setCostume*(self: Actor, name, sheet: string) =
   let stream = gGGPackMgr.loadStream(name & ".json")
   let json = newGGTableDecoder(stream).hash
-  echo "set costume: " & $json
   self.anims = parseObjectAnimations(json["animations"])
   var path = if sheet.len == 0: json["sheet"].str else: sheet 
   self.spriteSheet = loadSpriteSheet(path & ".json")

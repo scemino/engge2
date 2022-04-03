@@ -6,6 +6,7 @@ import generallib
 import roomlib
 import objlib
 import actorlib
+import soundlib
 
 # private methods
 
@@ -16,6 +17,7 @@ proc register_gamelib*(v: HSQUIRRELVM) =
   v.register_roomlib()
   v.register_syslib()
   v.register_actorlib()
+  v.register_sndlib()
 
 proc register_gameconstants*(v: HSQUIRRELVM) =
   sqBind(v):

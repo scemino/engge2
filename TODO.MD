@@ -7,14 +7,14 @@
 * [ ] dear imgui
 * [ ] resource management
 * [ ] test object hierarchy: scene graph ?
-* [ ] text
+* [x] text
 * [ ] lips
 * [ ] blink
 * [ ] input
 * [ ] input mapping
 * [ ] walkboxes
 * [ ] dialogs
-* [ ] audio
+* [x] audio
 * [ ] HUD
 * [ ] savegames
 * [ ] achievements

@@ -4,6 +4,33 @@ import engine
 import room
 import actor
 import ../util/easing
+import ../audio/audio
+
+proc soundDef*(id: int): SoundDefinition =
+  for sound in gEngine.audio.soundDefs:
+    if sound.id == id:
+      return sound
+  nil
+
+proc soundDef*(v: HSQUIRRELVM, i: int): SoundDefinition =
+  var id: int
+  if SQ_SUCCEEDED(get(v, i, id)):
+    soundDef(id)
+  else:
+    nil
+
+proc sound*(id: int): SoundId =
+  for sound in gEngine.audio.sounds:
+    if not sound.isNil and sound.id == id:
+      return sound
+  nil
+
+proc sound*(v: HSQUIRRELVM, i: int): SoundId =
+  var id: int
+  if SQ_SUCCEEDED(get(v, i, id)):
+    sound(id)
+  else:
+    nil
 
 proc room*(id: int): Room =
   for room in gEngine.rooms:

@@ -2,6 +2,19 @@ print("rnd1: " + random(0, 180) + "\n")
 print("rnd2: " + random(100.0, 150.0) + "\n")
 print("chr(36): " + chr(36) + "\n")
 
+soundTowerLight <- defineSound("TowerLight.wav")
+soundTowerLight2 <- defineSound("TowerLight2.wav")
+soundWindBirds <- defineSound("WindBirds.ogg")
+soundFenceLockRattle <- defineSound("FenceLockRattle.ogg")
+soundCricketsLoop <- defineSound("AmbNightCrickets_Loop.ogg")	
+soundGunshot <- defineSound("Gunshot.wav")
+soundMetalClank <- defineSound("MetalClank.wav")
+soundTowerHum <- defineSound("TowerHum.wav")
+soundTitleStinger1 <- defineSound("TitleCardStab1.ogg")
+soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
+soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
+soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
+
 function hideAll() {
   foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
 }
@@ -43,6 +56,7 @@ Opening <-
       cameraInRoom(Opening)
       objectHidden(opening1987, NO)
       roomFade(FADE_IN, 2.0)
+      local sid = loopSound(soundTowerHum, -1, 1.0)
       breaktime(4.0)
       roomFade(FADE_OUT, 2.0)
       breaktime(2.0)
@@ -72,16 +86,16 @@ Opening <-
       local tid = startthread(@() {
         do {
         objectState(openingLight, 1)
-        //playSound(soundTowerLight)
+        playSound(soundTowerLight)
         breaktime(2.5)
         objectState(openingLight, 0)
-        //playSound(soundTowerLight2)
+        playSound(soundTowerLight2)
         breaktime(1.0)
         }
         })
         breaktime(10.0)
        
-      //fadeOutSound(sid, 3.0)
+      fadeOutSound(sid, 3.0)
       stopthread(tid)
       roomFade(FADE_OUT, 3.0)
       breaktime(3.0)
@@ -99,13 +113,13 @@ Opening <-
       objectHidden(openingLock, NO)
       objectState(openingLock, 0)
       
-      //sid = loopSound(soundWindBirds, -1, 3.0)
+      sid = loopSound(soundWindBirds, -1, 3.0)
       roomFade(FADE_IN, 3.0)
       breaktime(1.0)
 
       playObjectState(openingLock, 1)
 
-      //playSound(soundFenceLockRattle)
+      playSound(soundFenceLockRattle)
       breaktime(1.0)
 
       playObjectState(openingLock, 1)
@@ -122,8 +136,8 @@ Opening <-
 
       breaktime(1.0)
 
-      //fadeOutSound(sid, 3.0)
-      //fadeOutSound(soundFenceLockRattle, 3.0)
+      fadeOutSound(sid, 3.0)
+      fadeOutSound(soundFenceLockRattle, 3.0)
       roomFade(FADE_OUT, 3.0)
 
       breaktime(1.0)
@@ -172,16 +186,16 @@ Opening <-
 
       roomFade(FADE_IN, 5.0)
       breaktime(1.0)
-      //loopSound(soundCricketsLoop, -1, 2.0)
+      loopSound(soundCricketsLoop, -1, 2.0)
       breaktime(2.0)
       objectHidden(openingBulletHole, YES)
       objectState(openingPop, 0)
       breaktime(5.0)
-      //playSound(soundGunshot)
-      //stopSound(soundCricketsLoop)
+      playSound(soundGunshot)
+      stopSound(soundCricketsLoop)
       objectHidden(openingBulletHole, NO)
       breaktime(3.0)
-      //playSound(soundMetalClank)
+      playSound(soundMetalClank)
       objectState(openingPop, 1);
       breaktime(3.0)
       roomFade(FADE_OUT, 2.0)
@@ -213,8 +227,8 @@ TitleCards <-
 
  script displayCard(part, title) {
  cameraInRoom(TitleCards)
- //stopAllSounds()
- //stopMusic(0.10)
+ stopAllSounds()
+ stopMusic(0.10)
  //stopSoundAmbiance()
  //local state = inputState()
  //inputOff()

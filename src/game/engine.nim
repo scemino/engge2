@@ -17,6 +17,7 @@ import ../gfx/fntfont
 import ../gfx/text
 import ../io/ggpackmanager
 import ../util/tween
+import ../audio/audio
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -33,6 +34,7 @@ type Engine* = ref object of RootObj
   time*: float # time in seconds
   font: FntFont
   text: Text
+  audio*: AudioSystem
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -42,6 +44,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   gEngine = result
   result.rand = initRand()
   result.v = v
+  result.audio = newAudioSystem()
   result.font = parseFntFont("/Users/scemino/CLionProjects/resources/TinyFont.fnt")
   result.text = newText(result.font)
   result.text.maxWidth = 160'f32
@@ -92,21 +95,26 @@ proc setRoom*(self: Engine, room: Room) =
 proc update(self: Engine) =
   var elapsed = 1/60
   self.time += elapsed
+  
+  # update threads
   for thread in gThreads.toSeq:
     if thread.update(elapsed):
-      #info fmt"thread {thread.name} is dead"
       gThreads.del gThreads.find(thread)
+
+  # update callbacks  
   for cb in self.callbacks.toSeq:
     if cb.update(elapsed):
       self.callbacks.del self.callbacks.find(cb)
-  for t in self.tasks:
-    #info("updating task: " & t.name)
+
+  # update tasks
+  for t in self.tasks.toSeq:
     if t.update(elapsed):
-      #info("delete task: " & t.name)
       self.tasks.del self.tasks.find(t)
-      #info("task updated")
-      break
-    #info("task updated")
+
+  # update audio
+  self.audio.update()
+
+  # update room
   self.fade.update(elapsed)
   if not self.room.isNil:
     self.room.update(elapsed)

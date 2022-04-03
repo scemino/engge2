@@ -42,15 +42,15 @@ proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_resetobject(table)
   discard sq_getstackobj(v, 2, table)
   let id = table.getId()
-  if id == 0:
-    return sq_throwerror(v, "failed to get room 1")
-  if id >= START_ROOMID and id < END_ROOMID:
+  if id.isRoom():
     gEngine.setRoom(room(id))
-  if id >= START_OBJECTID and id < END_OBJECTID:
+  elif id.isObject():
     let room = objRoom(table)
     if room.isNil:
-      return sq_throwerror(v, "failed to get room 2")
+      return sq_throwerror(v, "failed to get room")
     gEngine.setRoom(room)
+  else:
+    return sq_throwerror(v, "failed to get room")
   0
 
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =

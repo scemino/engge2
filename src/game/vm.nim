@@ -36,8 +36,8 @@ proc push*(v: HSQUIRRELVM, value: float) {.inline.} =
 proc push*(v: HSQUIRRELVM, value: HSQOBJECT) {.inline.} =
   sq_pushobject(v, value)
 
-proc push*[T](v: HSQUIRRELVM, value: T) {.inline.} =
-  push(v, value)
+# proc push*[T](v: HSQUIRRELVM, value: T) {.inline.} =
+#   push(v, value)
 
 proc set*[T](v: HSQUIRRELVM, obj: HSQOBJECT, name: string, value: T) =
   sq_pushobject(v, obj)

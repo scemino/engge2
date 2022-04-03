@@ -125,12 +125,6 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"Actor costume {name} {sheet}"
   actor.setCostume($name, $sheet)
 
-  # TODO: remove this
-  actor.setState("wave_front")
-  actor.setHeadIndex(1)
-  actor.setEyes()
-  0
-
 proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
   ## 
@@ -168,6 +162,9 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Creates a new actor from a table.
   ## 
   ## An actor is defined in the DefineActors.nut file.
+  if sq_gettype(v, 2) != OT_TABLE:
+    return sq_throwerror(v, "failed to get a table")
+  
   var actor = newActor()
   sq_resetobject(actor.table)
   discard sq_getstackobj(v, 2, actor.table)
