@@ -6,7 +6,8 @@ import squtils
 import callback
 import engine
 import ids
-import task
+import breakwhilerunning
+import utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
@@ -100,18 +101,6 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get time")
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
-proc getThread(id: int): Thread =
-  for t in gThreads:
-    if t.id == id:
-      return t
-
-proc getThread(v: HSQUIRRELVM): Thread =
-  echo "find thread " & $(cast[int](v.unsafeAddr))
-  for t in gThreads:
-    echo "thread id=" & $t.id & " " & t.name & " " & $(cast[int](t.v.unsafeAddr))
-    if t.getThread() == v:
-      return t
-
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var id = 0
   if sq_gettype(v, 2) == OT_INTEGER:
@@ -119,12 +108,12 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info "breakwhilerunning: " & $id
   
   if isThread(id):
-    var curThread = getThread(v)
+    var curThread = thread(v)
     if curThread.isNil:
       return sq_throwerror(v, "Current thread should be created with startthread")
     
     info "curThread.id: " & $curThread.id
-    var t = getThread(id);
+    var t = thread(id);
     if t.isNil:
       warn "thread not found: " & $id
       return 0
@@ -254,7 +243,7 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
     sq_pop(v, 1) # pop name
   sq_pop(v, 1) # pop closure
   
-  gThreads.add(thread)
+  gEngine.threads.add(thread)
 
   # call the closure in the thread
   if not thread.call():
@@ -332,11 +321,11 @@ proc threadid(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##         }
   ##     }
   ## }
-  for t in gThreads:
-    if t.v == v:
-      sq_pushinteger(v, t.id)
-      return 1
-  sq_pushinteger(v, 0)
+  let t = thread(v)
+  if not t.isNil:
+    sq_pushinteger(v, t.id)
+  else:
+    sq_pushinteger(v, 0)
   1
 
 proc register_syslib*(v: HSQUIRRELVM) =

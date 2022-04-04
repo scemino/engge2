@@ -1,6 +1,4 @@
-import std/logging
 import std/strformat
-import std/sequtils
 import sqnim
 import ids
 
@@ -18,7 +16,6 @@ type
     stopRequest: bool
 
 var gNumThreads = START_THREAD_ID
-var gThreads*: seq[Thread]
 
 proc newThread*(name: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
   new(result)
@@ -68,7 +65,7 @@ proc call*(self: Thread): bool =
 
 proc resume*(self: Thread) =
   if not self.isDead:
-    let state = sq_getvmstate(self.getThread())
+    #let state = sq_getvmstate(self.getThread())
     #info fmt"resume thread {self.id}, state={state}"
     if self.isSuspended:
       discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
@@ -92,17 +89,3 @@ proc update*(self: Thread, elapsed: float): bool =
     self.numFrames = 0
     self.resume()
   self.isDead()
-
-proc thread*(v: HSQUIRRELVM): Thread =
-  var ts = gThreads.toSeq
-  for t in ts:
-    if t.getThread() == v:
-      return t
-  nil
-
-proc thread*(id: int): Thread =
-  var ts = gThreads.toSeq
-  for t in ts:
-    if t.id == id:
-      return t
-  nil

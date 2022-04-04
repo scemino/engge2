@@ -1,8 +1,10 @@
+import std/sequtils
 import sqnim
 import squtils
 import engine
 import room
 import actor
+import thread
 import ../util/easing
 import ../audio/audio
 
@@ -81,6 +83,20 @@ proc objRoom*(table: HSQOBJECT): Room =
     for o in room.objects:
       if o.table == table:
         return room
+  nil
+
+proc thread*(v: HSQUIRRELVM): Thread =
+  var threads = gEngine.threads.toSeq
+  for t in threads:
+    if t.getThread() == v:
+      return t
+  nil
+
+proc thread*(id: int): Thread =
+  var threads = gEngine.threads.toSeq
+  for t in threads:
+    if t.id == id:
+      return t
   nil
 
 proc easing*(easing: int): easing_func =
