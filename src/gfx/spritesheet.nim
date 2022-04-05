@@ -19,7 +19,7 @@ type SpriteSheetMetadata = object
   scale*: string
   smartupdate*: string
 
-type SpriteSheet* = object
+type SpriteSheet* = ref object of RootObj
   frames*: seq[SpriteSheetFrame]
   meta*: SpriteSheetMetadata
 
@@ -41,6 +41,7 @@ proc parseSpriteSheetMetadata(node: JsonNode): SpriteSheetMetadata =
   SpriteSheetMetadata(app: node["app"].getStr, version: node["version"].getStr, image: node["image"].getStr, format: node["format"].getStr, size: parseSize(node["size"]), scale: node["scale"].getStr, smartupdate: node["smartupdate"].getStr)
 
 proc parseSpriteSheet*(node: JsonNode): SpriteSheet =
+  new(result)
   result.frames = node["frames"].pairs.toSeq.map(x => parseFrame(x.key, x.val))
   result.meta = parseSpriteSheetMetadata(node["meta"])
 

@@ -36,6 +36,8 @@ proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
         sq_pushobject(v, obj)
         return 1
       i += 1
+    sq_pop(v, 1) # pops the null iterator and array
+    sq_pushobject(v, obj)
   else:
     let size = sq_gettop(v)
     let index = gEngine.rand.rand(0..size - 2)

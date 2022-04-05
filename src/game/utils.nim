@@ -3,7 +3,6 @@ import sqnim
 import squtils
 import engine
 import room
-import actor
 import thread
 import ../util/easing
 import ../audio/audio
@@ -53,13 +52,13 @@ proc room*(v: HSQUIRRELVM, i: int): Room =
   else:
     nil
 
-proc actor*(table: HSQOBJECT): Actor =
+proc actor*(table: HSQOBJECT): Object =
   for actor in gEngine.actors:
     if actor.table == table:
       return actor
   nil
 
-proc actor*(v: HSQUIRRELVM, i: int): Actor =
+proc actor*(v: HSQUIRRELVM, i: int): Object =
   var table: HSQOBJECT
   if SQ_SUCCEEDED(get(v, i, table)):
     actor(table)
@@ -68,9 +67,10 @@ proc actor*(v: HSQUIRRELVM, i: int): Actor =
 
 proc obj*(table: HSQOBJECT): Object =
   for room in gEngine.rooms:
-    for o in room.objects:
-      if o.table == table:
-        return o
+    for layer in room.layers:
+      for o in layer.objects:
+        if o.table == table:
+          return o
   nil
 
 proc obj*(v: HSQUIRRELVM, i: int): Object =
@@ -80,9 +80,10 @@ proc obj*(v: HSQUIRRELVM, i: int): Object =
 
 proc objRoom*(table: HSQOBJECT): Room =
   for room in gEngine.rooms:
-    for o in room.objects:
-      if o.table == table:
-        return room
+    for layer in room.layers:
+      for o in layer.objects:
+        if o.table == table:
+          return room
   nil
 
 proc thread*(v: HSQUIRRELVM): Thread =

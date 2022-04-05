@@ -2,7 +2,7 @@ import std/strformat
 import image
 import ../sys/opengl
 
-type Texture* = object
+type Texture* = ref object of RootObj
   id*: GLuint
   width*, height*: int
 
@@ -13,6 +13,7 @@ proc getFormat(channels: int): GLint =
   else: raiseAssert(fmt"Can't get format for {channels} channels")
 
 proc newTexture*(image: Image): Texture =
+  new(result)
   result.width = image.width
   result.height = image.height
   glGenTextures(1, addr result.id)

@@ -6,6 +6,7 @@ import squtils
 import engine
 import actor
 import utils
+import room
 import ../gfx/color
 
 proc getOppositeFacing(facing: Facing): Facing =
@@ -29,7 +30,7 @@ proc getFacing(dir: SQInteger, facing: Facing): Facing =
 
 proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the transparency for an actor's image in [0.0..1.0]
-  var actor = actor(v, 2)
+  var actor = obj(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   var alpha: float
@@ -48,6 +49,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var actor = actor(v, 2)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
+    info fmt"actorAt {actor.name}"
     var spot = obj(v, 3)
     if not spot.isNil:
       let pos = spot.pos + spot.usePos
@@ -56,7 +58,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       actor.facing = getFacing(spot.useDir.SQInteger, actor.facing)
     else:
       var room = room(v, 3)
-      if not room.isNil:
+      if room.isNil:
         return sq_throwerror(v, "failed to get spot or room")
       actor.room = room
     0

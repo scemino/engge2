@@ -84,7 +84,7 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var state: SQInteger
   if SQ_FAILED(sq_getinteger(v, 3, state)):
     return sq_throwerror(v, "failed to get state")
-  obj.animationIndex = state
+  obj.animIndex = state
   0
 
 proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -114,11 +114,11 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   else:
     return sq_throwerror(v, "failed to get state")
   
-  for i in 0..<obj.animations.len:
-    let anim = obj.animations[i].name
+  for i in 0..<obj.anims.len:
+    let anim = obj.anims[i].name
     if anim == state:
       info fmt"playObjectState {obj.name}, {state} ({i})"
-      obj.animationIndex = i
+      obj.animIndex = i
       obj.play()
       return 0
   0

@@ -1,6 +1,7 @@
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
 import glm
 import sqnim
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat]
+import squtils
 import ../gfx/recti
 import ../gfx/spritesheet
 import ../gfx/texture
@@ -10,17 +11,24 @@ import ../gfx/color
 import motor
 
 type
+  Facing* = enum
+    FACE_RIGHT = 1
+    FACE_LEFT = 2
+    FACE_FRONT = 4
+    FACE_BACK = 8
   ScalingValue* = object
     scale*: float
     y*: int
   Scaling* = object
     values*: seq[ScalingValue]
     trigger*: string
-  Layer* = object
+  Layer* = ref object of RootObj
     names*: seq[string]
     parallax*: Vec2f
     zsort*: float
     visible*: bool
+    objects*: seq[Object]
+    room: Room
   Direction* = enum
     dNone,
     dFront,
@@ -49,15 +57,15 @@ type
     flags*: int
     frameIndex*: int
   Object* = ref object of RootObj
-    name*: string
+    n: string
     visible*: bool
     pos*: Vec2f
     usePos*: Vec2f
     useDir*: Direction
     hotspot*: Recti
     objType*: ObjectType
-    animations*: seq[ObjectAnimation]
-    animationIndex*: int
+    anims*: seq[ObjectAnimation]
+    animIndex*: int
     frameIndex: int
     zsort*: int32
     state: AnimState
@@ -66,7 +74,12 @@ type
     alphaTo*: Motor
     table*: HSQOBJECT
     touchable*: bool
-    room*: Room
+    r: Room
+    spriteSheet*: SpriteSheet
+    texture*: Texture
+    facing*: Facing
+    renderOffset*: Vec2f
+    walkSpeed*: Vec2f
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -76,7 +89,6 @@ type
     layers*: seq[Layer]
     walkboxes*: seq[Walkbox]
     scalings*: seq[Scaling]
-    objects*: seq[Object]
     texture: Texture
     spriteSheet*: SpriteSheet
     table*: HSQOBJECT
@@ -84,6 +96,16 @@ type
   RoomParser = object
     input: Stream
     filename: string
+
+proc `name`*(self: Object): string =
+  if self.n.len > 0:
+    self.n
+  else:
+    getf(self.table, "name", self.n)
+    self.n
+
+proc `name=`*(self: Object, name: string) =
+  self.n = name
 
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: float): Layer =
   Layer(names: names, parallax: parallax, zsort: zsort, visible: true)
@@ -220,6 +242,7 @@ proc parseRoom(self: var RoomParser): Room =
   else:
     names.add(jRoom["background"].items().toSeq.mapIt(it.getStr).toSeq)
   let layer = newLayer(names, vec2(1f, 1f), 0)
+  layer.room = result
   result.layers.add(layer)
 
   # layers
@@ -234,6 +257,7 @@ proc parseRoom(self: var RoomParser): Room =
       elif jLayer["name"].kind == JString:
         names.add(jLayer["name"].getStr)
       let layer = newLayer(names, parallax, zsort)
+      layer.room = result
       result.layers.add(layer)
   result.layers.sort((x, y) => cmp(y.zsort, x.zsort))
 
@@ -261,8 +285,8 @@ proc parseRoom(self: var RoomParser): Room =
       obj.visible = true
       obj.color = White
       if jObject.hasKey("animations"):
-        obj.animations = parseObjectAnimations(jObject["animations"])
-      result.objects.add(obj)
+        obj.anims = parseObjectAnimations(jObject["animations"])
+      result.layers[0].objects.add(obj)
 
   # scalings
   if jRoom.hasKey("scaling"):
@@ -308,51 +332,68 @@ func first*[T](s: openArray[T], f: proc (item: T): bool): Option[T] =
 proc getFrame*(frames: seq[SpriteSheetFrame], name: string): SpriteSheetFrame =
   frames.first(proc (s: SpriteSheetFrame):bool = s.name == name).get
 
-proc drawLayers(self: var Room, pred: proc (x: float): bool) =
+proc drawObject(self: Layer, obj: Object, anim: ObjectAnimation) =
+  let ssheet = if obj.spriteSheet.isNil: self.room.spriteSheet else: obj.spriteSheet
+  let texture = if obj.texture.isNil: self.room.texture else: obj.texture
+  let size = ssheet.meta.size
+  var pos = -cameraPos()
+  if anim.frames.len > 0 and obj.frameIndex >= 0 and obj.frameIndex < anim.frames.len:
+    let name = anim.frames[obj.frameIndex]
+    if name != "null":
+      try:
+        let item = ssheet.frames.getFrame(name)
+        let frame = item.frame
+        let off = vec2(
+          item.spriteSourceSize.x.float32 - item.sourceSize.x.float32 / 2'f32, 
+          item.sourceSize.y.float32 / 2'f32 - item.spriteSourceSize.y.float32 - item.spriteSourceSize.h.float32)
+        let objPos = vec2(obj.pos.x.float32, obj.pos.y.float32)
+        gfxDrawSprite(pos + objPos + off, frame / size, texture, obj.color)
+      except:
+        quit fmt"Failed to render frame {name} for obj {obj.name}"
+
+proc drawObjects(self: Layer) =
+  var objects = self.objects.sorted((x,y) => cmp(y.zsort, x.zsort))
+  for obj in objects:
+    if obj.visible and obj.anims.len > 0 and obj.animIndex >= 0 and obj.animIndex < obj.anims.len:
+      let anim = obj.anims[obj.animIndex]
+      self.drawObject(obj, anim)
+      
+      for layer in anim.layers:
+        if layer.flags == 0:
+          self.drawObject(obj, layer)
+
+proc drawLayers(self: Room) =
   let size = self.spriteSheet.meta.size
   let camPos = cameraPos()
   for layer in self.layers:
-    if layer.visible and pred(layer.zsort):
+    if layer.visible:
       var pos = -camPos * layer.parallax
       for name in layer.names:
         let item = self.spriteSheet.frames.getFrame(name)
         let frame = item.frame
         let off = vec2(item.spriteSourceSize.x.float32, (self.roomSize.y - item.spriteSourceSize.y - item.spriteSourceSize.h).float32)
         gfxDrawSprite(pos + off, frame / size, self.texture)
+        layer.drawObjects()
         pos.x += frame.w.float32
 
 proc render*(self: var Room) =
   let screenSize = self.getScreenSize(self.height)
   camera(screenSize.x.float32, screenSize.y.float32)
-  
-  let camPos = cameraPos()
-  let size = self.spriteSheet.meta.size
+  # draw layers
+  self.drawLayers()
 
-  # draw background layers
-  self.drawLayers(x => x >= 0)
+proc `room=`*(self: Object, room: Room) =
+  let oldRoom = self.r
+  if not oldRoom.isNil:
+    info fmt"Remove {self.name} from room {oldRoom.name}"
+    oldRoom.layers[0].objects.del oldRoom.layers[0].objects.find(self)
+  if not room.isNil:
+    info fmt"Add {self.name} in room {room.name}"
+    room.layers[0].objects.add self
+  self.r = room
 
-  # draw objects
-  var objects = self.objects.sorted((x,y) => cmp(y.zsort, x.zsort))
-  var pos = -camPos
-  for obj in objects:
-    if obj.visible and obj.animations.len > 0 and obj.animationIndex >= 0 and obj.animationIndex < obj.animations.len:
-      let anim = obj.animations[obj.animationIndex].unsafeAddr
-      if anim.frames.len > 0 and obj.frameIndex >= 0 and obj.frameIndex < anim.frames.len:
-        let name = anim.frames[obj.frameIndex]
-        if name != "null":
-          try:
-            let item = self.spriteSheet.frames.getFrame(name)
-            let frame = item.frame
-            let off = vec2(
-              item.spriteSourceSize.x.float32 - item.sourceSize.x.float32 / 2'f32, 
-              item.sourceSize.y.float32 / 2'f32 - item.spriteSourceSize.y.float32 - item.spriteSourceSize.h.float32)
-            let objPos = vec2(obj.pos.x.float32, obj.pos.y.float32)
-            gfxDrawSprite(pos + objPos + off, frame / size, self.texture, obj.color)
-          except:
-            quit fmt"Failed to render frame {name} for obj {obj.name}"
-
-  # draw foreground layers
-  self.drawLayers(x => x < 0)  
+proc `room`*(self: Object): Room =
+  self.r
 
 proc play*(self: Object) =
   self.elapsedMs = 0
@@ -366,8 +407,8 @@ proc update*(self: Object, elapsedSec: float) =
   if not self.alphaTo.isNil and self.alphaTo.enabled:
     self.alphaTo.update(elapsedSec)
     
-  if self.visible and self.animations.len > 0 and self.animationIndex >= 0 and self.animationIndex < self.animations.len:
-    let animation = self.animations[self.animationIndex]
+  if self.visible and self.anims.len > 0 and self.animIndex >= 0 and self.animIndex < self.anims.len:
+    let animation = self.anims[self.animIndex]
     if animation.frames.len > 0:
       if self.frameIndex == -1:
         self.frameIndex = animation.frames.len - 1
@@ -387,9 +428,13 @@ proc update*(self: Object, elapsedSec: float) =
             else:
               self.pause()
 
-proc update*(self: var Room, elapsedSec: float) = 
+proc update*(self: var Layer, elapsedSec: float) = 
   for obj in self.objects.mitems:
     obj.update(elapsedSec)
+
+proc update*(self: var Room, elapsedSec: float) = 
+  for layer in self.layers.mitems:
+    layer.update(elapsedSec)
 
 proc distanceSquared(vector1, vector2: Vec2f): float =
   let dx = vector1.x - vector2.x

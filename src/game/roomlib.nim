@@ -21,6 +21,7 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var name: string
   v.getf(table, "background", name)
   var room = loadRoom(name)
+  info fmt"define room: {name}"
   gEngine.rooms.add room
   0
 

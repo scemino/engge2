@@ -2,7 +2,6 @@ import std/[random, streams, tables, sequtils, strformat, logging]
 import sqnim
 import glm
 import room
-import actor
 import thread
 import squtils
 import callback
@@ -25,7 +24,7 @@ type Engine* = ref object of RootObj
   textures: Table[string, Texture]
   v: HSQUIRRELVM
   rooms*: seq[Room]
-  actors*: seq[Actor]
+  actors*: seq[Object]
   room*: Room
   background: string
   fade*: Tween[float]
@@ -54,32 +53,33 @@ proc loadRoom*(name: string): Room =
   getf(gVm.v, gVm.v.rootTbl(), name, result.table)
   result.table.setId(gRoomId)
   gRoomId += 1
-  for obj in result.objects:
-    sq_resetobject(obj.table)
-    getf(gVm.v, result.table, obj.name, obj.table)
-    # check if the object exists in Squirrel VM
-    if obj.table.objType == OT_NULL:
-      info fmt"create table for obj: {obj.name}"
-      # this object does not exist, so create it
-      sq_newtable(gVm.v)
-      discard sq_getstackobj(gVm.v, -1, obj.table)
-      sq_addref(gVm.v, obj.table)
-      sq_pop(gVm.v, 1)
+  for layer in result.layers:
+    for obj in layer.objects:
+      sq_resetobject(obj.table)
+      getf(gVm.v, result.table, obj.name, obj.table)
+      # check if the object exists in Squirrel VM
+      if obj.table.objType == OT_NULL:
+        info fmt"create table for obj: {obj.name}"
+        # this object does not exist, so create it
+        sq_newtable(gVm.v)
+        discard sq_getstackobj(gVm.v, -1, obj.table)
+        sq_addref(gVm.v, obj.table)
+        sq_pop(gVm.v, 1)
 
-      # assign a name
-      sq_pushobject(gVm.v, obj.table)
-      sq_pushstring(gVm.v, "name", -1)
-      sq_pushstring(gVm.v, obj.name, -1)
-      discard sq_newslot(gVm.v, -3, false)
-      
-      # adds the object to the room table
-      sq_pushobject(gVm.v, result.table)
-      sq_pushstring(gVm.v, obj.name, -1)
-      sq_pushobject(gVm.v, obj.table)
-      discard sq_newslot(gVm.v, -3, false)
-      sq_pop(gVm.v, 1)
-    else:
-      echo "obj.name: " & obj.name
+        # assign a name
+        sq_pushobject(gVm.v, obj.table)
+        sq_pushstring(gVm.v, "name", -1)
+        sq_pushstring(gVm.v, obj.name, -1)
+        discard sq_newslot(gVm.v, -3, false)
+        
+        # adds the object to the room table
+        sq_pushobject(gVm.v, result.table)
+        sq_pushstring(gVm.v, obj.name, -1)
+        sq_pushobject(gVm.v, obj.table)
+        discard sq_newslot(gVm.v, -3, false)
+        sq_pop(gVm.v, 1)
+      else:
+        echo "obj.name: " & obj.name
 
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
@@ -124,7 +124,3 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
-
-  # TODO: actors should be draw in the room
-  for actor in self.actors:
-    actor.draw()
