@@ -1,23 +1,31 @@
 import std/os
 import std/parseutils
-import std/strutils
 import glm
-import fntfont
+import bmfont
 import color
 import recti
 import image
 import texture
 import graphics
 
-type 
+type
+  TextAlignment* = enum
+    taLeft,
+    taCenter,
+    taRight
   Text* = ref object of RootObj
-    font*: FntFont
+    ## This class allows to render a text.
+    ## 
+    ## A text can contains color in hexadecimal with this format: #RRGGBB
+    font*: BmFont
     texture*: Texture
     text*: string
     color*: Color
+    align*: TextAlignment
     vertices: seq[Vertex]
-    bounds: Rectf
+    bounds*: Vec2f
     maxWidth*: float32
+    quads: seq[Rectf]
   CharInfo = object
     chr: char
     pos: Vec2f
@@ -37,6 +45,7 @@ type
     off: int
   Line = object
     tokens: seq[Token]
+    charInfos: seq[CharInfo]
 
 proc newTokenReader(text: string): TokenReader =
   TokenReader(text: text)
@@ -49,19 +58,20 @@ proc readChar(self: TokenReader): char =
   self.off += 1
 
 proc readTokenId(self: TokenReader): TokenId =
+  const Whitespace = {' ', '\t', '\v', '\r', '\l', '\f'}
   if self.off < self.text.len:
     var c = self.readChar()
     case c:
     of '\n':
       tiNewLine
     of '\t', ' ':
-      self.off += skipUntil(self.text, {'\n', '\t', '#', ' '}, self.off)
+      self.off += skipWhile(self.text, Whitespace, self.off)
       tiWhitespace
     of '#':
       self.off += 6
       tiColor
     else:
-      self.off += skipUntil(self.text, {'\n', '\t', '#', ' '}, self.off)
+      self.off += skipUntil(self.text, Whitespace + {'#'}, self.off)
       tiString
   else:
     tiEnd
@@ -83,8 +93,8 @@ iterator items*(self: TokenReader): Token =
   while self.readToken(tok):
     yield tok
 
-proc newText*(font: FntFont): Text =
-  Text(font: font)
+proc newText*(font: BmFont, text: string; align = taLeft; maxWidth = 0.0f; color = White): Text =
+  Text(font: font, text: text, align: align, maxWidth: maxWidth, color: color)
 
 proc normalize(texture: Texture, v: Vec2i): Vec2f =
   var textureSize = vec2(texture.width, texture.height)
@@ -120,7 +130,7 @@ proc update*(self: Text) =
 
   # Reset
   self.vertices.setLen 0
-  self.bounds = Rectf()
+  self.bounds = Vec2f()
   var color = self.color
   
   # split text by tokens and split tokens by lines
@@ -129,21 +139,25 @@ proc update*(self: Text) =
   var reader = newTokenReader(self.text)
   var x: float32
   for tok in reader:
-    let w = self.width(reader, tok)
+    # ignore color token width
+    let w = if tok.id == tiColor or tok.id == tiNewLine: 0.0f else: self.width(reader, tok)
+    # new line if width > maxWidth or newline character
     if tok.id == tiNewLine or (self.maxWidth > 0 and line.tokens.len > 0 and x + w > self.maxWidth):
       lines.add line
       line.tokens.setLen(0)
       x = 0
     if tok.id != tiNewLine:
-      line.tokens.add(tok)
-      x += w
+      if line.tokens.len != 0 or tok.id != tiWhitespace:
+        line.tokens.add(tok)
+        x += w
   lines.add line
 
   # create quads for all characters
+  var maxW: float32
   let lineHeight = self.font.lineHeight.float32
-  var charInfos: seq[CharInfo]
-  var y: float32
-  for line in lines:
+  var y = -lineHeight
+  for line in lines.mitems:
+    var prevChar: char
     var x: float32
     for tok in line.tokens:
       if tok.id == tiColor:
@@ -153,23 +167,49 @@ proc update*(self: Text) =
       else:
         for c in reader.substr(tok):
           let glyph = self.font.getGlyph(c)
-          charInfos.add(CharInfo(chr: c, pos: vec2f(x, y), color: color, glyph: glyph))
+          # let kern = self.font.getKerning(prevChar, c)
+          let kern = 0.0f
+          prevChar = c
+          line.charInfos.add(CharInfo(chr: c, pos: vec2f(x + kern, y), color: color, glyph: glyph))
+          # self.quads.add(rect(x, y, glyph.bounds.x.float32 + glyph.bounds.w.float32, lineHeight))
           x += glyph.advance.float32
+    self.quads.add(rect(0.0f, y, x, lineHeight))
+    maxW = max(maxW, x)
     y -= lineHeight
 
-  var maxX, maxY: float32
-  for info in charInfos:
-    # Add the glyph to the vertices
-    self.addGlyphQuad(info)
+  # Align text
+  if self.align == taRight:
+    for i in 0..<lines.len:
+      let w = maxW - self.quads[i].w
+      for info in lines[i].charInfos.mitems:
+        info.pos.x += w
+  elif self.align == taCenter:
+    for i in 0..<lines.len:
+      let w = maxW - self.quads[i].w
+      for info in lines[i].charInfos.mitems:
+        info.pos.x += w / 2
 
-    # Update the current bounds with the non outlined glyph bounds
-    maxX = max(maxX, info.pos.x + info.glyph.bounds.topRight.x.float32)
-    maxY = max(maxY, info.pos.y + info.glyph.bounds.topRight.y.float32)
-  
+  # Add the glyphs to the vertices
+  for line in lines:
+    for info in line.charInfos:
+      self.addGlyphQuad(info)
+    
+  self.bounds = vec2(maxW, lines.len.float32 * self.font.lineHeight.float32)
+
+# proc drawQuadLine(quad: Rectf, transf: Mat4f) =
+#   var vertices = [Vertex(pos: quad.topLeft, color: White),
+#     Vertex(pos: quad.topRight, color: White),
+#     Vertex(pos: quad.bottomRight, color: White),
+#     Vertex(pos: quad.bottomLeft, color: White)]
+#   gfxDrawLineLoop(vertices, transf)
+
 proc draw*(self: Text; transf = mat4f(1.0)) =
   if not self.font.isNil:
     self.texture.bindTexture()
     gfxDraw(self.vertices, transf)
+
+    # for quad in self.quads:
+    #   drawQuadLine(quad, transf)
 
 when isMainModule:
   let reader = newTokenReader("Thimbleweed #ff0080Park\n #008000is #0020FFan #0020FFawesome #10608Fadventure #8020FFgame")

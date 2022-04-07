@@ -1,27 +1,30 @@
 import std/parseutils
+import std/streams
 import recti
+import ../io/ggpackmanager
 
 type 
   Char = object
     id*, x*, y*, w*, h*, xoff*, yoff*, xadv*, page, chnl: int
     letter: string
   Glyph* = object
+    ## represents a glyph: a part of an image for a specific font character
     advance*: int     # Offset to move horizontally to the next character.
     bounds*: Recti      # Bounding rectangle of the glyph, in coordinates relative to the baseline.
     textureRect*: Recti # Texture coordinates of the glyph inside the font's texture.
   Kerning = object
     first, second, amount: int
-  FntFont* = ref object of RootObj
+  BmFont* = ref object of RootObj
+    ## Represents a bitmap font
     path*: string
-    lineHeight*, base, scaleW, scaleH, pages, packed: int
+    lineHeight*, base*, scaleW, scaleH, pages, packed: int
     chars: seq[Char]
     kernings: seq[Kerning]
 
-proc parseFntFont*(path: string): FntFont =
+proc parseBmFont*(stream: Stream, path: string): BmFont =
   new(result)
   result.path = path
-  var f = open(path, fmRead)
-  for line in f.lines:
+  for line in stream.lines:
     var key: string
     var off = parseUntil(line, key,' ')
     case key:
@@ -115,15 +118,27 @@ proc parseFntFont*(path: string): FntFont =
           off += skipWhitespace(line, off)
         off += parseUntil(line, key, '=', off) + 1
       result.kernings.add Kerning(first: first, second: second, amount: amount)
- 
-  f.close()
+  stream.close()
 
-proc getKerning*(self: FntFont, prev, next: char): float32 =
+proc parseBmFontFromPack*(content, path: string): BmFont =
+  let fs = newStringStream(content)
+  result = parseBmFont(fs, path)
+  fs.close()
+
+proc parseBmFontFromPack*(path: string): BmFont =
+  result = parseBmFontFromPack(gGGPackMgr.loadStream(path).readAll, path)
+
+proc loadBmFromPack*(path: string): BmFont =
+  var stream = newFileStream(path, fmRead)
+  result = parseBmFont(stream, path)
+  stream.close()
+
+proc getKerning*(self: BmFont, prev, next: char): float32 =
   for kern in self.kernings:
     if kern.first == ord(prev) and kern.second == ord(next):
       return kern.amount.float32
 
-proc getGlyph*(self: FntFont, chr: char): Glyph =
+proc getGlyph*(self: BmFont, chr: char): Glyph =
   for c in self.chars:
     if c.id == ord(chr):
       return Glyph(advance: c.xadv, bounds: rect(c.xoff.int32, self.lineHeight.int32 - c.yoff.int32 - c.h.int32, c.w.int32, c.h.int32), textureRect: rect(c.x.int32, c.y.int32, c.w.int32, c.h.int32))

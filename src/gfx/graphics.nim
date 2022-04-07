@@ -142,7 +142,12 @@ proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White
   gfxDrawSprite(textRect, texture, color, translate(mat4f(1.0), vec3(pos, 0.0)))
 
 proc gfxDrawLines*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
+  noTexture()
   drawPrimitives(GL_LINES, vertices, transf)
+
+proc gfxDrawLineLoop*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
+  noTexture()
+  drawPrimitives(GL_LINE_LOOP, vertices, transf)
 
 proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0)) =
   let l = textRect.x.float32
@@ -168,6 +173,9 @@ proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White; transf = mat4f(1
   ]
   noTexture()
   gfxDraw(vertices, quadIndices, transf)
+
+proc gfxDrawQuad*(rect = Rectf(); color = White; transf = mat4f(1.0)) =
+  gfxDrawQuad(rect.bottomLeft(), rect.size(), color, transf)
 
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) = 
   # set blending

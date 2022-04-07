@@ -12,7 +12,7 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
-import ../gfx/fntfont
+import ../gfx/bmfont
 import ../gfx/text
 import ../io/ggpackmanager
 import ../util/tween
@@ -26,13 +26,12 @@ type Engine* = ref object of RootObj
   rooms*: seq[Room]
   actors*: seq[Object]
   room*: Room
-  background: string
   fade*: Tween[float]
   callbacks*: seq[Callback]
   tasks*: seq[Task]
   threads*: seq[Thread]
   time*: float # time in seconds
-  font: FntFont
+  font: BmFont
   text: Text
   audio*: AudioSystem
 
@@ -45,6 +44,9 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.rand = initRand()
   result.v = v
   result.audio = newAudioSystem()
+  result.font = parseBmFontFromPack("UIFontSmall.fnt")
+  result.text = newText(result.font, "The #ff0080quick #008000brown #0020FFfox #0020FFjumps #10608Fover #80201Fthe #808080lazy dog.", taCenter, 220.0f)
+  result.text.update()
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -124,3 +126,6 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
+  
+  camera(320, 180)
+  self.text.draw(translate(mat4(1.0f), vec3((320.0f-self.text.bounds.x)/2, (180.0f+self.text.bounds.y)/2, 0.0f)))
