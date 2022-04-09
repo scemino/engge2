@@ -18,6 +18,12 @@ proc rgba*(c: int): Color =
       (c and 255).byte,
       ((c shr 24) and 255).byte)
 
+proc rgb*(c: int): Color =
+  rgb(((c shr 16) and 255).byte,
+      ((c shr 8) and 255).byte,
+      (c and 255).byte,
+      255.byte)
+
 const
   Black* = rgb(0x0, 0x0, 0x0)
   White* = rgb(0xff, 0xff, 0xff)

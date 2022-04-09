@@ -17,6 +17,9 @@ import ../gfx/text
 import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
+import ../scenegraph/node
+import ../scenegraph/scene
+import ../scenegraph/textnode
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -32,8 +35,8 @@ type Engine* = ref object of RootObj
   threads*: seq[Thread]
   time*: float # time in seconds
   font: BmFont
-  text: Text
   audio*: AudioSystem
+  scene: Node
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -44,9 +47,22 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.rand = initRand()
   result.v = v
   result.audio = newAudioSystem()
-  result.font = parseBmFontFromPack("UIFontSmall.fnt")
-  result.text = newText(result.font, "The #ff0080quick #008000brown #0020FFfox #0020FFjumps #10608Fover #80201Fthe #808080lazy dog.", taCenter, 220.0f)
-  result.text.update()
+  result.font = parseBmFontFromPack("SayLineFont.fnt")
+  var text = newText(result.font, "None of us were prepared for what we'd find that night.", taCenter, 900.0f, rgb(0x30AAFF))
+  text.update()
+  result.scene = newScene()
+  var textNode = newTextNode(text)
+  textNode.scale = vec2(0.5f, 0.5f)
+  textNode.pos = vec2(320.0f, 180.0f)
+  textNode.setAnchor(vec2(0.5f, 0.5f))
+  var textNode2 = newTextNode(text)
+  textNode2.scale = vec2(0.3f, 0.3f)
+  textNode2.pos = vec2(0.0f, 40.0f)
+  textNode2.rotation = 30.0f
+  textNode2.setAnchor(vec2(0.5f, 0.5f))
+  textNode2.zOrder = 10
+  textNode.addChild textNode2
+  result.scene.addChild textNode
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -127,5 +143,5 @@ proc render*(self: Engine) =
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
   
-  camera(320, 180)
-  self.text.draw(translate(mat4(1.0f), vec3((320.0f-self.text.bounds.x)/2, (180.0f+self.text.bounds.y)/2, 0.0f)))
+  camera(640, 360)
+  self.scene.draw()
