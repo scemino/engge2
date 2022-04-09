@@ -17,9 +17,6 @@ import ../gfx/text
 import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
-import ../scenegraph/node
-import ../scenegraph/scene
-import ../scenegraph/textnode
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -36,7 +33,6 @@ type Engine* = ref object of RootObj
   time*: float # time in seconds
   font: BmFont
   audio*: AudioSystem
-  scene: Node
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -50,19 +46,6 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.font = parseBmFontFromPack("SayLineFont.fnt")
   var text = newText(result.font, "None of us were prepared for what we'd find that night.", taCenter, 900.0f, rgb(0x30AAFF))
   text.update()
-  result.scene = newScene()
-  var textNode = newTextNode(text)
-  textNode.scale = vec2(0.5f, 0.5f)
-  textNode.pos = vec2(320.0f, 180.0f)
-  textNode.setAnchor(vec2(0.5f, 0.5f))
-  var textNode2 = newTextNode(text)
-  textNode2.scale = vec2(0.3f, 0.3f)
-  textNode2.pos = vec2(0.0f, 40.0f)
-  textNode2.rotation = 30.0f
-  textNode2.setAnchor(vec2(0.5f, 0.5f))
-  textNode2.zOrder = 10
-  textNode.addChild textNode2
-  result.scene.addChild textNode
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -142,6 +125,3 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
-  
-  camera(640, 360)
-  self.scene.draw()

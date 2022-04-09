@@ -6,6 +6,7 @@ import squtils
 import utils
 import room
 import alphato
+import rotateto
 import ../util/easing
 import ../gfx/color
 
@@ -64,6 +65,21 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getinteger(v, 5, interpolation)):
       interpolation = 0
     obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
+  0
+
+proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var rotation = 0.0f
+    if SQ_FAILED(sq_getfloat(v, 3, rotation)):
+      return sq_throwerror(v, "failed to get rotation")
+    var duration = 0.0f
+    if SQ_FAILED(sq_getfloat(v, 4, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var interpolation = 0.SQInteger
+    if sq_gettop(v) != 5 or SQ_FAILED(sq_getinteger(v, 5, interpolation)):
+      interpolation = 0
+    obj.alphaTo = newRotateTo(duration, obj, rotation, interpolation.InterpolationMethod)
   0
 
 proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -132,6 +148,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
+  v.regGblFun(objectRotateTo, "objectRotateTo")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")
   v.regGblFun(playObjectState, "playObjectState")

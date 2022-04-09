@@ -9,9 +9,9 @@ type
     letter: string
   Glyph* = object
     ## represents a glyph: a part of an image for a specific font character
-    advance*: int     # Offset to move horizontally to the next character.
-    bounds*: Recti      # Bounding rectangle of the glyph, in coordinates relative to the baseline.
-    textureRect*: Recti # Texture coordinates of the glyph inside the font's texture.
+    advance*: int       ## Offset to move horizontally to the next character.
+    bounds*: Recti      ## Bounding rectangle of the glyph, in coordinates relative to the baseline.
+    textureRect*: Recti ## Texture coordinates of the glyph inside the font's texture.
   Kerning = object
     first, second, amount: int
   BmFont* = ref object of RootObj

@@ -60,6 +60,7 @@ type
     n: string
     visible*: bool
     pos*: Vec2f
+    rotation*: float
     usePos*: Vec2f
     useDir*: Direction
     hotspot*: Recti
@@ -347,7 +348,8 @@ proc drawObject(self: Layer, obj: Object, anim: ObjectAnimation) =
           item.spriteSourceSize.x.float32 - item.sourceSize.x.float32 / 2'f32, 
           item.sourceSize.y.float32 / 2'f32 - item.spriteSourceSize.y.float32 - item.spriteSourceSize.h.float32)
         let objPos = vec2(obj.pos.x.float32, obj.pos.y.float32)
-        gfxDrawSprite(pos + objPos + off, frame / size, texture, obj.color)
+        var transf = rotate(translate(mat4(1.0f), vec3(pos + objPos + off, 0.0f)), glm.radians(obj.rotation), 0.0f, 0.0f, 1.0f)
+        gfxDrawSprite(frame / size, texture, obj.color, transf)
       except:
         quit fmt"Failed to render frame {name} for obj {obj.name}"
 
