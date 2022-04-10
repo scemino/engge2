@@ -1,4 +1,4 @@
-import std/[sequtils, streams, sugar, options]
+import std/[sequtils, streams, options, tables]
 import json
 import glm
 import recti
@@ -20,7 +20,7 @@ type SpriteSheetMetadata = object
   smartupdate*: string
 
 type SpriteSheet* = ref object of RootObj
-  frames*: seq[SpriteSheetFrame]
+  frames*: Table[string, SpriteSheetFrame]
   meta*: SpriteSheetMetadata
 
 proc parseSize(node: JsonNode): Vec2i =
@@ -42,7 +42,8 @@ proc parseSpriteSheetMetadata(node: JsonNode): SpriteSheetMetadata =
 
 proc parseSpriteSheet*(node: JsonNode): SpriteSheet =
   new(result)
-  result.frames = node["frames"].pairs.toSeq.map(x => parseFrame(x.key, x.val))
+  for k,v in node["frames"]:
+    result.frames[k] = parseFrame(k, v)  
   result.meta = parseSpriteSheetMetadata(node["meta"])
 
 proc parseSpriteSheet*(buffer: string): SpriteSheet =
@@ -56,9 +57,6 @@ func first*[T](s: openArray[T], f: proc (item: T): bool): Option[T] =
   for itm in items(s):
     if f(itm):
       return some(itm)
-
-proc getFrame*(frames: seq[SpriteSheetFrame], name: string): SpriteSheetFrame =
-  frames.first(proc (s: SpriteSheetFrame):bool = s.name == name).get
 
 when isMainModule:
   var ss = parseSpriteSheet("""{"frames":{"obj_837":{"frame":{"x":0,"y":0,"w":104,"h":80},"rotated":"false","trimmed":"false","spriteSourceSize":{"x":0,"y":0,"w":104,"h":80},"sourceSize":{"w":104,"h":80}},"obj_838":{"frame":{"x":104,"y":0,"w":64,"h":32},"rotated":"false","trimmed":"false","spriteSourceSize":{"x":0,"y":0,"w":64,"h":32},"sourceSize":{"w":64,"h":32}},"obj_839":{"frame":{"x":168,"y":0,"w":64,"h":32},"rotated":"false","trimmed":"false","spriteSourceSize":{"x":0,"y":0,"w":64,"h":32},"sourceSize":{"w":64,"h":32}},"obj_841":{"frame":{"x":232,"y":0,"w":64,"h":32},"rotated":"false","trimmed":"false","spriteSourceSize":{"x":0,"y":0,"w":64,"h":32},"sourceSize":{"w":64,"h":32}},"pirate1":{"frame":{"x":0,"y":80,"w":320,"h":180},"rotated":"false","trimmed":"false","spriteSourceSize":{"x":0,"y":0,"w":320,"h":180},"sourceSize":{"w":320,"h":180}}},"meta":{"app":"https://www.codeandweb.com/texturepacker","version":"1.0","image":"Pirate1Sheet.png","format":"RGBA8888","size":{"w":320,"h":260},"scale":"1","smartupdate":"$TexturePacker:SmartUpdate:76f935035565169e04e28d71e30e8add:7b85c3ad636601cea26c82c092a69958:c87aa37e540c327d9b6fd133131146ee$"}}""")

@@ -15,9 +15,14 @@ type
     anchor: Vec2f
     size: Vec2f
 
-proc setAnchor*(self: Node, size: Vec2f) =
-  if self.size != size:
-    self.anchorNorm = size
+proc setAnchor*(self: Node, anchor: Vec2f) =
+  if self.anchor != anchor:
+    self.anchorNorm = anchor / self.size
+    self.anchor = anchor
+
+proc setAnchorNorm*(self: Node, anchorNorm: Vec2f) =
+  if self.anchorNorm != anchorNorm:
+    self.anchorNorm = anchorNorm
     self.anchor = self.size * self.anchorNorm
 
 proc setSize*(self: Node, size: Vec2f) =
@@ -33,12 +38,11 @@ proc transform*(self: Node, parentTrans: Mat4f): Mat4f =
   # Gets the full transformation for this node.
   parentTrans * self.localTransform()
 
-proc parentTransform(self: Node): Mat4f =
-  ## Gets the transformation of all the parents.
+proc absolutePosition(self: Node): Vec2f =
   if self.parent.isNil:
-    mat4(1.0f)
+    self.pos
   else:
-    self.parent.parentTransform() * self.parent.localTransform()
+    self.parent.absolutePosition() + self.pos
 
 method addChild*(self: Node, child: Node) {.base.} =
   ## Adds new child in current node.
@@ -49,6 +53,7 @@ method addChild*(self: Node, child: Node) {.base.} =
   ## See also:
   ## - `addChildren method <#addChildren.e,Node,varargs[Node]>`_
   ## - `getChild method <#getChild.e,Node,int>`_
+  child.pos -= self.absolutePosition()
   self.children.add(child)
   child.parent = self
 

@@ -12,11 +12,16 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
-import ../gfx/bmfont
-import ../gfx/text
+import ../gfx/image
 import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
+import ../gfx/recti
+import ../scenegraph/node
+import ../scenegraph/scene
+import ../scenegraph/spritenode
+import ../util/easing
+import noderotateto
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -31,8 +36,8 @@ type Engine* = ref object of RootObj
   tasks*: seq[Task]
   threads*: seq[Thread]
   time*: float # time in seconds
-  font: BmFont
   audio*: AudioSystem
+  scene: Node
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -43,9 +48,39 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.rand = initRand()
   result.v = v
   result.audio = newAudioSystem()
-  result.font = parseBmFontFromPack("SayLineFont.fnt")
-  var text = newText(result.font, "None of us were prepared for what we'd find that night.", taCenter, 900.0f, rgb(0x30AAFF))
-  text.update()
+  result.scene = newScene()
+  
+  var spriteSheet = loadSpriteSheet("RobotArmsHallSheet.json")
+  info "spriteSheet: " & $spriteSheet.frames
+  var texture = newTexture(newImage(spriteSheet.meta.image))
+
+  # robotArm1
+  var robotArm1Node = newSpriteNode(texture, spriteSheet.frames["arm1"])
+  robotArm1Node.pos = vec2(176.0f, 119.0f)
+  robotArm1Node.zOrder = 65
+  result.scene.addChild(robotArm1Node)
+
+  # robotArm1_1
+  var robotArm1_1Node = newSpriteNode(texture, spriteSheet.frames["arm1_1"])
+  robotArm1_1Node.pos = vec2(142.0f, 162.0f)
+  robotArm1_1Node.zOrder = 62
+  result.scene.addChild(robotArm1_1Node)
+
+  # robotArm1Claw
+  var robotArm1ClawNode = newSpriteNode(texture, spriteSheet.frames["arm1_claw3"])
+  robotArm1ClawNode.zOrder = 64
+  robotArm1ClawNode.pos = vec2(104.0f, 126.0f)
+  robotArm1_1Node.addChild(robotArm1ClawNode)
+  
+  # robotArm1Joint1
+  var robotArm1Joint1Node = newSpriteNode(texture, spriteSheet.frames["arm1_joint1"])
+  robotArm1Joint1Node.zOrder = 64
+  robotArm1Joint1Node.pos = vec2(104.0f, 127.0f)
+  robotArm1_1Node.addChild(robotArm1Joint1Node)
+
+  gEngine.tasks.add newNodeRotateTo(1.0, robotArm1_1Node, 40, imSwing)
+  gEngine.tasks.add newNodeRotateTo(1.0, robotArm1Joint1Node, 40, imSwing)
+  gEngine.tasks.add newNodeRotateTo(0.25, robotArm1ClawNode, -30, imSwing)
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -125,3 +160,6 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
+
+  camera(320, 180)
+  self.scene.draw()

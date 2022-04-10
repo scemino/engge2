@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
 import glm
 import sqnim
 import squtils
@@ -342,7 +342,7 @@ proc drawObject(self: Layer, obj: Object, anim: ObjectAnimation) =
     let name = anim.frames[obj.frameIndex]
     if name != "null":
       try:
-        let item = ssheet.frames.getFrame(name)
+        let item = ssheet.frames[name]
         let frame = item.frame
         let off = vec2(
           item.spriteSourceSize.x.float32 - item.sourceSize.x.float32 / 2'f32, 
@@ -371,7 +371,7 @@ proc drawLayers(self: Room) =
     if layer.visible:
       var pos = -camPos * layer.parallax
       for name in layer.names:
-        let item = self.spriteSheet.frames.getFrame(name)
+        let item = self.spriteSheet.frames[name]
         let frame = item.frame
         let off = vec2(item.spriteSourceSize.x.float32, (self.roomSize.y - item.spriteSourceSize.y - item.spriteSourceSize.h).float32)
         gfxDrawSprite(pos + off, frame / size, self.texture)

@@ -1,10 +1,14 @@
 import std/strformat
+import glm
 import image
 import ../sys/opengl
 
 type Texture* = ref object of RootObj
   id*: GLuint
   width*, height*: int
+
+proc size*(self: Texture): Vec2i = 
+  vec2(self.width.int32, self.height.int32)
 
 proc getFormat(channels: int): GLint =
   case channels:
