@@ -22,6 +22,7 @@ import ../scenegraph/scene
 import ../scenegraph/spritenode
 import ../util/easing
 import noderotateto
+import nodeanim
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -78,6 +79,12 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   robotArm1Joint1Node.pos = vec2(104.0f, 127.0f)
   robotArm1_1Node.addChild(robotArm1Joint1Node)
 
+  # SpriteSheetFrame
+  var anim: seq[SpriteSheetFrame]
+  for frame in ["arm1_claw2", "arm1_claw1", "arm1_claw3"]:
+    anim.add spriteSheet.frames[frame]
+
+  gEngine.tasks.add newNodeAnim(robotArm1ClawNode, anim, 6)
   gEngine.tasks.add newNodeRotateTo(1.0, robotArm1_1Node, 40, imSwing)
   gEngine.tasks.add newNodeRotateTo(1.0, robotArm1Joint1Node, 40, imSwing)
   gEngine.tasks.add newNodeRotateTo(0.25, robotArm1ClawNode, -30, imSwing)
