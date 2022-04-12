@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
 import glm
 import sqnim
 import squtils
@@ -6,8 +6,8 @@ import ../gfx/recti
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/image
-import ../gfx/graphics
 import ../gfx/color
+import ../scenegraph/spritenode
 import motor
 
 type
@@ -25,7 +25,7 @@ type
   Layer* = ref object of RootObj
     names*: seq[string]
     parallax*: Vec2f
-    zsort*: float
+    zsort*: int
     visible*: bool
     objects*: seq[Object]
     room: Room
@@ -81,6 +81,8 @@ type
     facing*: Facing
     renderOffset*: Vec2f
     walkSpeed*: Vec2f
+    parent*: string
+    node*: SpriteNode
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -90,13 +92,25 @@ type
     layers*: seq[Layer]
     walkboxes*: seq[Walkbox]
     scalings*: seq[Scaling]
-    texture: Texture
+    texture*: Texture
     spriteSheet*: SpriteSheet
     table*: HSQOBJECT
     overlay*: Color
   RoomParser = object
     input: Stream
     filename: string
+
+proc `getSpriteSheet`*(self: Object): SpriteSheet =
+  if self.spriteSheet.isNil:
+    self.r.spriteSheet
+  else:
+    self.spriteSheet
+
+proc `getTexture`*(self: Object): Texture =
+  if self.texture.isNil:
+    self.r.texture
+  else:
+    self.texture
 
 proc `name`*(self: Object): string =
   if self.n.len > 0:
@@ -108,7 +122,7 @@ proc `name`*(self: Object): string =
 proc `name=`*(self: Object, name: string) =
   self.n = name
 
-proc newLayer(names: seq[string], parallax: Vec2f, zsort: float): Layer =
+proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
   Layer(names: names, parallax: parallax, zsort: zsort, visible: true)
 
 proc toBool(jNode: JsonNode, key: string): bool {.inline.} =
@@ -251,7 +265,7 @@ proc parseRoom(self: var RoomParser): Room =
     for jLayer in jRoom["layers"].items():
       names.setLen(0)
       let parallax = parseParallax(jLayer["parallax"])
-      let zsort = jLayer["zsort"].getFloat
+      let zsort = jLayer["zsort"].getInt
       if jLayer["name"].kind == JArray:
         for jName in jLayer["name"].items():
           names.add(jName.getStr())
@@ -285,6 +299,8 @@ proc parseRoom(self: var RoomParser): Room =
       obj.touchable = true
       obj.visible = true
       obj.color = White
+      obj.parent = if jObject.hasKey("parent"): jObject["parent"].getStr() else: ""
+      obj.r = result
       if jObject.hasKey("animations"):
         obj.anims = parseObjectAnimations(jObject["animations"])
       result.layers[0].objects.add(obj)
@@ -325,65 +341,6 @@ proc getScreenSize(self: var Room, roomHeight: int): Vec2i =
   of 256: vec2(640'i32, 360'i32)
   else: vec2(self.roomSize.x, roomHeight.int32)
 
-func first*[T](s: openArray[T], f: proc (item: T): bool): Option[T] =
-  for itm in items(s):
-    if f(itm):
-      return some(itm)
-
-proc getFrame*(frames: seq[SpriteSheetFrame], name: string): SpriteSheetFrame =
-  frames.first(proc (s: SpriteSheetFrame):bool = s.name == name).get
-
-proc drawObject(self: Layer, obj: Object, anim: ObjectAnimation) =
-  let ssheet = if obj.spriteSheet.isNil: self.room.spriteSheet else: obj.spriteSheet
-  let texture = if obj.texture.isNil: self.room.texture else: obj.texture
-  let size = ssheet.meta.size
-  var pos = -cameraPos()
-  if anim.frames.len > 0 and obj.frameIndex >= 0 and obj.frameIndex < anim.frames.len:
-    let name = anim.frames[obj.frameIndex]
-    if name != "null":
-      try:
-        let item = ssheet.frames[name]
-        let frame = item.frame
-        let off = vec2(
-          item.spriteSourceSize.x.float32 - item.sourceSize.x.float32 / 2'f32, 
-          item.sourceSize.y.float32 / 2'f32 - item.spriteSourceSize.y.float32 - item.spriteSourceSize.h.float32)
-        let objPos = vec2(obj.pos.x.float32, obj.pos.y.float32)
-        var transf = rotate(translate(mat4(1.0f), vec3(pos + objPos + off, 0.0f)), glm.radians(obj.rotation), 0.0f, 0.0f, 1.0f)
-        gfxDrawSprite(frame / size, texture, obj.color, transf)
-      except:
-        quit fmt"Failed to render frame {name} for obj {obj.name}"
-
-proc drawObjects(self: Layer) =
-  var objects = self.objects.sorted((x,y) => cmp(y.zsort, x.zsort))
-  for obj in objects:
-    if obj.visible and obj.anims.len > 0 and obj.animIndex >= 0 and obj.animIndex < obj.anims.len:
-      let anim = obj.anims[obj.animIndex]
-      self.drawObject(obj, anim)
-      
-      for layer in anim.layers:
-        if layer.flags == 0:
-          self.drawObject(obj, layer)
-
-proc drawLayers(self: Room) =
-  let size = self.spriteSheet.meta.size
-  let camPos = cameraPos()
-  for layer in self.layers:
-    if layer.visible:
-      var pos = -camPos * layer.parallax
-      for name in layer.names:
-        let item = self.spriteSheet.frames[name]
-        let frame = item.frame
-        let off = vec2(item.spriteSourceSize.x.float32, (self.roomSize.y - item.spriteSourceSize.y - item.spriteSourceSize.h).float32)
-        gfxDrawSprite(pos + off, frame / size, self.texture)
-        layer.drawObjects()
-        pos.x += frame.w.float32
-
-proc render*(self: var Room) =
-  let screenSize = self.getScreenSize(self.height)
-  camera(screenSize.x.float32, screenSize.y.float32)
-  # draw layers
-  self.drawLayers()
-
 proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r
   if not oldRoom.isNil:
@@ -409,27 +366,6 @@ proc update*(self: Object, elapsedSec: float) =
   if not self.alphaTo.isNil and self.alphaTo.enabled:
     self.alphaTo.update(elapsedSec)
     
-  if self.visible and self.anims.len > 0 and self.animIndex >= 0 and self.animIndex < self.anims.len:
-    let animation = self.anims[self.animIndex]
-    if animation.frames.len > 0:
-      if self.frameIndex == -1:
-        self.frameIndex = animation.frames.len - 1
-      if self.state != asPause:
-        if self.frameIndex >= animation.frames.len:
-          self.frameIndex = 0
-        else:
-          self.elapsedMs += elapsedSec*1000f
-          var fps = animation.fps
-          if fps == 0:
-            fps = 10
-          let frameTime = 1000f / fps.float
-          if self.elapsedMs > frameTime:
-            self.elapsedMs -= frameTime
-            if animation.loop or self.frameIndex != animation.frames.len - 1:
-              self.frameIndex = (self.frameIndex + 1) mod animation.frames.len
-            else:
-              self.pause()
-
 proc update*(self: var Layer, elapsedSec: float) = 
   for obj in self.objects.mitems:
     obj.update(elapsedSec)
@@ -437,89 +373,3 @@ proc update*(self: var Layer, elapsedSec: float) =
 proc update*(self: var Room, elapsedSec: float) = 
   for layer in self.layers.mitems:
     layer.update(elapsedSec)
-
-proc distanceSquared(vector1, vector2: Vec2f): float =
-  let dx = vector1.x - vector2.x
-  let dy = vector1.y - vector2.y
-  dx * dx + dy * dy
-
-proc isInside*(self: Walkbox, pos: Vec2f, toleranceOnOutside = true): bool =
-  var point = pos
-  const epsilon = 1f
-  result = false
-
-  # Must have 3 or more edges
-  if self.polygon.len < 3:
-    return false
-
-  var oldPoint = vec2f(self.polygon[^1])
-  var oldSqDist = distanceSquared(oldPoint, point)
-
-  for nPoint in self.polygon:
-    let newPoint = vec2f(nPoint)
-    let newSqDist = distanceSquared(newPoint, point)
-
-    if oldSqDist + newSqDist + 2.0f * sqrt(oldSqDist * newSqDist) - distanceSquared(newPoint, oldPoint) < epsilon:
-      return toleranceOnOutside
-
-    var left, right: Vec2f
-    if newPoint.x > oldPoint.x:
-      left = oldPoint
-      right = newPoint
-    else:
-      left = newPoint
-      right = oldPoint
-
-    if left.x < point.x and point.x <= right.x and (point.y - left.y) * (right.x - left.x) < (right.y - left.y) * (point.x - left.x):
-      result = not result
-
-    oldPoint = newPoint
-    oldSqDist = newSqDist
-
-proc distanceToSegmentSquared(p, v, w: Vec2f): float =
-  let l2 = distanceSquared(v, w)
-  if l2 == 0:
-    return distanceSquared(p, v)
-  let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2
-  if t < 0:
-    return distanceSquared(p, v)
-  if t > 1:
-    return distanceSquared(p, w)
-  distanceSquared(p, vec2f(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y)))
-
-proc distanceToSegment*(p, v, w: Vec2f): float =
-  sqrt(distanceToSegmentSquared(p, v, w))
-
-proc getClosestPointOnEdge*(self: Walkbox, p3: Vec2f): Vec2f =
-  var vi1 = -1
-  var vi2 = -1
-  var minDist = 100000f
-
-  for i in 0..<self.polygon.len:
-    let dist = distanceToSegment(p3, vec2f(self.polygon[i]), vec2f(self.polygon[(i + 1) mod self.polygon.len]))
-    if dist < minDist:
-      minDist = dist
-      vi1 = i
-      vi2 = (i + 1) mod self.polygon.len
-
-  let p1 = self.polygon[vi1]
-  let p2 = self.polygon[vi2]
-
-  let x1 = p1.x.float32
-  let y1 = p1.y.float32
-  let x2 = p2.x.float32
-  let y2 = p2.y.float32
-  let x3 = p3.x.float32
-  let y3 = p3.y.float32
-
-  let u = (((x3 - x1) * (x2 - x1)) + ((y3 - y1) * (y2 - y1))) / (((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)))
-
-  let xu = x1 + u * (x2 - x1)
-  let yu = y1 + u * (y2 - y1)
-
-  if u < 0:
-    vec2(x1, y1)
-  elif u > 1:
-     vec2(x2, y2)
-  else:
-    vec2(xu, yu)

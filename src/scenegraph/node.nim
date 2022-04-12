@@ -4,12 +4,12 @@ import std/algorithm
 type
   Node* = ref object of RootObj
     ## Represents a node in a scene graph.
-    name*: string                # Node name.
-    parent*: Node                # Node parent.
-    children*: seq[Node]         # Node children.
-    pos*: Vec2f
-    scale*: Vec2f
-    rotation*: float
+    name*: string                
+    parent*: Node                
+    children*: seq[Node]         
+    pos*: Vec2f                  
+    scale*: Vec2f                
+    rotation*: float             
     zOrder*: int
     anchorNorm: Vec2f
     anchor: Vec2f
@@ -39,6 +39,7 @@ proc transform*(self: Node, parentTrans: Mat4f): Mat4f =
   parentTrans * self.localTransform()
 
 proc absolutePosition(self: Node): Vec2f =
+  # Gets the absolute position for this node.
   if self.parent.isNil:
     self.pos
   else:
@@ -75,7 +76,7 @@ proc draw*(self: Node; parent = mat4(1.0f)) =
   ## Draws `self` node.
   var transf = self.transform(parent)
   var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
-  self.children.sort(proc(x, y: Node):int = cmp(x.zOrder, y.zOrder))
+  self.children.sort(proc(x, y: Node):int = cmp(y.zOrder, x.zOrder))
   for node in self.children:
     if node.zOrder < 0:
       node.draw(transf)

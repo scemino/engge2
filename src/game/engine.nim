@@ -12,17 +12,15 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
-import ../gfx/image
 import ../io/ggpackmanager
+import ../util/easing
 import ../util/tween
 import ../audio/audio
-import ../gfx/recti
 import ../scenegraph/node
-import ../scenegraph/scene
 import ../scenegraph/spritenode
-import ../util/easing
+import ../scenegraph/parallaxnode
+import ../scenegraph/scene
 import noderotateto
-import nodeanim
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -38,7 +36,7 @@ type Engine* = ref object of RootObj
   threads*: seq[Thread]
   time*: float # time in seconds
   audio*: AudioSystem
-  scene: Node
+  scene*: Scene
 
 var gEngine*: Engine
 var gRoomId = START_ROOMID
@@ -50,44 +48,6 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.v = v
   result.audio = newAudioSystem()
   result.scene = newScene()
-  
-  var spriteSheet = loadSpriteSheet("RobotArmsHallSheet.json")
-  info "spriteSheet: " & $spriteSheet.frames
-  var texture = newTexture(newImage(spriteSheet.meta.image))
-
-  # robotArm1
-  var robotArm1Node = newSpriteNode(texture, spriteSheet.frames["arm1"])
-  robotArm1Node.pos = vec2(176.0f, 119.0f)
-  robotArm1Node.zOrder = 65
-  result.scene.addChild(robotArm1Node)
-
-  # robotArm1_1
-  var robotArm1_1Node = newSpriteNode(texture, spriteSheet.frames["arm1_1"])
-  robotArm1_1Node.pos = vec2(142.0f, 162.0f)
-  robotArm1_1Node.zOrder = 62
-  result.scene.addChild(robotArm1_1Node)
-
-  # robotArm1Claw
-  var robotArm1ClawNode = newSpriteNode(texture, spriteSheet.frames["arm1_claw3"])
-  robotArm1ClawNode.zOrder = 64
-  robotArm1ClawNode.pos = vec2(104.0f, 126.0f)
-  robotArm1_1Node.addChild(robotArm1ClawNode)
-  
-  # robotArm1Joint1
-  var robotArm1Joint1Node = newSpriteNode(texture, spriteSheet.frames["arm1_joint1"])
-  robotArm1Joint1Node.zOrder = 64
-  robotArm1Joint1Node.pos = vec2(104.0f, 127.0f)
-  robotArm1_1Node.addChild(robotArm1Joint1Node)
-
-  # SpriteSheetFrame
-  var anim: seq[SpriteSheetFrame]
-  for frame in ["arm1_claw2", "arm1_claw1", "arm1_claw3"]:
-    anim.add spriteSheet.frames[frame]
-
-  gEngine.tasks.add newNodeAnim(robotArm1ClawNode, anim, 6)
-  gEngine.tasks.add newNodeRotateTo(1.0, robotArm1_1Node, 40, imSwing)
-  gEngine.tasks.add newNodeRotateTo(1.0, robotArm1Joint1Node, 40, imSwing)
-  gEngine.tasks.add newNodeRotateTo(0.25, robotArm1ClawNode, -30, imSwing)
 
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
@@ -124,12 +84,48 @@ proc loadRoom*(name: string): Room =
       else:
         echo "obj.name: " & obj.name
 
+proc getObj(room: Room, name: string): Object =
+  for layer in room.layers:
+      for obj in layer.objects:
+        if obj.name == name:
+          return obj
+
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
     self.fade.enabled = false
     self.room = room
     call(self.v, self.room.table, "enter")
+    self.scene.removeAll()
 
+    # create layer nodes
+    for layer in self.room.layers:
+      var frames: seq[SpriteSheetFrame]
+      for name in layer.names:
+        frames.add(room.spriteSheet.frames[name])
+      var layerNode = newParallaxNode(room.texture, frames)
+      layerNode.zOrder = layer.zSort
+      self.scene.addChild layerNode
+
+      for obj in layer.objects:
+        if obj.anims.len > 0:
+          var ss = obj.getSpriteSheet()
+          var frame = ss.frames[obj.anims[0].frames[0]]
+          var spNode = newSpriteNode(obj.getTexture(), frame)
+          spNode.zOrder = obj.zsort
+          spNode.pos = obj.pos
+          layerNode.addChild spNode
+          obj.node = spNode
+
+    # assign parent node
+    for layer in self.room.layers:
+      for obj in layer.objects:
+        if obj.parent != "":
+          self.room.getObj(obj.parent).node.addChild(obj.node)
+
+    gEngine.tasks.add newNodeRotateTo(1.0, self.room.getObj("robotArm1_1").node, 40, imSwing)
+    gEngine.tasks.add newNodeRotateTo(1.0, self.room.getObj("robotArm1Joint1").node, 40, imSwing)
+    gEngine.tasks.add newNodeRotateTo(0.25, self.room.getObj("robotArm1Claw").node, -30, imSwing)
+    
 proc update(self: Engine) =
   var elapsed = 1/60
   self.time += elapsed
@@ -163,10 +159,7 @@ proc render*(self: Engine) =
   # draw room
   gfxClear(Gray)
   if not self.room.isNil:
-    self.room.render()
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
-    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), self.room.overlay)
-
-  camera(320, 180)
-  self.scene.draw()
+    camera(self.room.roomSize.x.float32, self.room.roomSize.y.float32)
+    self.scene.draw()
