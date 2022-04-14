@@ -1,7 +1,7 @@
 import std/random as rnd
 import sqnim
 import squtils
-import engine
+import ../game/engine
 
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) == OT_INTEGER:

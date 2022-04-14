@@ -3,10 +3,10 @@ import std/strformat
 import glm
 import sqnim
 import squtils
-import engine
-import actor
-import utils
-import room
+import ../game/engine
+import ../game/actor
+import ../game/utils
+import ../game/room
 import ../gfx/color
 
 proc getOppositeFacing(facing: Facing): Facing =

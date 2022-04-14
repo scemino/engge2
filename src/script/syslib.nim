@@ -1,13 +1,13 @@
 import std/[logging, strformat]
 import sqnim
-import thread
 import vm
 import squtils
-import callback
-import engine
-import ids
-import breakwhilerunning
-import utils
+import ../game/thread
+import ../game/callback
+import ../game/engine
+import ../game/ids
+import ../game/breakwhilerunning
+import ../game/utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")

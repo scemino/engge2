@@ -1,7 +1,7 @@
 import sqnim
-import squtils
-import vm
 import ids
+import ../script/squtils
+import ../script/vm
 
 var gCallbackId = START_CALLBACKID
 

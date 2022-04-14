@@ -1,9 +1,9 @@
 import std/sequtils
 import sqnim
-import squtils
 import engine
 import room
 import thread
+import ../script/squtils
 import ../util/easing
 import ../audio/audio
 

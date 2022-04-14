@@ -1,13 +1,13 @@
-import std/[random, streams, tables, sequtils, strformat, logging]
+import std/[random, streams, tables, sequtils, logging, strformat]
 import sqnim
 import glm
 import room
 import thread
-import squtils
 import callback
-import vm
 import ids
 import task
+import ../script/squtils
+import ../script/vm
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
@@ -16,9 +16,9 @@ import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
 import ../scenegraph/node
-import ../scenegraph/spritenode
-import ../scenegraph/parallaxnode
 import ../scenegraph/scene
+import ../scenegraph/parallaxnode
+import ../scenegraph/spritenode
 
 type Engine* = ref object of RootObj
   rand*: Rand

@@ -2,8 +2,8 @@ import std/json
 import glm
 import sqnim
 import nimyggpack
-import squtils
 import room
+import ../script/squtils
 import ../io/ggpackmanager
 import ../gfx/image
 import ../gfx/texture

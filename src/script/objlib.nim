@@ -3,10 +3,10 @@ import sqnim
 import glm
 import vm
 import squtils
-import utils
-import room
-import alphato
-import rotateto
+import ../game/room
+import ../game/alphato
+import ../game/rotateto
+import ../game/utils
 import ../util/easing
 import ../gfx/color
 

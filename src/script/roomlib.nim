@@ -1,11 +1,11 @@
 import std/strformat
 import std/logging
-import overlayto
-import engine
 import sqnim
 import squtils
-import utils
-import ids
+import ../game/utils
+import ../game/ids
+import ../game/overlayto
+import ../game/engine
 import ../util/tween
 import ../util/easing
 import ../gfx/color

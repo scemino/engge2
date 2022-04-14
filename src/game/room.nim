@@ -1,7 +1,7 @@
 import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
 import glm
 import sqnim
-import squtils
+import ../script/squtils
 import ../gfx/recti
 import ../gfx/spritesheet
 import ../gfx/texture

@@ -1,6 +1,8 @@
 import std/[logging, os]
 import sys/[app, input]
-import game/[engine, vm, script]
+import game/engine
+import script/vm
+import script/script
 import io/ggpackmanager
 
 proc onKey(key: InputKey, scancode: int32, action: InputAction,

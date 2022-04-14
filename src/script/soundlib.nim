@@ -2,7 +2,7 @@ import std/logging
 import sqnim
 import vm
 import squtils
-import utils
+import ../game/utils
 import ../game/engine
 import ../audio/audio
 
