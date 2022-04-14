@@ -7,8 +7,11 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/image
 import ../gfx/color
-import ../scenegraph/spritenode
+import ../scenegraph/node
+import ../scenegraph/scene
 import motor
+import objanim
+import jsonutil
 
 type
   Facing* = enum
@@ -40,22 +43,10 @@ type
     otProp,
     otSpot,
     otTrigger
-  AnimState = enum
-    asPause,
-    asPlay
   Walkbox* = object
     polygon*: seq[Vec2i]
     name*: string
     visible*: bool
-  ObjectAnimation* = ref object of RootObj
-    name*: string
-    frames*: seq[string]
-    layers*: seq[ObjectAnimation]
-    triggers*: seq[string]
-    loop*: bool
-    fps*: float32
-    flags*: int
-    frameIndex*: int
   Object* = ref object of RootObj
     n: string
     visible*: bool
@@ -69,7 +60,6 @@ type
     animIndex*: int
     frameIndex: int
     zsort*: int32
-    state: AnimState
     elapsedMs: float
     color*: Color
     alphaTo*: Motor
@@ -82,7 +72,7 @@ type
     renderOffset*: Vec2f
     walkSpeed*: Vec2f
     parent*: string
-    node*: SpriteNode
+    node*: Node
   Room* = ref object of RootObj
     name*: string
     sheet*: string
@@ -96,6 +86,7 @@ type
     spriteSheet*: SpriteSheet
     table*: HSQOBJECT
     overlay*: Color
+    scene*: Scene
   RoomParser = object
     input: Stream
     filename: string
@@ -125,15 +116,6 @@ proc `name=`*(self: Object, name: string) =
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
   Layer(names: names, parallax: parallax, zsort: zsort, visible: true)
 
-proc toBool(jNode: JsonNode, key: string): bool {.inline.} =
-  jNode.hasKey(key) and jNode[key].getInt == 1
-
-proc parseVec2i(value: string): Vec2i =
-  var x, y: int
-  let tmp = parseInt(value, x, 1)
-  discard parseInt(value, y, 2 + tmp)
-  vec2(x.int32, y.int32)
-
 proc parsePolygon(text: string): Walkbox =
   var points: seq[Vec2i]
   var i = 1
@@ -144,15 +126,6 @@ proc parsePolygon(text: string): Walkbox =
     var p = vec2(x.int32, y.int32)
     points.add(p)
   Walkbox(polygon: points, visible: true)
-
-proc parseRecti(text: string): Recti =
-  var x, y, x2, y2: int
-  var i = 2
-  i += parseInt(text, x, i) + 1
-  i += parseInt(text, y, i) + 3
-  i += parseInt(text, x2, i) + 1
-  i += parseInt(text, y2, i)
-  rect(x.int32, y.int32, (x2 - x).int32, (y2 - y).int32)
 
 proc parseScaling(node: JsonNode): Scaling =
   assert(node.kind == JArray)
@@ -166,31 +139,6 @@ proc parseScaling(node: JsonNode): Scaling =
     i += parseFloat(v, scale, i) + 1
     i += parseInt(v, y, i)
     result.values.add(ScalingValue(scale: scale, y: y))
-
-proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
-  new(result)
-  result.name = jAnim["name"].getStr()
-  result.loop = toBool(jAnim, "loop")
-  result.fps = if jAnim.hasKey("fps") and jAnim["fps"].kind == JFloat: jAnim["fps"].getFloat else: 0
-  result.flags = if jAnim.hasKey("flags") and jAnim["flags"].kind ==
-      JInt: jAnim["flags"].getInt else: 0
-  if jAnim.hasKey("frames") and jAnim["frames"].kind == JArray:
-    for jFrame in jAnim["frames"].items:
-      let name = jFrame.getStr()
-      result.frames.add(name)
-
-  if jAnim.hasKey("layers") and jAnim["layers"].kind == JArray:
-    for jLayer in jAnim["layers"].items:
-      let layer = parseObjectAnimation(jLayer)
-      result.layers.add(layer)
-
-  if jAnim.hasKey("triggers") and jAnim["triggers"].kind == JArray:
-    for jTrigger in jAnim["triggers"].items:
-      result.triggers.add(jTrigger.getStr)
-
-proc parseObjectAnimations*(jAnims: JsonNode): seq[ObjectAnimation] =
-  for jAnim in jAnims:
-    result.add(parseObjectAnimation(jAnim))
 
 proc toObjectType(jObject: JsonNode): ObjectType =
   if toBool(jObject, "prop"):
@@ -334,13 +282,6 @@ proc parseRoom*(s: Stream, filename: string = ""): Room =
 proc parseRoom*(buffer: string): Room =
   result = parseRoom(newStringStream(buffer), "input")
 
-proc getScreenSize(self: var Room, roomHeight: int): Vec2i =
-  case roomHeight:
-  of 128: vec2(320'i32, 180'i32)
-  of 172: vec2(428'i32, 240'i32)
-  of 256: vec2(640'i32, 360'i32)
-  else: vec2(self.roomSize.x, roomHeight.int32)
-
 proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r
   if not oldRoom.isNil:
@@ -354,22 +295,14 @@ proc `room=`*(self: Object, room: Room) =
 proc `room`*(self: Object): Room =
   self.r
 
-proc play*(self: Object) =
-  self.elapsedMs = 0
-  self.state = asPlay
-  self.frameIndex = 0
-
-proc pause*(self: Object) =
-  self.state = asPause
-
 proc update*(self: Object, elapsedSec: float) =
   if not self.alphaTo.isNil and self.alphaTo.enabled:
     self.alphaTo.update(elapsedSec)
     
-proc update*(self: var Layer, elapsedSec: float) = 
+proc update*(self: Layer, elapsedSec: float) = 
   for obj in self.objects.mitems:
     obj.update(elapsedSec)
 
-proc update*(self: var Room, elapsedSec: float) = 
+proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:
     layer.update(elapsedSec)

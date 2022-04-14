@@ -13,14 +13,12 @@ import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
 import ../io/ggpackmanager
-import ../util/easing
 import ../util/tween
 import ../audio/audio
 import ../scenegraph/node
 import ../scenegraph/spritenode
 import ../scenegraph/parallaxnode
 import ../scenegraph/scene
-import noderotateto
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -49,14 +47,29 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.audio = newAudioSystem()
   result.scene = newScene()
 
+proc getObj(room: Room, name: string): Object =
+  for layer in room.layers:
+      for obj in layer.objects:
+        if obj.name == name:
+          return obj
+
 proc loadRoom*(name: string): Room =
   echo "room background: " & name
   let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
   result = parseRoom(content)
+  result.scene = newScene()
   getf(gVm.v, gVm.v.rootTbl(), name, result.table)
   result.table.setId(gRoomId)
   gRoomId += 1
   for layer in result.layers:
+    # create layer node
+    var frames: seq[SpriteSheetFrame]
+    for name in layer.names:
+      frames.add(result.spriteSheet.frames[name])
+    var layerNode = newParallaxNode(result.texture, frames)
+    layerNode.zOrder = layer.zSort
+    result.scene.addChild layerNode
+
     for obj in layer.objects:
       sq_resetobject(obj.table)
       getf(gVm.v, result.table, obj.name, obj.table)
@@ -84,48 +97,31 @@ proc loadRoom*(name: string): Room =
       else:
         echo "obj.name: " & obj.name
 
-proc getObj(room: Room, name: string): Object =
-  for layer in room.layers:
-      for obj in layer.objects:
-        if obj.name == name:
-          return obj
+      var objNode = Node(name: obj.name, scale: vec2(1.0f, 1.0f))
+      objNode.pos = obj.pos
+      objNode.zOrder = obj.zsort
+      layerNode.addChild objNode
+      obj.node = objNode
+
+      if obj.anims.len > 0:
+        var ss = obj.getSpriteSheet()
+        var frame = ss.frames[obj.anims[0].frames[0]]
+        var spNode = newSpriteNode(obj.getTexture(), frame)
+        objNode.addChild spNode
+
+  # assign parent node
+  for layer in result.layers:
+    for obj in layer.objects:
+      if obj.parent != "":
+        result.getObj(obj.parent).node.addChild(obj.node)
 
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
     self.fade.enabled = false
     self.room = room
+    self.scene = room.scene
     call(self.v, self.room.table, "enter")
-    self.scene.removeAll()
 
-    # create layer nodes
-    for layer in self.room.layers:
-      var frames: seq[SpriteSheetFrame]
-      for name in layer.names:
-        frames.add(room.spriteSheet.frames[name])
-      var layerNode = newParallaxNode(room.texture, frames)
-      layerNode.zOrder = layer.zSort
-      self.scene.addChild layerNode
-
-      for obj in layer.objects:
-        if obj.anims.len > 0:
-          var ss = obj.getSpriteSheet()
-          var frame = ss.frames[obj.anims[0].frames[0]]
-          var spNode = newSpriteNode(obj.getTexture(), frame)
-          spNode.zOrder = obj.zsort
-          spNode.pos = obj.pos
-          layerNode.addChild spNode
-          obj.node = spNode
-
-    # assign parent node
-    for layer in self.room.layers:
-      for obj in layer.objects:
-        if obj.parent != "":
-          self.room.getObj(obj.parent).node.addChild(obj.node)
-
-    gEngine.tasks.add newNodeRotateTo(1.0, self.room.getObj("robotArm1_1").node, 40, imSwing)
-    gEngine.tasks.add newNodeRotateTo(1.0, self.room.getObj("robotArm1Joint1").node, 40, imSwing)
-    gEngine.tasks.add newNodeRotateTo(0.25, self.room.getObj("robotArm1Claw").node, -30, imSwing)
-    
 proc update(self: Engine) =
   var elapsed = 1/60
   self.time += elapsed
@@ -162,4 +158,5 @@ proc render*(self: Engine) =
     let fade = if self.fade.enabled: self.fade.current() else: 0.0
     gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     camera(self.room.roomSize.x.float32, self.room.roomSize.y.float32)
-    self.scene.draw()
+    
+  self.scene.draw()

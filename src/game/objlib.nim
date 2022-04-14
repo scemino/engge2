@@ -79,7 +79,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0.SQInteger
     if sq_gettop(v) != 5 or SQ_FAILED(sq_getinteger(v, 5, interpolation)):
       interpolation = 0
-    obj.alphaTo = newRotateTo(duration, obj, rotation, interpolation.InterpolationMethod)
+    obj.alphaTo = newRotateTo(duration, obj.node, rotation, interpolation.InterpolationMethod)
   0
 
 proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -134,8 +134,7 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let anim = obj.anims[i].name
     if anim == state:
       info fmt"playObjectState {obj.name}, {state} ({i})"
-      obj.animIndex = i
-      obj.play()
+      # TODO
       return 0
   0
 

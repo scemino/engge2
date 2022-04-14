@@ -8,7 +8,7 @@ RobotArmsHall <-
  _armsTID = null
  enter = function()
  {
-  //startRobots()
+  startRobots()
  }
 
  script waveArm(num) {

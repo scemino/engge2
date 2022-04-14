@@ -1,19 +1,20 @@
 import motor
-import room
+import ../scenegraph/node
 import ../util/tween
 import ../util/easing
 
 type RotateTo = ref object of Motor
-    obj: Object
+    node: Node
     tween: Tween[float]
 
-proc newRotateTo*(duration: float, obj: var Object, to: float, im: InterpolationMethod): RotateTo =
+proc newRotateTo*(duration: float, node: Node, to: float, im: InterpolationMethod): RotateTo =
   new(result)
-  result.obj = obj
-  result.tween = newTween[float](obj.rotation, to, duration, im)
+  assert not node.isNil
+  result.node = node
+  result.tween = newTween[float](node.rotation, to, duration, im)
   result.enabled = true
 
 method update(self: RotateTo, el: float) =
   self.tween.update(el)
-  self.obj.rotation = self.tween.current()
+  self.node.rotation = self.tween.current()
   self.enabled = self.tween.running()

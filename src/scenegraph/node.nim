@@ -50,24 +50,11 @@ method addChild*(self: Node, child: Node) {.base.} =
   ##
   ## Arguments:
   ## - `child`: child node to add.
-  ##
-  ## See also:
-  ## - `addChildren method <#addChildren.e,Node,varargs[Node]>`_
-  ## - `getChild method <#getChild.e,Node,int>`_
-  child.pos -= self.absolutePosition()
+  if not child.parent.isNil:
+    child.pos -= self.absolutePosition()
+    child.parent.children.del child.parent.children.find(child)
   self.children.add(child)
   child.parent = self
-
-method addChildren*(self: Node, children: openArray[Node]) {.base.} =
-  ## Adds new children in current node.
-  ##
-  ## Arguments:
-  ## - `children`: other nodes to add.
-  ##
-  ## See also:
-  ## - `addChild method <#addChild.e,Node,Node>`_
-  for node in children:
-    self.addChild(node)
 
 method drawCore(self: Node, transf: Mat4f) {.base.} =
   discard

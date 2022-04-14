@@ -9,6 +9,7 @@ import ../gfx/image
 import ../gfx/texture
 import ../gfx/spritesheet
 import ../gfx/color
+import objanim
 
 proc newActor*(): Object =
   Object(visible: true, color: White, pos: vec2(160.0'f32, 90.0'f32), zsort: 1)
