@@ -1,23 +1,46 @@
+import std/tables
 import ../gfx/spritesheet
+import ../scenegraph/node
 import ../scenegraph/spritenode
-import task
+import motor
+import room
+import objanim
 
-type NodeAnim = ref object of Task
+type NodeAnim = ref object of Motor
     node: SpriteNode
     frames: seq[SpriteSheetFrame]
     index: int
     elapsed: float
     frameDuration: float
     loop: bool
+    layers: seq[NodeAnim]
 
-proc newNodeAnim*(node: SpriteNode, frames: seq[SpriteSheetFrame], fps: float, loop = false): NodeAnim =
+proc newNodeAnim*(obj: Object, anim: ObjectAnimation, node: Node = nil): NodeAnim =
+  var ss = obj.getSpriteSheet()
+  var frames: seq[SpriteSheetFrame]
+  for frame in anim.frames:
+    frames.add(ss.frames[frame])
+  var newFps = if anim.fps == 0.0f: 10.0f else: anim.fps
+
   new(result)
-  result.node = node
   result.frames = frames
-  result.frameDuration = 1.0/fps
-  result.loop = loop
+  result.frameDuration = 1.0 / newFps
+  result.loop = anim.loop
+  result.enabled = true
 
-method update(self: NodeAnim, el: float): bool =
+  var newNode = node
+  if node.isNil:
+    obj.node.removeAll()
+    newNode = obj.node
+
+  if frames.len > 0:
+    result.node = newSpriteNode(obj.getTexture(), frames[0])
+    newNode.addChild result.node
+  
+  for layer in anim.layers:
+    result.layers.add newNodeAnim(obj, layer, newNode)
+
+method update(self: NodeAnim, el: float) =
   if self.frames.len != 0:
     self.elapsed += el
     if self.elapsed > self.frameDuration:
@@ -27,8 +50,13 @@ method update(self: NodeAnim, el: float): bool =
       elif self.loop:
         self.index = 0
       else:
-        return true
+        self.enabled = false
     self.node.setFrame(self.frames[self.index])
-    false
+  elif self.layers.len != 0:
+    var enabled = false
+    for layer in self.layers:
+      layer.update(el)
+      enabled = enabled or layer.enabled
+    self.enabled = enabled
   else:
-    true
+    self.enabled = false

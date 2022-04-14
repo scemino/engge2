@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
 import glm
 import sqnim
 import ../script/squtils
@@ -58,11 +58,11 @@ type
     objType*: ObjectType
     anims*: seq[ObjectAnimation]
     animIndex*: int
-    frameIndex: int
     zsort*: int32
     elapsedMs: float
     color*: Color
     alphaTo*: Motor
+    nodeAnim: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
@@ -91,6 +91,7 @@ type
     input: Stream
     filename: string
 
+# Object
 proc `getSpriteSheet`*(self: Object): SpriteSheet =
   if self.spriteSheet.isNil:
     self.r.spriteSheet
@@ -113,9 +114,44 @@ proc `name`*(self: Object): string =
 proc `name=`*(self: Object, name: string) =
   self.n = name
 
+proc `room`*(self: Object): Room =
+  self.r
+
+proc `room=`*(self: Object, room: Room) =
+  let oldRoom = self.r
+  if not oldRoom.isNil:
+    info fmt"Remove {self.name} from room {oldRoom.name}"
+    oldRoom.layers[0].objects.del oldRoom.layers[0].objects.find(self)
+  if not room.isNil:
+    info fmt"Add {self.name} in room {room.name}"
+    room.layers[0].objects.add self
+  self.r = room
+
+import ../game/nodeanim
+
+proc play*(self: Object, id: int) =
+  if id < 0 or id >= self.anims.len:
+    warn fmt"playObjectState {self.name}, {id}"
+  else:
+    var anim = self.anims[id]
+    info fmt"playObjectState {self.name}, id={id}, name={anim.name}, fps={anim.fps}, loop={anim.loop}"
+    self.nodeAnim = newNodeAnim(self, anim)
+
+proc update*(self: Object, elapsedSec: float) =
+  if not self.alphaTo.isNil and self.alphaTo.enabled:
+    self.alphaTo.update(elapsedSec)
+  if not self.nodeAnim.isNil and self.nodeAnim.enabled:
+    self.nodeAnim.update(elapsedSec)
+
+# Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
   Layer(names: names, parallax: parallax, zsort: zsort, visible: true)
 
+proc update*(self: Layer, elapsedSec: float) = 
+  for obj in self.objects.mitems:
+    obj.update(elapsedSec)
+
+# Room
 proc parsePolygon(text: string): Walkbox =
   var points: seq[Vec2i]
   var i = 1
@@ -281,27 +317,6 @@ proc parseRoom*(s: Stream, filename: string = ""): Room =
 
 proc parseRoom*(buffer: string): Room =
   result = parseRoom(newStringStream(buffer), "input")
-
-proc `room=`*(self: Object, room: Room) =
-  let oldRoom = self.r
-  if not oldRoom.isNil:
-    info fmt"Remove {self.name} from room {oldRoom.name}"
-    oldRoom.layers[0].objects.del oldRoom.layers[0].objects.find(self)
-  if not room.isNil:
-    info fmt"Add {self.name} in room {room.name}"
-    room.layers[0].objects.add self
-  self.r = room
-
-proc `room`*(self: Object): Room =
-  self.r
-
-proc update*(self: Object, elapsedSec: float) =
-  if not self.alphaTo.isNil and self.alphaTo.enabled:
-    self.alphaTo.update(elapsedSec)
-    
-proc update*(self: Layer, elapsedSec: float) = 
-  for obj in self.objects.mitems:
-    obj.update(elapsedSec)
 
 proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:

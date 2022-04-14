@@ -12,6 +12,7 @@ RobotArmsHall <-
  }
 
  script waveArm(num) {
+  playObjectState(robotArmsHallTV, "tv_chuck_static")
   local claw = RobotArmsHall["robotArm"+num+"Claw"]
   local _jointSID = 0
   //actorSound(claw, 2, soundRobotHallClaws1, soundRobotHallClaws2, soundRobotHallClaws3, soundRobotHallClaws4, soundRobotHallClaws5)

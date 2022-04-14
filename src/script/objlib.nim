@@ -1,14 +1,19 @@
-import std/[logging, strformat]
+import std/[logging, strformat, tables]
 import sqnim
 import glm
 import vm
 import squtils
+import ../game/motor
 import ../game/room
 import ../game/alphato
 import ../game/rotateto
+import ../game/nodeanim
 import ../game/utils
 import ../util/easing
 import ../gfx/color
+import ../gfx/spritesheet
+import ../scenegraph/node
+import ../scenegraph/spritenode
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
@@ -134,7 +139,7 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let anim = obj.anims[i].name
     if anim == state:
       info fmt"playObjectState {obj.name}, {state} ({i})"
-      # TODO
+      obj.play(i)
       return 0
   0
 
