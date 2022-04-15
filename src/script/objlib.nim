@@ -1,12 +1,14 @@
-import std/strformat, strutils, logging
+import std/strformat, logging
 import sqnim
 import glm
 import squtils
 import vm
+import ../game/engine
 import ../game/ids
 import ../game/room
 import ../game/alphato
 import ../game/rotateto
+import ../game/moveto
 import ../game/utils
 import ../util/easing
 import ../gfx/color
@@ -45,22 +47,23 @@ proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get state")
   0
 
-proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable. 
+proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Places the specified object at the given x and y coordinates in the current room.
   ## 
   ## .. code-block:: Squirrel
-  ## objectHidden(oldRags, YES)
-  var table: HSQOBJECT
-  discard sq_getstackobj(v, 2, table)
-  var hidden: int
-  discard sq_getinteger(v, 3, hidden)
-  var obj = obj(table)
+  ## objectAt(text, 160,90)
+  ## objectAt(obj, leftMargin, topLinePos)
+  var obj = obj(v, 2)
   if obj.isNil:
-    warn fmt"Object {table} has not been found"
+    sq_throwerror(v, "failed to get object")
   else:
-    info fmt"Sets object visible {obj.name} to {hidden == 0}"
-    obj.node.visible = hidden == 0
-  0
+    var x, y: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(sq_getinteger(v, 4, y)):
+      return sq_throwerror(v, "failed to get y")
+    obj.node.pos = vec2(x.float32, y.float32)
+    0
 
 proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets an object's alpha (transparency) in the range of 0.0 to 1.0.
@@ -73,11 +76,14 @@ proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var alpha = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
+    if not obj.alphaTo.isNil:
+      obj.alphaTo.enabled = false
     obj.node.alpha = alpha
   0
 
 proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes an object's alpha from its current state to the specified alpha over the time period specified by time.
+  ## 
   ## If an interpolationMethod is used, the change will follow the rules of the easing method, e.g. LINEAR, EASE_INOUT.
   ## See also stopObjectMotors. 
   var obj = obj(v, 2)
@@ -95,7 +101,167 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
   0
 
+proc objectColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets an object's color. The color is an int in the form of 0xRRGGBB 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectColor(warningSign, 0x808000)
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var color = 0
+    if SQ_FAILED(get(v, 3, color)):
+      return sq_throwerror(v, "failed to get color")
+    obj.node.color = rgba(color)
+  0
+
+proc objectFPS(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets how many frames per second (fpsRate) the object will animate at. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectFPS(pigeon1, 15)
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var fps = 0.0
+    if SQ_FAILED(get(v, 3, fps)):
+      return sq_throwerror(v, "failed to get fps")
+    obj.fps = fps
+  0
+
+proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectHidden(oldRags, YES)
+  var table: HSQOBJECT
+  discard sq_getstackobj(v, 2, table)
+  var hidden: int
+  discard sq_getinteger(v, 3, hidden)
+  var obj = obj(table)
+  if obj.isNil:
+    warn fmt"Object {table} has not been found"
+  else:
+    info fmt"Sets object visible {obj.name} to {hidden == 0}"
+    obj.node.visible = hidden == 0
+  0
+
+proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Moves the object to the specified location over the time period specified.
+  ## 
+  ## If an interpolation method is used for the transition, it will use that.
+  ## Unlike `objectOffsetTo`, `objectMoveTo` moves the item to a x, y on the screen, not relative to the object's starting position.
+  ## If you want to move the object back again, you need to store where the object started.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectMoveTo(this, 10, 20, 2.0)
+  ## 
+  ## See also:
+  ## - `stopObjectMotors method <#stopObjectMotors.e>`_
+  ## - `objectOffsetTo method <#objectOffsetTo.e>`_
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var x = 0
+    var y = 0
+    if SQ_FAILED(get(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(get(v, 4, y)):
+      return sq_throwerror(v, "failed to get x")
+    var duration = 0.0
+    if SQ_FAILED(get(v, 5, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var interpolation = 0.SQInteger
+    if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
+      interpolation = 0
+    var destPos = vec2(x.float32, y.float32) - obj.node.pos
+    obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
+  0
+
+proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Instantly offsets the object (image, use position, hotspot) with respect to the origin of the object.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectOffset(coroner, 0, 0)
+  ## objectOffset(SewerManhole.sewerManholeDime, 0, 96)
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var x = 0
+    var y = 0
+    if SQ_FAILED(get(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(get(v, 4, y)):
+      return sq_throwerror(v, "failed to get x")
+    if not obj.moveTo.isNil:
+      obj.moveTo.enabled = false
+    obj.node.pos += vec2(x.float32, y.float32)
+  0
+
+proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Changes the object's offset (image, use position, hotspot) with respect to the origin of the object.
+  ## 
+  ## Does this over the time period specified.
+  ## If an interpolation method is used for the transition, it will use that.
+  ## Useful for when you want to be able to move an object to a new position then move it back (you'd move it back to 0).
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectOffsetTo(actor, -40, 0, 0.5)
+  ## objectOffsetTo(rat, random(-1, 1), random(-1, 1), 0.2, LINEAR)
+  ## objectOffsetTo(ladder, ladder.position*ladder.offset, 0, 1, EASE_INOUT)
+  ## 
+  ## See also:
+  ## - `stopObjectMotors method <#stopObjectMotors.e>`_
+  ## - `objectMoveTo method <#objectMoveTo.e>`_
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var x = 0
+    var y = 0
+    if SQ_FAILED(get(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(get(v, 4, y)):
+      return sq_throwerror(v, "failed to get x")
+    var duration = 0.0
+    if SQ_FAILED(get(v, 5, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var interpolation = 0.SQInteger
+    if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
+      interpolation = 0
+    var destPos = vec2(x.float32, y.float32)
+    obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
+  0
+
+proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Changes the object's layer.
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var layer = 0
+  if SQ_FAILED(get(v, 3, layer)):
+    return sq_throwerror(v, "failed to get parallax layer")
+  gEngine.room.objectParallaxLayer(obj, layer)
+  0
+
+proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets the rotation of object to the specified amount instantly.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectRotate(pigeonVanBackWheel, 0)
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var rotation = 0.0f
+    if SQ_FAILED(sq_getfloat(v, 3, rotation)):
+      return sq_throwerror(v, "failed to get rotation")
+    if not obj.rotateTo.isNil:
+      obj.rotateTo.enabled = false
+    obj.node.rotation = rotation
+  0
+
 proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Rotates the object from its current rotation to the desired rotation over duration time period.
+  ## The interpolationMethod specifies how the animation is played.
+  ## if `LOOPING` is used, it will continue to rotate as long as the rotation parameter is 360 or -360.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectRotateTo(bridgeGrateTree, 45, 3.7, SLOW_EASE_IN)
+  ## objectRotateTo(AStreet.aStreetPhoneBook, 6, 2.0, SWING)
+  ## objectRotateTo(firefly, direction, 12, LOOPING)
   var obj = obj(v, 2)
   if not obj.isNil:
     var rotation = 0.0f
@@ -109,19 +275,6 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       interpolation = 0
     obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation.InterpolationMethod)
   0
-
-proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = obj(v, 2)
-  if obj.isNil:
-    sq_throwerror(v, "failed to get object")
-  else:
-    var x, y: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 3, x)):
-      return sq_throwerror(v, "failed to get x")
-    if SQ_FAILED(sq_getinteger(v, 4, y)):
-      return sq_throwerror(v, "failed to get y")
-    obj.node.pos = vec2(x.float32, y.float32)
-    0
 
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the state of an object, although this can just be a internal state, 
@@ -153,7 +306,26 @@ proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   obj.touchable = touchable != 0
   0
 
+proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ##  Sets the zsort order of an object, essentially the order in which an object is drawn on the screen.
+  ## A sort order of 0 is the bottom of the screen.
+  ## Actors typically have a sort order of their Y position.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectSort(censorBox, 0)   // Will be on top of everything.
+  let obj = obj(v, 2)
+  var zsort: int
+  if SQ_FAILED(get(v, 3, zsort)):
+    return sq_throwerror(v, "failed to get zsort")
+  obj.node.zOrder = zsort
+  0
+
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## The only difference between objectState and playObjectState is if they are called during the enter code.
+  ## objectState will set the image to the last frame of the state's animation, where as, playObjectState will play the full animation. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## playObjectState(Mansion.windowShutters, OPEN)
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
@@ -182,7 +354,15 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
+  v.regGblFun(objectColor, "objectColor")
+  v.regGblFun(objectFPS, "objectFPS")
+  v.regGblFun(objectMoveTo, "objectMoveTo")
+  v.regGblFun(objectOffset, "objectOffset")
+  v.regGblFun(objectOffsetTo, "objectOffsetTo")
+  v.regGblFun(objectParallaxLayer, "objectParallaxLayer")
+  v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
+  v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")
   v.regGblFun(playObjectState, "playObjectState")

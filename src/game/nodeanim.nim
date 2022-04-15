@@ -15,12 +15,16 @@ type NodeAnim = ref object of Motor
     loop: bool
     layers: seq[NodeAnim]
 
-proc newNodeAnim*(obj: Object, anim: ObjectAnimation; node: Node = nil; loop = false): NodeAnim =
+proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
   var ss = obj.getSpriteSheet()
   var frames: seq[SpriteSheetFrame]
   for frame in anim.frames:
     frames.add(ss.frames[frame])
-  var newFps = if anim.fps == 0.0f: 10.0f else: anim.fps
+  var newFps: float32
+  if fps != 0.0f:
+    newFps = fps.float32
+  else:
+    newFps = if anim.fps == 0.0f: 10.0f else: anim.fps
 
   new(result)
   result.frames = frames
@@ -38,7 +42,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; node: Node = nil; loop = f
     newNode.addChild result.node
   
   for layer in anim.layers:
-    result.layers.add newNodeAnim(obj, layer, newNode)
+    result.layers.add newNodeAnim(obj, layer, fps, newNode)
 
 method update(self: NodeAnim, el: float) =
   if self.frames.len != 0:

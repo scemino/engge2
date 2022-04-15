@@ -1,5 +1,4 @@
 import node
-import glm
 
 type
   Scene* {.final.} = ref object of Node

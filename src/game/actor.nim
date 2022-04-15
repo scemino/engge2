@@ -7,7 +7,6 @@ import ../io/ggpackmanager
 import ../gfx/image
 import ../gfx/texture
 import ../gfx/spritesheet
-import ../gfx/color
 import objanim
 
 proc newActor*(): Object =

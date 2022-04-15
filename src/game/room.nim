@@ -34,6 +34,7 @@ type
     visible*: bool
     objects*: seq[Object]
     room: Room
+    node*: Node
   Direction* = enum
     dNone,
     dFront,
@@ -52,7 +53,6 @@ type
     visible*: bool
   Object* = ref object of RootObj
     n: string
-    rotation*: float
     usePos*: Vec2f
     useDir*: Direction
     hotspot*: Recti
@@ -62,6 +62,7 @@ type
     elapsedMs: float
     alphaTo*: Motor
     rotateTo*: Motor
+    moveTo*: Motor
     nodeAnim: Motor
     table*: HSQOBJECT
     touchable*: bool
@@ -73,6 +74,8 @@ type
     walkSpeed*: Vec2f
     parent*: string
     node*: Node
+    fps*: float
+    layer: int
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -139,7 +142,7 @@ proc play*(self: Object, state: string; loop = false) =
     let anim = self.anims[i]
     if anim.name == state:
       info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
-      self.nodeAnim = newNodeAnim(self, anim, nil, loop)
+      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
       return
 
 proc play*(self: Object, state: int; loop = false) =
@@ -178,6 +181,7 @@ proc updateMotor(self: Motor, elapsedSec: float) =
 proc update*(self: Object, elapsedSec: float) =
   self.alphaTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
+  self.moveTo.updateMotor(elapsedSec)
   self.nodeAnim.updateMotor(elapsedSec)
 
 # Layer
@@ -355,6 +359,19 @@ proc parseRoom*(s: Stream, filename: string = ""): Room =
 
 proc parseRoom*(buffer: string): Room =
   result = parseRoom(newStringStream(buffer), "input")
+
+proc objectParallaxLayer*(self: Room, obj: Object, zsort: int) =
+  if obj.layer != zsort:
+    for i in 0..<self.layers.len:
+      var layer = self.layers[i]
+      if layer.zsort == zsort:
+        # removes object from old layer
+        self.layers[obj.layer].objects.del self.layers[obj.layer].objects.find obj
+        # adds object to the new one
+        layer.objects.add obj
+        # update scenegraph
+        layer.node.addChild obj.node
+        obj.layer = i
 
 proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:
