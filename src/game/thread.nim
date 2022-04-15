@@ -16,12 +16,9 @@ type
     init: bool
     stopRequest: bool
 
-var gNumThreads = START_THREAD_ID
-
 proc newThread*(name: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
   new(result)
-  gNumThreads += 1
-  result.id = gNumThreads
+  result.id = newThreadId()
   result.name = name
   result.global = global
   result.v = v

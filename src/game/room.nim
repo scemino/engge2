@@ -60,7 +60,6 @@ type
     anims*: seq[ObjectAnimation]
     state: int
     elapsedMs: float
-    color*: Color
     alphaTo*: Motor
     rotateTo*: Motor
     nodeAnim: Motor
@@ -116,6 +115,9 @@ proc `name`*(self: Object): string =
 proc `name=`*(self: Object, name: string) =
   self.n = name
 
+proc `id`*(self: Object): int =
+  getf(self.table, "_id", result)
+
 proc `room`*(self: Object): Room =
   self.r
 
@@ -131,23 +133,18 @@ proc `room=`*(self: Object, room: Room) =
 
 import ../game/nodeanim
 
-proc play*(self: Object, state: int) =
-  if state < 0 or state >= self.anims.len:
-    warn fmt"playObjectState {self.name}, state={state}"
-  else:
-    var anim = self.anims[state]
-    info fmt"playObjectState {self.name}, state={state}, name={anim.name}, fps={anim.fps}, loop={anim.loop}"
-    self.nodeAnim = newNodeAnim(self, anim)
-  self.state = state
-
-proc play*(self: Object, state: string) =
+proc play*(self: Object, state: string; loop = false) =
   ## Plays an animation specified by the `state`. 
   for i in 0..<self.anims.len:
-    let anim = self.anims[i].name
-    if anim == state:
-      info fmt"playObjectState {self.name}, state={state} ({i})"
-      self.play(i)
+    let anim = self.anims[i]
+    if anim.name == state:
+      info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
+      self.nodeAnim = newNodeAnim(self, anim, nil, loop)
       return
+
+proc play*(self: Object, state: int; loop = false) =
+  self.play fmt"state{state}"
+  self.state = state
 
 proc setState*(self: Object, state: int) =
   ## Changes the `state` of an object, although this can just be a internal state, 
@@ -319,12 +316,11 @@ proc parseRoom(self: var RoomParser): Room =
       obj.hotspot = parseRecti(jObject["hotspot"].getStr)
       obj.objType = toObjectType(jObject)
       obj.touchable = true
-      obj.color = White
       obj.parent = if jObject.hasKey("parent"): jObject["parent"].getStr() else: ""
       obj.r = result
       if jObject.hasKey("animations"):
         obj.anims = parseObjectAnimations(jObject["animations"])
-      var objNode = Node(name: obj.name, scale: vec2(1.0f, 1.0f), visible: true)
+      var objNode = newNode(obj.name)
       objNode.pos = vec2f(parseVec2i(jObject["pos"].getStr))
       objNode.zOrder = jObject["zsort"].getInt().int32
       obj.node = objNode

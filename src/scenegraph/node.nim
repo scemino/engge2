@@ -1,5 +1,6 @@
 import glm
 import std/algorithm
+import ../gfx/color
 
 type
   Node* = ref object of RootObj
@@ -15,6 +16,35 @@ type
     anchor: Vec2f
     size: Vec2f
     visible*: bool
+    nodeColor*: Color
+
+method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White) {.base.} =
+  self.visible = visible
+  self.scale = scale
+  self.nodeColor = color
+
+proc newNode*(name: string): Node =
+  result.new()
+  result.name = name
+  result.init()
+
+proc updateChildrenColor(self: Node) =
+  for child in self.children:
+    child.nodeColor = self.nodeColor
+
+proc `color=`*(self: Node, color: Color) =
+  self.nodeColor = rgbaf(color, self.nodeColor.a)
+  self.updateChildrenColor()
+
+proc `color`*(self: Node): Color =
+  self.nodeColor
+
+proc `alpha=`*(self: Node, alpha: float) =
+  self.nodeColor[3] = clamp(alpha, 0.0f, 1.0f)
+  self.updateChildrenColor()
+
+proc `alpha`*(self: Node): float =
+  self.nodeColor[3]
 
 proc setAnchor*(self: Node, anchor: Vec2f) =
   if self.anchor != anchor:
@@ -54,6 +84,7 @@ method addChild*(self: Node, child: Node) {.base.} =
   if not child.parent.isNil:
     child.pos -= self.absolutePosition()
     child.parent.children.del child.parent.children.find(child)
+  child.nodeColor = self.nodeColor
   self.children.add(child)
   child.parent = self
 

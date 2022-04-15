@@ -7,7 +7,8 @@ type
     text: Text
 
 proc newTextNode*(text: Text): TextNode =
-  result = TextNode(scale: vec2(1.0f, 1.0f), text: text, visible: true)
+  result = TextNode(text: text)
+  result.init()
   result.setSize(text.bounds)
 
 method drawCore(self: TextNode, transf: Mat4f) =

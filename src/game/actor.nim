@@ -11,7 +11,7 @@ import ../gfx/color
 import objanim
 
 proc newActor*(): Object =
-  Object(color: White)
+  Object()
 
 proc getName*(self: Object): string =
   getf(self.table, "name", result)

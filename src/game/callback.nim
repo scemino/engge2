@@ -3,8 +3,6 @@ import ids
 import ../script/squtils
 import ../script/vm
 
-var gCallbackId = START_CALLBACKID
-
 type Callback* = ref object of RootObj
   id*: int
   name: string
@@ -13,8 +11,7 @@ type Callback* = ref object of RootObj
   elapsed: float
 
 proc newCallback*(duration: float, name: string, args: seq[HSQOBJECT]): Callback =
-  result = Callback(id: gCallbackId, name: name, args: args, duration: duration)
-  gCallbackId += 1
+  result = Callback(id: newCallbackId(), name: name, args: args, duration: duration)
 
 proc call(self: Callback) =
   gVm.v.call(gVm.v.rootTbl(), self.name, self.args)

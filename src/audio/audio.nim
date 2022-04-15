@@ -46,9 +46,6 @@ type
     sounds*: array[32, SoundId]
     volumes: Table[VolumeKind, float]
 
-var gSoundDefId = START_SOUNDDEFID
-var gSoundId = START_SOUNDID
-
 proc checkError() =
   let err = sdl2.getError()
   if not err.isNil and err.len > 0:
@@ -77,8 +74,7 @@ proc load*(self: SoundBuffer, path: string) =
 
 # SoundDefinition
 proc newSoundDefinition*(name: string): SoundDefinition =
-  result = SoundDefinition(id: gSoundDefId, name: name, buffer: newSoundBuffer())
-  gSoundDefId += 1
+  result = SoundDefinition(id: newSoundDefId(), name: name, buffer: newSoundBuffer())
 
 proc load(self: SoundDefinition) =
   if not self.loaded:
@@ -136,8 +132,7 @@ proc volume*(self: AudioSystem, kind: VolumeKind): float
 
 # SoundId
 proc newSoundId(chan: AudioChannel, sndDef: SoundDefinition, cat: SoundCategory): SoundId =
-  result = SoundId(id: gSoundId, chan: chan, sndDef: sndDef, cat: cat)
-  gSoundId += 1
+  result = SoundId(id: newSoundId(), chan: chan, sndDef: sndDef, cat: cat)
 
 proc update*(self: SoundId, audio: AudioSystem) =
   var entityVolume = 1.0

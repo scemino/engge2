@@ -15,6 +15,14 @@ const
   END_THREADID*     = 8000000
   START_CALLBACKID* = 8000000
   END_CALLBACKID*   = 10000000
+  
+var
+  gRoomId = START_ROOMID
+  gObjId = START_OBJECTID
+  gSoundDefId = START_SOUNDDEFID
+  gSoundId = START_SOUNDID
+  gThreadId = START_THREAD_ID
+  gCallbackId = START_CALLBACKID
 
 proc isBetween(id: int, startId, endId: int): bool {.inline.} =
   id >= startId and id < endId
@@ -33,3 +41,27 @@ proc isObject*(id: int): bool =
 
 proc isSound*(id: int): bool =
   isBetween(id, START_SOUNDID, END_SOUNDID)
+
+proc newRoomId*(): int =
+  result = gRoomId
+  gRoomId += 1
+
+proc newObjId*(): int =
+  result = gObjId
+  gObjId += 1
+
+proc newSoundDefId*(): int =
+  result = gSoundDefId
+  gSoundDefId += 1
+
+proc newSoundId*(): int =
+  result = gSoundId
+  gSoundId += 1
+
+proc newThreadId*(): int =
+  result = gThreadId
+  gThreadId += 1
+
+proc newCallbackId*(): int =
+  result = gCallbackId
+  gCallbackId += 1

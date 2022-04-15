@@ -8,6 +8,7 @@ import ../game/actor
 import ../game/utils
 import ../game/room
 import ../gfx/color
+import ../scenegraph/node
 
 proc getOppositeFacing(facing: Facing): Facing =
   case facing:
@@ -36,7 +37,7 @@ proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var alpha: float
   if SQ_FAILED(get(v, 3, alpha)):
     return sq_throwerror(v, "failed to get alpha")
-  actor.color = rgbf(actor.color, clamp(alpha, 0'f32, 1'f32))
+  actor.node.alpha = alpha
   0
 
 proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -106,8 +107,7 @@ proc actorColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var c: SQInteger
   if SQ_FAILED(sq_getinteger(v, 3, c)):
     return sq_throwerror(v, "failed to get color")
-  let color = rgba(c)
-  actor.color = rgbf(color, actor.color.a)
+  actor.node.color = rgba(c)
   0
 
 proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =

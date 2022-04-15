@@ -1,3 +1,4 @@
+import std/strformat, strutils, logging
 import sqnim
 import glm
 import squtils
@@ -18,9 +19,31 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## if (isObject(obj) && objectValidUsePos(obj) && objectTouchable(obj)) {
   var obj: HSQOBJECT
   discard sq_getstackobj(v, 2, obj)
-  if obj.objType == OT_TABLE:
-    push(v, obj.getId().isObject())
+  var isObj = obj.objType == OT_TABLE and obj.getId().isObject()
+  if not isObj and obj.objType == OT_TABLE:
+    var name: string
+    getf(obj, "name", name)
+    info fmt"Object {name} {obj.getId()} is not an object"
+  push(v, isObj)
   1
+
+proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Works exactly the same as playObjectState, but plays the animation as a continuous loop, playing the specified animation. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## loopObjectState(aStreetFire, 0)
+  ## loopObjectState(flies, 3)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  if sq_gettype(v, 3) == OT_INTEGER:
+    var index: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 3, index)):
+      return sq_throwerror(v, "failed to get state")
+    obj.play(index, true)
+  else:
+    return sq_throwerror(v, "failed to get state")
+  0
 
 proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable. 
@@ -32,7 +55,11 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var hidden: int
   discard sq_getinteger(v, 3, hidden)
   var obj = obj(table)
-  obj.node.visible = hidden == 0
+  if obj.isNil:
+    warn fmt"Object {table} has not been found"
+  else:
+    info fmt"Sets object visible {obj.name} to {hidden == 0}"
+    obj.node.visible = hidden == 0
   0
 
 proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -46,8 +73,7 @@ proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var alpha = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
-    alpha = clamp(alpha, 0.0f, 1.0f);
-    obj.color = rgbf(obj.color, alpha)
+    obj.node.alpha = alpha
   0
 
 proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -149,7 +175,9 @@ proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
   ## 
   ## It adds all the object functions in the given Squirrel virtual machine.
+  v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
+  v.regGblFun(loopObjectState, "loopObjectState")
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")

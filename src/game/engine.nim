@@ -37,7 +37,6 @@ type Engine* = ref object of RootObj
   scene*: Scene
 
 var gEngine*: Engine
-var gRoomId = START_ROOMID
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
@@ -59,8 +58,7 @@ proc loadRoom*(name: string): Room =
   result = parseRoom(content)
   result.scene = newScene()
   getf(gVm.v, gVm.v.rootTbl(), name, result.table)
-  result.table.setId(gRoomId)
-  gRoomId += 1
+  result.table.setId(newRoomId())
   for layer in result.layers:
     # create layer node
     var frames: seq[SpriteSheetFrame]
@@ -73,14 +71,18 @@ proc loadRoom*(name: string): Room =
     for obj in layer.objects:
       sq_resetobject(obj.table)
       getf(gVm.v, result.table, obj.name, obj.table)
+      
       # check if the object exists in Squirrel VM
       if obj.table.objType == OT_NULL:
-        info fmt"create table for obj: {obj.name}"
         # this object does not exist, so create it
         sq_newtable(gVm.v)
         discard sq_getstackobj(gVm.v, -1, obj.table)
         sq_addref(gVm.v, obj.table)
         sq_pop(gVm.v, 1)
+
+        # assign an id
+        obj.table.setId(newObjId())
+        info fmt"Create object with new table: {obj.name} #{obj.id}"
 
         # assign a name
         sq_pushobject(gVm.v, obj.table)
@@ -95,7 +97,9 @@ proc loadRoom*(name: string): Room =
         discard sq_newslot(gVm.v, -3, false)
         sq_pop(gVm.v, 1)
       else:
-        info fmt"Create object with existing table: {obj.name}"
+        # assign an id
+        obj.table.setId(newObjId())
+        info fmt"Create object with existing table: {obj.name} #{obj.id}"
 
       layerNode.addChild obj.node
 
@@ -151,8 +155,10 @@ proc render*(self: Engine) =
   # draw room
   gfxClear(Gray)
   if not self.room.isNil:
-    let fade = if self.fade.enabled: self.fade.current() else: 0.0
-    gfxDrawQuad(vec2f(0), vec2f(self.room.roomSize), rgbf(Black, fade))
     camera(self.room.roomSize.x.float32, self.room.roomSize.y.float32)
     
   self.scene.draw()
+
+  # draw fade
+  let fade = if self.fade.enabled: self.fade.current() else: 0.0
+  gfxDrawQuad(vec2f(0), camera(), rgbaf(Black, fade))

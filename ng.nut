@@ -2,87 +2,368 @@ print("rnd1: " + random(0, 180) + "\n")
 print("rnd2: " + random(100.0, 150.0) + "\n")
 print("chr(36): " + chr(36) + "\n")
 
-RobotArmsHall <-
+soundTowerLight <- defineSound("TowerLight.wav")
+soundTowerLight2 <- defineSound("TowerLight2.wav")
+soundWindBirds <- defineSound("WindBirds.ogg")
+soundFenceLockRattle <- defineSound("FenceLockRattle.ogg")
+soundCricketsLoop <- defineSound("AmbNightCrickets_Loop.ogg")	
+soundGunshot <- defineSound("Gunshot.wav")
+soundMetalClank <- defineSound("MetalClank.wav")
+soundTowerHum <- defineSound("TowerHum.wav")
+soundTitleStinger1 <- defineSound("TitleCardStab1.ogg")
+soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
+soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
+soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
+
+function hideAll() {
+  foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
+}
+
+function waveReed(reed) {
+  local speed_min = 0.75
+  local speed_max = 1.0
+  objectHidden(reed, NO)
+  //objectShader(reed, YES, GRASS_BACKANDFORTH, random(3.0,5.0), random(speed_min,speed_max), YES)
+  }
+
+script twinkleStar(obj, fadeRange1, fadeRange2, alphaRange1, alphaRange2) {
+  local timeOff, timeOn, fadeIn, fadeOut
+  //print("twinkleStar\n")
+  objectAlpha(obj, randomfrom(alphaRange1, alphaRange2))
+  if (randomOdds(1.0)) {
+    do {
+      fadeIn = random(fadeRange1, fadeRange2)
+      objectAlphaTo(obj, alphaRange2, fadeIn)
+      breaktime(fadeIn)
+      fadeOut = random(fadeRange1, fadeRange2)
+      objectAlphaTo(obj, alphaRange1, fadeOut)
+      breaktime(fadeOut)
+    }
+  }
+}
+
+Opening <-
 {
- background = "RobotArmsHall"
- _armsTID = null
+ background = "Opening"
  enter = function()
  {
-  startRobots()
+    print("Room entered\n")
+    hideAll()
  }
 
- script waveArm(num) {
-  playObjectState(robotArmsHallTV, "tv_chuck_static")
-  local claw = RobotArmsHall["robotArm"+num+"Claw"]
-  local _jointSID = 0
-  //actorSound(claw, 2, soundRobotHallClaws1, soundRobotHallClaws2, soundRobotHallClaws3, soundRobotHallClaws4, soundRobotHallClaws5)
-  playObjectState(claw, "snap")
-  local mult = 1
-  if (num == 2 || num == 4) {
-  mult = -mult
-  }
-  local dur = random(0.8,1.1)
-  local forearm = RobotArmsHall["robotArm"+num+"_1"]
-  local joint = RobotArmsHall["robotArm"+num+"Joint1"]
-  objectRotateTo(forearm, 40*mult, dur, SWING)
-  objectRotateTo(joint, -40*mult, dur, SWING)
-  joint.TID = startthread(@() {
-  do {
-  //joint.SID = playObjectSound(randomfrom(soundAngryRobotArmSwing1, soundAngryRobotArmSwing2, soundAngryRobotArmSwing3, soundAngryRobotArmSwing4, soundAngryRobotArmSwing5), forearm)
-  joint.SID = 0
-  soundVolume(joint.SID, 1.2-(num*0.2))
-  breaktime(dur)
-  fadeOutSound(_jointSID, 0.25)
-  }
-  })			
+ playOpening = function() {
+    return startglobalthread(@() {
+      cameraInRoom(Opening)
+      objectHidden(opening1987, NO)
+      roomFade(FADE_IN, 2.0)
+      local sid = loopSound(soundTowerHum, -1, 1.0)
+      breaktime(4.0)
+      roomFade(FADE_OUT, 2.0)
+      breaktime(2.0)
+      hideAll()
+      breaktime(2.0)
   
-  do {
-  local time = random(0.15, 0.25)
-  objectRotateTo(claw, random(-30, 30), time)
-  breaktime(time)
-  
-  }
-  }
+      objectHidden(openingLightBackground, NO)
+      objectHidden(openingLight, NO)
 
- function startRobots() {
-  RobotArmsHall._armsTID = array(4,NO)
-  for (local i = 1; i <= 4; i += 1) {
-  RobotArmsHall._armsTID[i-1] = startthread(RobotArmsHall.waveArm, i)
-  }
+      for (local i = 1; i <= 3; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.5, 1))
+      }
+
+      for (local i = 4; i <= 16; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.1, 0.5, random(0.5,1.0), random(0.1, 0.5))
+      }
+      
+      roomFade(FADE_IN, 1.0)
+      breaktime(1.0)
+
+      local tid = startthread(@() {
+        do {
+        objectState(openingLight, 1)
+        playSound(soundTowerLight)
+        breaktime(2.5)
+        objectState(openingLight, 0)
+        playSound(soundTowerLight2)
+        breaktime(1.0)
+        }
+        })
+        breaktime(10.0)
+       
+      fadeOutSound(sid, 3.0)
+      stopthread(tid)
+      roomFade(FADE_OUT, 3.0)
+      breaktime(3.0)
+      hideAll()
+      
+      for (local i = 1; i <= 16; i += 1) {
+        local star = Opening["openingStar"+i]
+        objectHidden(star, YES)
+        stopthread(star.tid)
+      }	
+      
+      
+      objectHidden(openingFenceBackground, NO)
+      objectHidden(openingChain, NO)
+      objectHidden(openingLock, NO)
+      objectState(openingLock, 0)
+      
+      sid = loopSound(soundWindBirds, -1, 3.0)
+      roomFade(FADE_IN, 3.0)
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      playSound(soundFenceLockRattle)
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      breaktime(1.0)
+
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      breaktime(1.0)
+
+      fadeOutSound(sid, 3.0)
+      fadeOutSound(soundFenceLockRattle, 3.0)
+      roomFade(FADE_OUT, 3.0)
+
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      breaktime(1.0)
+
+      playObjectState(openingLock, 1)
+
+      breaktime(1.0)
+
+      breaktime(1.0)
+      hideAll()
+
+      
+      objectHidden(openingSignBackground, NO)
+      objectHidden(openingSign, NO)
+      objectHidden(openingPop, NO)
+      objectHidden(openingThimbleweedParkText, NO)
+      objectHidden(openingCityLimitText, NO)
+      objectHidden(openingElevationText, NO)
+
+      for (local i = 1; i <= 3; i += 1) {
+        local star = Opening["openingStarA"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+      }	
+      for (local i = 1; i <= 1; i += 1) {
+        local star = Opening["openingStarAB"+i]
+        objectHidden(star, NO)
+        
+        star.tid <- startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+      }	
+
+      waveReed(openingReeds1)
+      waveReed(openingReeds2)
+      waveReed(openingReeds3)
+      waveReed(openingReeds4)
+      waveReed(openingReeds5)
+      waveReed(openingReeds6)
+      waveReed(openingReeds7)
+      waveReed(openingReeds8)
+      waveReed(openingReeds9)
+
+      roomFade(FADE_IN, 5.0)
+      breaktime(1.0)
+      loopSound(soundCricketsLoop, -1, 2.0)
+      breaktime(2.0)
+      objectHidden(openingBulletHole, YES)
+      objectState(openingPop, 0)
+      breaktime(5.0)
+      playSound(soundGunshot)
+      stopSound(soundCricketsLoop)
+      objectHidden(openingBulletHole, NO)
+      breaktime(3.0)
+      playSound(soundMetalClank)
+      objectState(openingPop, 1);
+      breaktime(3.0)
+      roomFade(FADE_OUT, 2.0)
+      breaktime(3.0)
+      hideAll()
+    })
+ }
+
+ openingSign = { name = "openingSign" }
+ openingPop = { name = "openingPop" }
+ openingBulletHole = { name = "openingBulletHole" }
+ opening1987 = { name = "opening1987" }
 }
 
-robotArm1Joint1 =
+TitleCards <-
+{
+ background = "TitleCards"
+ _dont_hero_track = TRUE
+
+ enter = function()
  {
- name = ""
- SID = 0
- TID = 0
+ ""
+ foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
  }
 
- robotArm2Joint1 =
+ exit = function()
  {
- name = ""
- SID = 0
- TID = 0
  }
- robotArm3Joint1 =
- {
- name = ""
- SID = 0
- TID = 0
+
+ script displayCard(part, title) {
+ cameraInRoom(TitleCards)
+ stopAllSounds()
+ stopMusic(0.10)
+ //stopSoundAmbiance()
+ //local state = inputState()
+ //inputOff()
+ //inputVerbs(OFF)
+ objectHidden(pressPreview, YES)
+ objectHidden(part, NO)
+ objectHidden(title, NO)
+ objectHidden(line, NO)
+ objectAlpha(part, 1.0)
+ objectAlpha(title, 1.0)
+ objectAlpha(line, 1.0)
+ //playSound(randomfrom(soundTitleStinger1, soundTitleStinger2, soundTitleStinger3, soundTitleStinger4))
+ breaktime(5.0)
+ objectAlphaTo(part, 0.0, 2.0)
+ objectAlphaTo(title, 0.0, 2.0)
+ objectAlphaTo(line, 0.0, 2.0)
+ breaktime(4.0)
+ objectHidden(part, YES)
+ objectHidden(title, YES)
+ objectHidden(line, YES)
+ //inputState(state)
  }
- robotArm4Joint1 =
- {
- name = ""
- SID = 0
- TID = 0
+
+ function showPessPreview() {
+ cameraInRoom(TitleCards)
+ stopAllSounds()
+ stopMusic(0.10)
+ stopSoundAmbiance()
+ inputOff()
+ objectHidden(pressPreview, NO)
+ objectScale(pressPreview, 0.5)
+ local sid = playSound(randomfrom(soundTitleStinger1, soundTitleStinger2, soundTitleStinger3, soundTitleStinger4))
+ startthread(@() {
+ breakwhilesound(sid)
+ loopSound(musicQuickiePalA)
+ })
  }
+
+ 
+ function showPartMeeting() {
+ return startglobalthread(displayCard, part1, part1Title)
+ }
+
+ 
+ function showPartBody() {
+ achievementPart(2)
+ setProgress("part2")
+ logEvent("part2")
+ g.part = 2
+ return startglobalthread(displayCard, part2, part2Title)
+ }
+
+ 
+ function showPartArrest() {
+ achievementPart(3)
+ setProgress("part3")
+ logEvent("part3")
+ g.part = 3
+ return startglobalthread(displayCard, part3, part3Title)
+ }
+
+ 
+ function showPartWill() {
+ achievementPart(4)
+ setProgress("part4")
+ logEvent("part4")
+ g.part = 4
+ return startglobalthread(displayCard, part4, part4Title)
+ }
+
+ 
+ function showPartReading() {
+ achievementPart(5)
+ setProgress("part5")
+ logEvent("part5")
+ g.part = 5
+ return startglobalthread(displayCard, part5, part5Title)
+ }
+
+ 
+ function showPartFactory() {
+ achievementPart(6)
+ setProgress("part6")
+ logEvent("part6")
+ g.part = 6
+ return startglobalthread(displayCard, part6, part6Title)
+ }
+
+ 
+ function showPartMadness() {
+ achievementPart(7)
+ setProgress("part7")
+ logEvent("part7")
+ g.part = 7
+ return startglobalthread(displayCard, part7, part7Title)
+ }
+
+ 
+ function showPartEscape() {
+ achievementPart(8)
+ setProgress("part8")
+ logEvent("part8")
+ g.part = 8
+ return startglobalthread(displayCard, part8, part8Title)
+ }
+
+ 
+ function showPartDeleting() {
+ achievementPart(9)
+ setProgress("part9")
+ logEvent("part9")
+ g.part = 9
+ return startglobalthread(displayCard, part9, part9Title)
+ }
+
+ 
+ 
+
 
 }
-defineRoom(RobotArmsHall)
 
-print("SWING: "+SWING+"\n")
+defineRoom(Opening)
+defineRoom(TitleCards)
+
+willie <- { 
+  _key = "willie"
+  name = "willie"
+ }
+
+createActor(willie)
+actorCostume(willie, "WillieSittingAnimation")
+
 
 startglobalthread(@()
  {
-  cameraInRoom(RobotArmsHall)
+  breakwhilerunning(Opening.playOpening())
+  breakwhilerunning(TitleCards.showPartMeeting())
 })
