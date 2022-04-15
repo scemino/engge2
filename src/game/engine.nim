@@ -8,6 +8,7 @@ import ids
 import task
 import ../script/squtils
 import ../script/vm
+import ../game/motor
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
@@ -35,6 +36,7 @@ type Engine* = ref object of RootObj
   time*: float # time in seconds
   audio*: AudioSystem
   scene*: Scene
+  cameraPanTo*: Motor
 
 var gEngine*: Engine
 
@@ -147,11 +149,24 @@ proc update(self: Engine) =
   # update audio
   self.audio.update()
 
+  # update motors
+  if not self.cameraPanTo.isNil:
+    self.cameraPanTo.update(elapsed)
+
   # update room
   self.fade.update(elapsed)
   if not self.room.isNil:
     self.room.update(elapsed)
-  
+
+proc clampPos(self: Engine, at: Vec2f): Vec2f =
+  var screenSize = self.room.getScreenSize()
+  var x = clamp(at.x, 0.0f, max(self.room.roomSize.x.float32 - screenSize.x.float32, 0.0f))
+  var y = clamp(at.y, 0.0f, max(self.room.roomSize.y.float32 - screenSize.y.float32, 0.0f))
+  vec2(x, y)
+
+proc cameraAt*(self: Engine, at: Vec2f) =
+  cameraPos(self.clampPos(at))
+
 proc render*(self: Engine) =
   self.update()
   

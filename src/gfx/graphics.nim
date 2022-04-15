@@ -177,6 +177,9 @@ proc gfxDrawQuad*(pos = Vec2f(); size = Vec2f(); color = White; transf = mat4f(1
 proc gfxDrawQuad*(rect = Rectf(); color = White; transf = mat4f(1.0)) =
   gfxDrawQuad(rect.bottomLeft(), rect.size(), color, transf)
 
+proc getFinalTransform(transf: Mat4f): Mat4f =
+  translate(state.mvp * transf, vec3(-state.cameraPos.x, -state.cameraPos.y, 0.0f))
+
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) = 
   # set blending
   glEnable(GL_BLEND)
@@ -185,7 +188,7 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; tr
   checkGLError()
 
   state.shader.ensureProgramActive:
-    state.shader.setUniform("u_transform", state.mvp * transf)
+    state.shader.setUniform("u_transform", getFinalTransform(transf))
 
     glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
     glDrawArrays(primitivesType, 0, vertices.len.GLsizei)
@@ -201,7 +204,7 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], in
   checkGLError()
 
   state.shader.ensureProgramActive:
-    state.shader.setUniform("u_transform", state.mvp * transf)
+    state.shader.setUniform("u_transform", getFinalTransform(transf))
 
     glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cint(cuint.sizeof * indices.len), indices[0].addr, GL_STATIC_DRAW)

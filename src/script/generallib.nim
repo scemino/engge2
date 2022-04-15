@@ -1,7 +1,70 @@
 import std/random as rnd
+import std/logging
+import std/strformat
 import sqnim
+import glm
 import squtils
+import ../game/campanto
+import ../game/room
+import ../game/utils
 import ../game/engine
+import ../gfx/graphics
+import ../util/easing
+import ../scenegraph/node
+
+proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let numArgs = sq_gettop(v)
+  var pos: Vec2f
+  if numArgs == 3:
+    var x, y: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 2, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(sq_getinteger(v, 3, y)):
+      return sq_throwerror(v, "failed to get y")
+    pos = vec2(x.float32, y.float32)
+  elif numArgs == 2:
+    var obj = obj(v, 2)
+    pos = obj.node.absolutePosition()
+  else:
+    return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
+  info fmt"cameraAt: {pos}"
+  if not gEngine.cameraPanTo.isNil:
+    gEngine.cameraPanTo.enabled = false
+  gEngine.cameraAt(pos - camera() / 2.0f)
+  0
+
+proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let numArgs = sq_gettop(v)
+  var pos: Vec2f
+  var duration: float
+  var interpolation: InterpolationMethod
+  if numArgs == 4:
+    var obj = obj(v, 2)
+    if SQ_FAILED(get(v, 3, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var im: int
+    if SQ_FAILED(get(v, 4, im)):
+      return sq_throwerror(v, "failed to get interpolation method")
+    pos = obj.node.absolutePosition()
+    interpolation = im.InterpolationMethod
+  elif numArgs == 5:
+    var x, y: int
+    if SQ_FAILED(get(v, 2, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(get(v, 3, y)):
+      return sq_throwerror(v, "failed to get y")
+    if SQ_FAILED(get(v, 4, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var im: int
+    if SQ_FAILED(get(v, 5, im)):
+      return sq_throwerror(v, "failed to get interpolation method")
+    pos = vec2(x.float32, y.float32)
+    interpolation = im.InterpolationMethod
+  else:
+    return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
+  info fmt"cameraPanTo: {pos}, dur={duration}, method={interpolation}"
+  gEngine.cameraPanTo = newCameraPanTo(duration, pos, interpolation)
+  0
 
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) == OT_INTEGER:
@@ -57,6 +120,8 @@ proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
   ## 
   ## It adds all the general functions in the given Squirrel virtual machine.
+  v.regGblFun(cameraAt, "cameraAt")
+  v.regGblFun(cameraPanTo, "cameraPanTo")
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")

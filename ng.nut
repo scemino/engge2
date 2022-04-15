@@ -415,6 +415,20 @@ Bridge <-
  show = function() {
   return startglobalthread(@() {
     cameraInRoom(Bridge)
+    // Bridge.bridgeGate.gate_state = CLOSED
+    objectState(bridgeBody, GONE)
+    objectState(bridgeBottle, GONE)
+    objectState(bridgeChainsaw, GONE)
+    objectTouchable(bridgeGateBack, YES)
+    objectTouchable(bridgeGate, NO)
+    cameraAt(700,86)
+    roomFade(FADE_IN, 2)
+    breaktime(6)
+    cameraPanTo(210, 86, 12, EASE_INOUT)
+    //startthread(Bridge.trainPassby)
+    breaktime(2)
+    breaktime(12.0)
+       
     breaktime(10000)
   })
  }

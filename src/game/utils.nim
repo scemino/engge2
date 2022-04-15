@@ -1,4 +1,5 @@
 import std/sequtils
+import glm
 import sqnim
 import engine
 import room
@@ -109,3 +110,6 @@ proc easing*(easing: int): easing_func =
   of 4: easeIn  # TODO: slowEaseIn
   of 5: easeOut # TODO: slowEaseOut
   else: linear
+
+proc `*`*(value: float32, pos: Vec2f): Vec2f =
+  vec2(pos.x * value, pos.y * value)

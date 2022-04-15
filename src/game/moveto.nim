@@ -9,9 +9,6 @@ type MoveTo = ref object of Motor
     obj: Object
     tween: Tween[Vec2f]
 
-proc `*`*(value: float32, pos: Vec2f): Vec2f =
-  vec2(pos.x * value, pos.y * value)
-
 proc newMoveTo*(duration: float, obj: Object, pos: Vec2f, im: InterpolationMethod): MoveTo =
   new(result)
   result.obj = obj

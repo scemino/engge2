@@ -69,7 +69,7 @@ proc transform*(self: Node, parentTrans: Mat4f): Mat4f =
   # Gets the full transformation for this node.
   parentTrans * self.localTransform()
 
-proc absolutePosition(self: Node): Vec2f =
+proc absolutePosition*(self: Node): Vec2f =
   # Gets the absolute position for this node.
   if self.parent.isNil:
     self.pos
