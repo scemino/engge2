@@ -125,7 +125,7 @@ proc `id`*(self: Object): int =
 proc `room`*(self: Object): Room =
   self.r
 
-proc layer(self: Room, layer: int): Layer =
+proc layer*(self: Room, layer: int): Layer =
   for l in self.layers:
     if l.zsort == layer:
       return l

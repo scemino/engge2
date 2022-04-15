@@ -4,8 +4,9 @@ import sqnim
 import squtils
 import ../game/utils
 import ../game/ids
-import ../game/overlayto
 import ../game/engine
+import ../game/overlayto
+import ../game/room
 import ../util/tween
 import ../util/easing
 import ../gfx/color
@@ -54,10 +55,47 @@ proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get room")
   0
 
+proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns an array of all the rooms that are in the game currently.
+  ## 
+  ## This is useful for testing.
+  ##
+  ## .. code-block:: Squirrel
+  ## local roomArray = masterRoomArray()
+  ## foreach (room in roomArray) {
+  ##     enterRoomFromDoor(room)
+  ##     breaktime(0.10)
+  ## }
+  sq_newarray(v, 0);
+  for room in gEngine.rooms:
+    sq_pushobject(v, room.table)
+    discard sq_arrayappend(v, -2)
+  1
+
+proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns an array of all the actors in the specified room.
+  ## 
+  ## .. code-block:: Squirrel
+  ## local actorInBookstore = roomActors(BookStore)
+  ## if (actorInBookstore.len()>1) { ... }
+  ## 
+  ## local spotters = roomActors(currentRoom)
+  ## foreach(actor in spotters) { ...}
+  var room = room(v, 2)
+  if room.isNil:
+    return sq_throwerror(v, "failed to get room")
+  sq_newarray(v, 0)
+  for actor in gEngine.actors:
+    if actor.room == room:
+      sq_pushobject(v, room.table)
+      discard sq_arrayappend(v, -2)
+  1
+
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Fades in or out (FADE_IN, FADE_OUT ) of the current room over the specified duration. 
   ## 
   ## Used for dramatic effect when we want to teleport the player actor to somewhere new, or when starting/ending a cutscene that takes place in another room. 
+  ## 
   ## .. code-block:: Squirrel
   ## roomFade(FADE_OUT, 0.5)
   ## breaktime(0.5)
@@ -74,6 +112,21 @@ proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.fade = newTween[float](1.0f, 0.0f, t, imLinear)
   elif fadeType == 1: # FadeOut
     gEngine.fade = newTween[float](0.0f, 1.0f, t, imLinear)
+  0
+
+proc roomLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Makes all layers at the specified zsort value in room visible (YES) or invisible (NO).
+  ## It's also currently the only way to affect parallax layers and can be used for minor animation to turn a layer on and off. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## roomLayer(GrateEntry, -2, NO)  // Make lights out layer invisible
+  var r = room(v, 2)
+  var layer, enabled: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 3, layer)):
+    return sq_throwerror(v, "failed to get layer")
+  if SQ_FAILED(sq_getinteger(v, 4, enabled)):
+    return sq_throwerror(v, "failed to get enabled")
+  r.layer(layer).node.visible = enabled != 0
   0
 
 proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -120,6 +173,9 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## It adds all the room functions in the given Squirrel virtual machine.
   v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(defineRoom, "defineRoom")
+  v.regGblFun(masterRoomArray, "masterRoomArray")
+  v.regGblFun(roomActors, "roomActors")
   v.regGblFun(roomFade, "roomFade")
+  v.regGblFun(roomLayer, "roomLayer")
   v.regGblFun(roomOverlayColor, "roomOverlayColor")
   
