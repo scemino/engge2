@@ -52,9 +52,9 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     info fmt"actorAt {actor.name}"
     var spot = obj(v, 3)
     if not spot.isNil:
-      let pos = spot.pos + spot.usePos
+      let pos = spot.node.pos + spot.usePos
       actor.room = spot.room
-      actor.pos = pos
+      actor.node.pos = pos
       actor.facing = getFacing(spot.useDir.SQInteger, actor.facing)
     else:
       var room = room(v, 3)
@@ -71,7 +71,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(sq_getinteger(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    actor. pos = vec2f(x.float32, y.float32)
+    actor.node.pos = vec2f(x.float32, y.float32)
     0
   of 5, 6:
     var actor = actor(v, 2)
@@ -88,7 +88,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var dir = 0.SQInteger
     if numArgs == 6 and SQ_FAILED(sq_getinteger(v, 6, dir)):
       return sq_throwerror(v, "failed to get direction")
-    actor.pos = vec2f(x.float32, y.float32)
+    actor.node.pos = vec2f(x.float32, y.float32)
     actor.facing = getFacing(dir, actor.facing)
     actor.room = room
     0

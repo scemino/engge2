@@ -54,7 +54,7 @@ proc getObj(room: Room, name: string): Object =
           return obj
 
 proc loadRoom*(name: string): Room =
-  echo "room background: " & name
+  info "room background: " & name
   let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
   result = parseRoom(content)
   result.scene = newScene()
@@ -95,19 +95,15 @@ proc loadRoom*(name: string): Room =
         discard sq_newslot(gVm.v, -3, false)
         sq_pop(gVm.v, 1)
       else:
-        echo "obj.name: " & obj.name
+        info fmt"Create object with existing table: {obj.name}"
 
-      var objNode = Node(name: obj.name, scale: vec2(1.0f, 1.0f))
-      objNode.pos = obj.pos
-      objNode.zOrder = obj.zsort
-      layerNode.addChild objNode
-      obj.node = objNode
+      layerNode.addChild obj.node
 
       if obj.anims.len > 0:
         var ss = obj.getSpriteSheet()
         var frame = ss.frames[obj.anims[0].frames[0]]
         var spNode = newSpriteNode(obj.getTexture(), frame)
-        objNode.addChild spNode
+        obj.node.addChild spNode
 
   # assign parent node
   for layer in result.layers:

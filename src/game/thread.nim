@@ -1,3 +1,4 @@
+import std/logging
 import std/strformat
 import sqnim
 import ids
@@ -45,7 +46,7 @@ proc isDead*(self: Thread): bool =
   self.stopRequest or state == 0
 
 proc destroy*(self: Thread) =
-  echo fmt"destroy thread {self.id}"
+  debug fmt"destroy thread {self.id}"
   discard sq_release(self.v, self.threadObj)
   discard sq_release(self.v, self.envObj)
   discard sq_release(self.v, self.closureObj)

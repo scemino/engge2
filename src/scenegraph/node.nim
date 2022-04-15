@@ -14,6 +14,7 @@ type
     anchorNorm: Vec2f
     anchor: Vec2f
     size: Vec2f
+    visible*: bool
 
 proc setAnchor*(self: Node, anchor: Vec2f) =
   if self.anchor != anchor:
@@ -60,17 +61,18 @@ method drawCore(self: Node, transf: Mat4f) {.base.} =
   discard
 
 proc draw*(self: Node; parent = mat4(1.0f)) =
-  ## Draws `self` node.
-  var transf = self.transform(parent)
-  var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
-  self.children.sort(proc(x, y: Node):int = cmp(y.zOrder, x.zOrder))
-  for node in self.children:
-    if node.zOrder < 0:
-      node.draw(transf)
-  self.drawCore(myTransf)
-  for node in self.children:
-    if node.zOrder >= 0:
-      node.draw(transf)
+  if self.visible:
+    ## Draws `self` node.
+    var transf = self.transform(parent)
+    var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
+    self.children.sort(proc(x, y: Node):int = cmp(y.zOrder, x.zOrder))
+    for node in self.children:
+      if node.zOrder < 0:
+        node.draw(transf)
+    self.drawCore(myTransf)
+    for node in self.children:
+      if node.zOrder >= 0:
+        node.draw(transf)
 
 method getParent*(self: Node): Node {.base.} =
   ## Returns node parent.

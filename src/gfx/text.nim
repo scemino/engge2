@@ -124,7 +124,6 @@ proc width(self: Text, reader: TokenReader, tok: Token): float32 =
 
 proc update*(self: Text) =
   var (_, name, _) = splitFile(self.font.path)
-  echo "img: " & name & ".png"
   let img = newImage(name & ".png")
   self.texture = newTexture(img)
 

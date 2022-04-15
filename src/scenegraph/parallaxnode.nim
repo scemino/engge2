@@ -13,7 +13,7 @@ type
     frames: seq[SpriteSheetFrame]
 
 proc newParallaxNode*(texture: Texture, frames: seq[SpriteSheetFrame]): ParallaxNode =
-  result = ParallaxNode(scale: vec2(1.0f, 1.0f), texture: texture, frames: frames)
+  result = ParallaxNode(scale: vec2(1.0f, 1.0f), texture: texture, frames: frames, visible: true)
   var width = 0.0f
   var height = 0.0f
   for frame in frames:

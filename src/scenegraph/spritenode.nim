@@ -12,11 +12,11 @@ type
     rect: Recti
 
 proc newSpriteNode*(texture: Texture, rect: Recti): SpriteNode =
-  result = SpriteNode(scale: vec2(1.0f, 1.0f), texture: texture, rect: rect)
+  result = SpriteNode(scale: vec2(1.0f, 1.0f), texture: texture, rect: rect, visible: true)
   result.setSize(vec2(rect.size.x.float32, rect.size.y.float32))
 
 proc newSpriteNode*(texture: Texture, frame: SpriteSheetFrame): SpriteNode =
-  result = SpriteNode(scale: vec2(1.0f, 1.0f), texture: texture, rect: frame.frame)
+  result = SpriteNode(scale: vec2(1.0f, 1.0f), texture: texture, rect: frame.frame, visible: true)
   result.setSize(vec2(frame.frame.size.x.float32, frame.frame.size.y.float32))
   var anchor = vec2(
           frame.sourceSize.x.float32 / 2'f32 - frame.spriteSourceSize.x.float32, 

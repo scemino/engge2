@@ -109,7 +109,6 @@ macro sqBind*(vm, body): untyped =
         [ident("SQInteger"), newIdentDefs(ident("v"), ident("HSQUIRRELVM"))],
         stmts, pragmas = newNimNode(nnkPragma).add(ident("cdecl"))))
       result.add(regStmt)
-      # echo result.repr
 
 proc rootTbl*(v: HSQUIRRELVM): HSQOBJECT =
   sq_resetobject(result)

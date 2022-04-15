@@ -15,7 +15,7 @@ type NodeAnim = ref object of Motor
     loop: bool
     layers: seq[NodeAnim]
 
-proc newNodeAnim*(obj: Object, anim: ObjectAnimation, node: Node = nil): NodeAnim =
+proc newNodeAnim*(obj: Object, anim: ObjectAnimation; node: Node = nil): NodeAnim =
   var ss = obj.getSpriteSheet()
   var frames: seq[SpriteSheetFrame]
   for frame in anim.frames:

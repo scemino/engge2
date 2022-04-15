@@ -1,3 +1,4 @@
+import std/logging
 import std/strformat
 import task
 import utils
@@ -15,6 +16,6 @@ method update*(self: BreakWhileRunning, elapsed: float): bool =
     return false
   let pt = thread(self.parentId)
   if not pt.isNil:
-    echo "Resume task: " & $self.parentId
+    debug "Resume task: " & $self.parentId
     pt.resume()
   true

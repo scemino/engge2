@@ -7,3 +7,4 @@ type
 proc newScene*(): Scene =
   new(result)
   result.scale = vec2(1.0f, 1.0f)
+  result.visible = true
