@@ -59,13 +59,15 @@ proc loadRoom*(name: string): Room =
   result.scene = newScene()
   getf(gVm.v, gVm.v.rootTbl(), name, result.table)
   result.table.setId(newRoomId())
-  for layer in result.layers:
+  for i in 0..<result.layers.len:
+    var layer = result.layers[i]
     # create layer node
     var frames: seq[SpriteSheetFrame]
     for name in layer.names:
       frames.add(result.spriteSheet.frames[name])
     var layerNode = newParallaxNode(result.texture, frames)
     layerNode.zOrder = layer.zSort
+    layerNode.name = fmt"Layer {layer.zSort}"
     layer.node = layerNode
     result.scene.addChild layerNode
 
@@ -156,7 +158,8 @@ proc render*(self: Engine) =
   # draw room
   gfxClear(Gray)
   if not self.room.isNil:
-    camera(self.room.roomSize.x.float32, self.room.roomSize.y.float32)
+    var camSize = self.room.getScreenSize()
+    camera(camSize.x.float32, camSize.y.float32)
     
   self.scene.draw()
 

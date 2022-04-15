@@ -126,6 +126,11 @@ proc getArr*(v: HSQUIRRELVM, o: HSQOBJECT, arr: var seq[string]) =
     sq_pop(v, 2)
   sq_pop(v, 1)
 
+proc getarray*(v: HSQUIRRELVM, i: int, arr: var seq[string]): SQRESULT =
+  var obj: HSQOBJECT
+  result = sq_getstackobj(v, i, obj)
+  getArr(v, obj, arr)
+
 proc get(v: HSQUIRRELVM, i: int, value: var int): SQRESULT =
   sq_getinteger(v, i, value)
 

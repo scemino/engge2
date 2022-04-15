@@ -14,6 +14,34 @@ import ../util/easing
 import ../gfx/color
 import ../scenegraph/node
 
+proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let numArgs = sq_gettop(v)
+  var sheet: string
+  var frames: seq[string]
+  var framesIndex = 2
+  
+  # get sheet parameter if any
+  if numArgs == 3:
+    discard get(v, 2, sheet)
+    framesIndex = 3
+  
+  # get frames parameter if any
+  if numArgs >= 2:
+    case sq_gettype(v, framesIndex):
+    of OT_STRING:
+      var frame: string
+      discard get(v, framesIndex, frame)
+      frames.add frame
+    of OT_ARRAY:
+      discard getarray(v, framesIndex, frames)
+    else:
+      return sq_throwerror(v, "Invalid parameter 2: expecting a string or an array")
+
+  info fmt"Create object: {sheet}, {frames}"
+  var obj = gEngine.room.createObject(sheet, frames)
+  push(v, obj.table)
+  1
+
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
   ## 
@@ -96,7 +124,7 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getfloat(v, 4, t)):
       return sq_throwerror(v, "failed to get time")
     var interpolation: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 5, interpolation)):
+    if sq_gettop(v) >= 5 or SQ_FAILED(sq_getinteger(v, 5, interpolation)):
       interpolation = 0
     obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
   0
@@ -230,7 +258,7 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the object's layer.
   var obj = obj(v, 2)
-  if not obj.isNil:
+  if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   var layer = 0
   if SQ_FAILED(get(v, 3, layer)):
@@ -347,6 +375,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
   ## 
   ## It adds all the object functions in the given Squirrel virtual machine.
+  v.regGblFun(createObject, "createObject")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
   v.regGblFun(loopObjectState, "loopObjectState")

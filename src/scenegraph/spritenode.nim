@@ -3,7 +3,6 @@ import node
 import ../gfx/recti
 import ../gfx/texture
 import ../gfx/graphics
-import ../gfx/color
 import ../gfx/spritesheet
 
 type

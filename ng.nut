@@ -240,7 +240,7 @@ TitleCards <-
  objectAlpha(part, 1.0)
  objectAlpha(title, 1.0)
  objectAlpha(line, 1.0)
- //playSound(randomfrom(soundTitleStinger1, soundTitleStinger2, soundTitleStinger3, soundTitleStinger4))
+ playSound(randomfrom(soundTitleStinger1, soundTitleStinger2, soundTitleStinger3, soundTitleStinger4))
  breaktime(5.0)
  objectAlphaTo(part, 0.0, 2.0)
  objectAlphaTo(title, 0.0, 2.0)
@@ -361,9 +361,112 @@ willie <- {
 createActor(willie)
 actorCostume(willie, "WillieSittingAnimation")
 
+script flashAlphaObject(obj, offRange1, offRange2, onRange1, onRange2, fadeRange1, fadeRange2, maxFade = 1.0, minFade = 0.0) {
+  local timeOff, timeOn, fadeIn, fadeOut
+  objectAlpha(obj, randomfrom(0.0, 1.0))
+  do {
+  timeOff = random(offRange1, offRange2)
+  breaktime(timeOff)
+  fadeIn = random(fadeRange1, fadeRange2)
+  objectAlphaTo(obj, maxFade, fadeIn)
+  breaktime(fadeIn)
+  timeOn = random(onRange1, onRange2)
+  breaktime(timeOn)
+  fadeOut = random(fadeRange1, fadeRange2)
+  objectAlphaTo(obj, minFade, fadeOut)
+  breaktime(fadeOut)
+  }
+ }
+
+script animateFirefly(obj) {
+  startthread(flashAlphaObject, obj, 1, 4, 0.5, 2, 0.1, 0.35)
+  }
+
+function createFirefly(x) {
+  local firefly = 0
+  local zsort = 68
+  local y = random(78,168)
+  local direction = randomfrom(-360,360)
+  if (y < 108) {
+  firefly = createObject("firefly_large")
+  zsort = random(68,78)
+  } else
+  if (y < 218) {
+  firefly = createObject("firefly_small")
+  zsort = 117
+  } else
+  if (x > 628 && x < 874) {		
+  firefly = createObject("firefly_tiny")
+  zsort = 668
+  }
+  if (firefly) {
+  objectRotateTo(firefly, direction, 12, LOOPING)
+  objectAt(firefly, x, y)
+  objectSort(firefly, zsort)
+  return firefly
+  }
+  }
+
+
+Bridge <- 
+{
+ background = "Bridge"
+
+ show = function() {
+  return startglobalthread(@() {
+    cameraInRoom(Bridge)
+    breaktime(10000)
+  })
+ }
+
+ enter = function() 
+ {
+    objectTouchable(bridgeHighwayDoorOpening, YES)
+    objectState(Bridge.willieObject, HERE)
+    objectTouchable(Bridge.willieObject, YES)
+    
+    objectTouchable(bridgeHighwayDoorOpening, YES)
+    objectState(Bridge.willieObject, HERE)
+    objectTouchable(Bridge.willieObject, YES)
+  for (local x = 0; x < 960; x += random(20, 40)) {		
+    local firefly = createFirefly(x)
+    if (firefly) {
+    startthread(animateFirefly, firefly)
+    }		
+    }
+    for (local x = 1150; x < 2140; x += random(30, 50)) {		
+    local firefly = createFirefly(x)
+    if (firefly) {
+    startthread(animateFirefly, firefly)
+    }		
+    }
+    objectParallaxLayer(bridgeWater, 1)
+    loopObjectState(bridgeWater, 0)
+    loopObjectState(bridgeShoreline, 0)
+    loopObjectState(bridgeSewerDrip, 0)
+    objectParallaxLayer(bridgeTrain, 2)
+    objectParallaxLayer(frontWavingReeds1, -2)
+    objectParallaxLayer(frontWavingReeds2, -2)
+    objectParallaxLayer(frontWavingReeds3, -2)
+    local star = 0
+    for (local i = 1; i <= 28; i += 1) {
+      star = Bridge["bridgeStar"+i]
+      objectParallaxLayer(star, 5)
+      startthread(twinkleStar, star, 0.01, 0.1, random(0,0.3), random(0.6, 1))
+    }	
+    for (local i = 1; i <= 5; i += 1) {
+      star = Bridge["bridgeStarB"+i]
+      objectParallaxLayer(star, 5)
+      startthread(twinkleStar, star, 0.05, 0.3, 0, 1)
+    }
+    objectOffset(Bridge.bridgeTrain, -100, 0)
+ }
+}
+defineRoom(Bridge)
 
 startglobalthread(@()
  {
-  breakwhilerunning(Opening.playOpening())
-  breakwhilerunning(TitleCards.showPartMeeting())
+  // breakwhilerunning(Opening.playOpening())
+  // breakwhilerunning(TitleCards.showPartMeeting())
+  breakwhilerunning(Bridge.show())
 })

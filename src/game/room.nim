@@ -1,6 +1,8 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
 import glm
 import sqnim
+import ids
+import ../script/vm
 import ../script/squtils
 import ../gfx/recti
 import ../gfx/spritesheet
@@ -9,6 +11,7 @@ import ../gfx/image
 import ../gfx/color
 import ../scenegraph/node
 import ../scenegraph/scene
+import ../scenegraph/spritenode
 import motor
 import objanim
 import jsonutil
@@ -31,7 +34,6 @@ type
     names*: seq[string]
     parallax*: Vec2f
     zsort*: int
-    visible*: bool
     objects*: seq[Object]
     room: Room
     node*: Node
@@ -59,7 +61,6 @@ type
     objType*: ObjectType
     anims*: seq[ObjectAnimation]
     state: int
-    elapsedMs: float
     alphaTo*: Motor
     rotateTo*: Motor
     moveTo*: Motor
@@ -75,7 +76,7 @@ type
     parent*: string
     node*: Node
     fps*: float
-    layer: int
+    layer: Layer
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -124,14 +125,19 @@ proc `id`*(self: Object): int =
 proc `room`*(self: Object): Room =
   self.r
 
+proc layer(self: Room, layer: int): Layer =
+  for l in self.layers:
+    if l.zsort == layer:
+      return l
+
 proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r
   if not oldRoom.isNil:
     info fmt"Remove {self.name} from room {oldRoom.name}"
-    oldRoom.layers[0].objects.del oldRoom.layers[0].objects.find(self)
+    oldRoom.layer(0).objects.del oldRoom.layer(0).objects.find(self)
   if not room.isNil:
     info fmt"Add {self.name} in room {room.name}"
-    room.layers[0].objects.add self
+    room.layer(0).objects.add self
   self.r = room
 
 import ../game/nodeanim
@@ -186,13 +192,63 @@ proc update*(self: Object, elapsedSec: float) =
 
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
-  Layer(names: names, parallax: parallax, zsort: zsort, visible: true)
+  Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
   for obj in self.objects.mitems:
     obj.update(elapsedSec)
 
 # Room
+proc getScreenSize*(self: Room): Vec2i =
+  case self.height:
+  of 128: vec2(320'i32, 180'i32)
+  of 172: vec2(428'i32, 240'i32)
+  of 256: vec2(640'i32, 360'i32)
+  else: vec2(self.roomSize.x, self.height)
+
+proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
+  var obj = Object()
+  
+  # create a table for this object
+  sq_newtable(gVm.v)
+  discard sq_getstackobj(gVm.v, -1, obj.table)
+  sq_addref(gVm.v, obj.table)
+  sq_pop(gVm.v, 1)
+
+  # assign an id
+  obj.table.setId(newObjId())
+  info fmt"Create object with new table: {obj.name} #{obj.id}"
+
+  obj.touchable = true
+  obj.r = self
+  # load spritesheet if any
+  if sheet.len > 0:
+    obj.spriteSheet = loadSpriteSheet(sheet & ".json")
+    obj.texture = newTexture(newImage(obj.spriteSheet.meta.image))
+  
+  # create anim if any
+  if frames.len > 0:
+    var objAnim = ObjectAnimation.new()
+    objAnim.name = "state0"
+    objAnim.frames.add frames
+    obj.anims.add objAnim
+
+  # adds object to the scenegraph
+  var objNode = newNode(obj.name)
+  obj.node = objNode
+  self.layer(0).objects.add(obj)
+  self.layer(0).node.addChild obj.node
+  obj.layer = self.layer(0)
+  if obj.anims.len > 0:
+    var ss = obj.getSpriteSheet()
+    var frame = ss.frames[obj.anims[0].frames[0]]
+    var spNode = newSpriteNode(obj.getTexture(), frame)
+    obj.node.addChild spNode
+
+  # play state
+  obj.play(0)
+  result = obj
+
 proc parsePolygon(text: string): Walkbox =
   var points: seq[Vec2i]
   var i = 1
@@ -328,8 +384,9 @@ proc parseRoom(self: var RoomParser): Room =
       objNode.pos = vec2f(parseVec2i(jObject["pos"].getStr))
       objNode.zOrder = jObject["zsort"].getInt().int32
       obj.node = objNode
+      obj.layer = result.layer(0)
 
-      result.layers[0].objects.add(obj)
+      result.layer(0).objects.add(obj)
 
   # scalings
   if jRoom.hasKey("scaling"):
@@ -361,17 +418,17 @@ proc parseRoom*(buffer: string): Room =
   result = parseRoom(newStringStream(buffer), "input")
 
 proc objectParallaxLayer*(self: Room, obj: Object, zsort: int) =
-  if obj.layer != zsort:
+  if obj.layer != self.layer(zsort):
     for i in 0..<self.layers.len:
       var layer = self.layers[i]
       if layer.zsort == zsort:
         # removes object from old layer
-        self.layers[obj.layer].objects.del self.layers[obj.layer].objects.find obj
+        obj.layer.objects.del obj.layer.objects.find obj
         # adds object to the new one
         layer.objects.add obj
         # update scenegraph
         layer.node.addChild obj.node
-        obj.layer = i
+        obj.layer = layer
 
 proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:

@@ -92,18 +92,14 @@ method drawCore(self: Node, transf: Mat4f) {.base.} =
   discard
 
 proc draw*(self: Node; parent = mat4(1.0f)) =
+  ## Draws `self` node.
   if self.visible:
-    ## Draws `self` node.
     var transf = self.transform(parent)
     var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
     self.children.sort(proc(x, y: Node):int = cmp(y.zOrder, x.zOrder))
-    for node in self.children:
-      if node.zOrder < 0:
-        node.draw(transf)
     self.drawCore(myTransf)
     for node in self.children:
-      if node.zOrder >= 0:
-        node.draw(transf)
+      node.draw(transf)
 
 method getParent*(self: Node): Node {.base.} =
   ## Returns node parent.
