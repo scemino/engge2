@@ -80,7 +80,7 @@ proc loadRoom*(name: string): Room =
     var frames: seq[SpriteSheetFrame]
     for name in layer.names:
       frames.add(result.spriteSheet.frames[name])
-    var layerNode = newParallaxNode(result.texture, frames)
+    var layerNode = newParallaxNode(layer.parallax, result.texture, frames)
     layerNode.zOrder = layer.zSort
     layerNode.name = fmt"Layer {layer.zSort}"
     layer.node = layerNode

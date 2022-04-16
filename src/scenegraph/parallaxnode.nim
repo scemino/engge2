@@ -11,8 +11,8 @@ type
     texture: Texture
     frames: seq[SpriteSheetFrame]
 
-proc newParallaxNode*(texture: Texture, frames: seq[SpriteSheetFrame]): ParallaxNode =
-  result = ParallaxNode(texture: texture, frames: frames)
+proc newParallaxNode*(parallax: Vec2f, texture: Texture, frames: seq[SpriteSheetFrame]): ParallaxNode =
+  result = ParallaxNode(parallax: parallax, texture: texture, frames: frames)
   result.init()
   var width = 0.0f
   var height = 0.0f
@@ -22,8 +22,9 @@ proc newParallaxNode*(texture: Texture, frames: seq[SpriteSheetFrame]): Parallax
   result.setSize(vec2(width, height))
 
 method drawCore(self: ParallaxNode, transf: Mat4f) =
-  # TODO: apply parallax ;)
-  var t = transf
+  var camPos = cameraPos()
+  var p = vec2f(-camPos.x * self.parallax.x, -camPos.y * self.parallax.y) + camPos
+  var t = translate(transf, vec3(p, 0.0f))
   for frame in self.frames:
     gfxDrawSprite(frame.frame / self.texture.size, self.texture, self.nodeColor, t)
     t = translate(transf, frame.frame.w.float32, 0.0f, 0.0f)
