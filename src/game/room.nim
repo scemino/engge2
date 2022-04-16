@@ -191,6 +191,11 @@ proc update*(self: Object, elapsedSec: float) =
   self.moveTo.updateMotor(elapsedSec)
   self.nodeAnim.updateMotor(elapsedSec)
 
+proc delObject*(obj: Object) =
+  if not obj.isNil:
+    obj.layer.objects.del obj.layer.objects.find(obj)
+    obj.node.parent.removeChild obj.node
+    
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
   Layer(names: names, parallax: parallax, zsort: zsort)

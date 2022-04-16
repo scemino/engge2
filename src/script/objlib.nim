@@ -12,9 +12,16 @@ import ../game/moveto
 import ../game/utils
 import ../util/easing
 import ../gfx/color
+import ../gfx/recti
 import ../scenegraph/node
 
 proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Creates a new, room local object using sheet as the sprite sheet and image as the image name.
+  ## This object is deleted when the room exits.
+  ## If sheet parameter not provided, use room's sprite sheet instead.
+  ## If image is an array, then use that as a sequence of frames for animation.
+  ## Objects created at runtime can be passed to all the object commands.
+  ## They do not have verbs or local variables by default, but these can be added when the object is created so it can be used in the construction of sentences. 
   let numArgs = sq_gettop(v)
   var sheet: string
   var frames: seq[string]
@@ -41,6 +48,19 @@ proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = gEngine.room.createObject(sheet, frames)
   push(v, obj.table)
   1
+
+proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Deletes object permanently from the game. 
+  ## 
+  ## local drip = createObject("drip")
+  ## local time = 1.5
+  ## objectAt(drip, 432, 125)
+  ## objectOffsetTo(drip, 0, -103, time, SLOW_EASE_IN)
+  ## breaktime(time)
+  ## playObjectSound(randomfrom(soundDrip1, soundDrip2, soundDrip3), radioStudioBucket)
+  ## deleteObject(drip)
+  var obj = obj(v, 2)
+  obj.delObject()
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
@@ -266,6 +286,31 @@ proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.room.objectParallaxLayer(obj, layer)
   0
 
+proc objectPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the x-coordinate of the given object or actor.
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  push(v, obj.node.absolutePosition().x + obj.usePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f)
+
+proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the y-coordinate of the given object or actor.
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  push(v, obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f)
+
+proc objectRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the room of a given object or actor.
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  if obj.room.isNil:
+    sq_pushnull(v)
+  else:
+    push(v, obj.room.table)
+  1
+
 proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rotation of object to the specified amount instantly.
   ## 
@@ -376,19 +421,23 @@ proc register_objlib*(v: HSQUIRRELVM) =
   ## 
   ## It adds all the object functions in the given Squirrel virtual machine.
   v.regGblFun(createObject, "createObject")
+  v.regGblFun(deleteObject, "deleteObject")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
   v.regGblFun(loopObjectState, "loopObjectState")
-  v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
   v.regGblFun(objectColor, "objectColor")
   v.regGblFun(objectFPS, "objectFPS")
+  v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectMoveTo, "objectMoveTo")
   v.regGblFun(objectOffset, "objectOffset")
   v.regGblFun(objectOffsetTo, "objectOffsetTo")
+  v.regGblFun(objectPosX, "objectPosX")
+  v.regGblFun(objectPosY, "objectPosY")
   v.regGblFun(objectParallaxLayer, "objectParallaxLayer")
+  v.regGblFun(objectRoom, "objectRoom")
   v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
   v.regGblFun(objectSort, "objectSort")
