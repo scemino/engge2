@@ -15,6 +15,8 @@ soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
 soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
 soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
 
+soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
+
 function hideAll() {
   foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
 }
@@ -407,10 +409,15 @@ function createFirefly(x) {
   }
   }
 
-
 Bridge <- 
 {
  background = "Bridge"
+
+ script trainPassby() {
+  objectOffset(Bridge.bridgeTrain, -100, 0)
+  objectOffsetTo(Bridge.bridgeTrain, 2000, 0, 10, LINEAR)
+  playSound(soundBridgeTrain)
+ }
 
  show = function() {
   return startglobalthread(@() {
@@ -425,7 +432,7 @@ Bridge <-
     roomFade(FADE_IN, 2)
     breaktime(6)
     cameraPanTo(210, 86, 12, EASE_INOUT)
-    //startthread(Bridge.trainPassby)
+    startthread(Bridge.trainPassby)
     breaktime(2)
     breaktime(12.0)
        

@@ -20,9 +20,11 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
+from std/times import getTime, toUnix, nanosecond
 
 type Engine* = ref object of RootObj
   rand*: Rand
+  randSeed: int64
   spriteSheets: Table[string, SpriteSheet]
   textures: Table[string, Texture]
   v: HSQUIRRELVM
@@ -40,13 +42,24 @@ type Engine* = ref object of RootObj
 
 var gEngine*: Engine
 
+proc seedWithTime*(self: Engine) =
+  let now = getTime()
+  self.randSeed = now.toUnix * 1_000_000_000 + now.nanosecond
+  self.rand = initRand(self.randSeed)
+
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
   gEngine = result
-  result.rand = initRand()
   result.v = v
   result.audio = newAudioSystem()
   result.scene = newScene()
+  result.seedWithTime()
+
+proc `seed=`*(self: Engine, seed: int64) =
+  self.rand = initRand(seed)
+
+proc `seed`*(self: Engine): int64 =
+  self.seed
 
 proc getObj(room: Room, name: string): Object =
   for layer in room.layers:
@@ -165,7 +178,13 @@ proc clampPos(self: Engine, at: Vec2f): Vec2f =
   vec2(x, y)
 
 proc cameraAt*(self: Engine, at: Vec2f) =
+  ## Set the camera position to the given `at` position.
   cameraPos(self.clampPos(at))
+
+proc cameraPos*(self: Engine): Vec2f =
+  ## Returns the camera position: the position of the middle of the screen.
+  let screenSize = self.room.getScreenSize()
+  cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
 proc render*(self: Engine) =
   self.update()

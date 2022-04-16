@@ -25,6 +25,10 @@ method listFiles*(self: GGPackManager): seq[string] {.base.} =
   # override this base method
   raise newException(CatchableError, "Method without implementation override")
 
+method assetExists*(self: GGPackManager, entry: string): bool {.base.} =
+  # override this base method
+  raise newException(CatchableError, "Method without implementation override")
+
 method loadStream*(self: GGPackFileSystemManager, path: string): Stream =
   for dir in self.directories:
     let fullPath = joinPath(self.root, dir, path)
@@ -38,6 +42,15 @@ method listFiles*(self: GGPackFileSystemManager): seq[string] =
     info "fullPath: " & fullPath
     for file in os.walkFiles(fullPath):
       result.add(file)
+
+method assetExists*(self: GGPackFileSystemManager, entry: string): bool =
+  for dir in self.directories:
+    let fullPath = joinPath(self.root, dir) & "/*"
+    for file in os.walkFiles(fullPath):
+      var (_, name, _) = splitFile(file)
+      if name == entry:
+        return true
+  false
 
 proc newGGPackFileManager*(path: string): GGPackFileManager =
   new(result)
@@ -54,3 +67,6 @@ method loadStream(self: GGPackFileManager, path: string): Stream =
 method listFiles*(self: GGPackFileManager): seq[string] =
   for (entry,_) in self.ggpack.entries.pairs:
     result.add("ggpack://" & self.path & "/" & entry)
+
+method assetExists*(self: GGPackFileManager, entry: string): bool =
+  self.ggpack.entries.contains(entry)

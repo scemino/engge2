@@ -77,6 +77,7 @@ type
     node*: Node
     fps*: float
     layer: Layer
+    temporary: bool
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -207,7 +208,7 @@ proc getScreenSize*(self: Room): Vec2i =
   else: vec2(self.roomSize.x, self.height)
 
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
-  var obj = Object()
+  var obj = Object(temporary: true)
   
   # create a table for this object
   sq_newtable(gVm.v)

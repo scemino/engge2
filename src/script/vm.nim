@@ -1,5 +1,6 @@
 import std/[logging, strformat]
 import sqnim
+import glm
 
 proc onError(v: HSQUIRRELVM, desc: SQString, source: SQString, line: SQInteger, column: SQInteger) {.cdecl.} =
   echo fmt"{source}({line},{column}): {desc}"
@@ -24,6 +25,9 @@ proc destroy*(self: VM) =
 proc push*(v: HSQUIRRELVM, value: bool) {.inline.} =
   sq_pushbool(v, if value: SQTrue else: SQFalse)
 
+proc push*(v: HSQUIRRELVM, value: int64) {.inline.} =
+  sq_pushinteger(v, value.SQInteger)
+
 proc push*(v: HSQUIRRELVM, value: int) {.inline.} =
   sq_pushinteger(v, value.SQInteger)
 
@@ -35,6 +39,18 @@ proc push*(v: HSQUIRRELVM, value: float) {.inline.} =
 
 proc push*(v: HSQUIRRELVM, value: HSQOBJECT) {.inline.} =
   sq_pushobject(v, value)
+
+proc push*(v: HSQUIRRELVM, pos: Vec2i) {.inline.} =
+  sq_newtable(gVm.v)
+  sq_pushstring(v, "x", -1)
+  sq_pushinteger(v, pos.x)
+  discard sq_newslot(v, -3, SQFalse)
+  sq_pushstring(v, "y", -1)
+  sq_pushinteger(v, pos.y)
+  discard sq_newslot(v, -3, SQFalse)
+
+proc push*(v: HSQUIRRELVM, pos: Vec2f) {.inline.} =
+  push(v, vec2(pos.x.int32,pos.y.int32))
 
 proc set*[T](v: HSQUIRRELVM, obj: HSQOBJECT, name: string, value: T) =
   sq_pushobject(v, obj)

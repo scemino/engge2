@@ -199,7 +199,7 @@ proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0.SQInteger
     if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
-    var destPos = vec2(x.float32, y.float32) - obj.node.pos
+    var destPos = vec2(x.float32, y.float32)
     obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
   0
 
@@ -251,7 +251,7 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0.SQInteger
     if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
-    var destPos = vec2(x.float32, y.float32)
+    var destPos = vec2(x.float32, y.float32) + obj.node.pos
     obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
   0
 
