@@ -23,6 +23,9 @@ method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White
   self.scale = scale
   self.nodeColor = color
 
+method updateColor(self: Node, color: Color) {.base.} =
+  self.nodeColor = rgbaf(color, self.nodeColor.a)
+
 proc newNode*(name: string): Node =
   result.new()
   result.name = name
@@ -33,7 +36,7 @@ proc updateChildrenColor(self: Node) =
     child.nodeColor = self.nodeColor
 
 proc `color=`*(self: Node, color: Color) =
-  self.nodeColor = rgbaf(color, self.nodeColor.a)
+  self.updateColor(color)
   self.updateChildrenColor()
 
 proc `color`*(self: Node): Color =

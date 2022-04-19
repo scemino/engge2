@@ -9,9 +9,13 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/image
 import ../gfx/color
+import ../gfx/bmfont
+import ../gfx/text
+import ../io/ggpackmanager
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
+import ../scenegraph/textnode
 import motor
 import objanim
 import jsonutil
@@ -254,6 +258,33 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   # play state
   obj.play(0)
   result = obj
+
+proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWidth = 0.0f): Object =
+  var obj = Object(temporary: true)
+  
+  # create a table for this object
+  sq_newtable(gVm.v)
+  discard sq_getstackobj(gVm.v, -1, obj.table)
+  sq_addref(gVm.v, obj.table)
+  sq_pop(gVm.v, 1)
+
+  # assign an id
+  obj.table.setId(newObjId())
+  info fmt"Create object with new table: {obj.name} #{obj.id}"
+
+  var path = fmt"{fontName}.fnt"
+  if not gGGPackMgr.assetExists(path):
+    path = fmt"{fontName}Font.fnt"
+
+  var font = parseBmFontFromPack(path)
+  var text = newText(font, text, align, maxWidth, White)
+  text.update()
+
+  obj.node = newTextNode(text)
+  self.layer(0).objects.add(obj)
+  self.layer(0).node.addChild obj.node
+  obj.layer = self.layer(0)
+  obj
 
 proc parsePolygon(text: string): Walkbox =
   var points: seq[Vec2i]

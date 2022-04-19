@@ -13,6 +13,7 @@ import ../game/utils
 import ../util/easing
 import ../gfx/color
 import ../gfx/recti
+import ../gfx/text
 import ../scenegraph/node
 
 proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -46,6 +47,40 @@ proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
   info fmt"Create object: {sheet}, {frames}"
   var obj = gEngine.room.createObject(sheet, frames)
+  push(v, obj.table)
+  1
+
+proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Creates a text object of the given size.
+  ## TextObjects can be passed to all the object commands, but like objects created with createObject they don't have verbs or local variables by default.
+  ## If alignment specified, it should take the form of: verticalAlign| horizonalAlign [| horiztonalWidth ].
+  ## Valid values for verticalAlign are ALIGN_TOP|ALIGN_BOTTOM. Valid values for horizonalAlign are ALIGN_LEFT|ALIGN_CENTER|ALIGN_RIGHT.
+  ## If the optional horiztonalWidth parameter is present, it will wrap the text to that width. 
+  var fontName: string
+  if SQ_FAILED(get(v, 2, fontName)):
+    return sq_throwerror(v, "failed to get fontName")
+  var text: string
+  if SQ_FAILED(get(v, 3, text)):
+    return sq_throwerror(v, "failed to get text")
+  var taAlign = taLeft
+  var maxWidth = 0.0f
+  if sq_gettop(v) == 4:
+    var align: int
+    if SQ_FAILED(get(v, 4, align)):
+      return sq_throwerror(v, "failed to get align")
+    let hAlign = align and 0x0000000070000000
+    # let vAlign = align and 0xFFFFFFFFA1000000
+    maxWidth = (align and 0x00000000000FFFFF).float
+    case hAlign:
+    of 0x0000000010000000:
+      taAlign = taLeft;
+    of 0x0000000020000000:
+      taAlign = taCenter
+    of 0x0000000040000000:
+      taAlign = taRight
+    else:
+      return sq_throwerror(v, "failed to get halign")
+  var obj = gEngine.room.createTextObject(fontName, text, taAlign, maxWidth)
   push(v, obj.table)
   1
 
@@ -349,6 +384,17 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation.InterpolationMethod)
   0
 
+proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets how scaled the object's image will appear on screen. 1 is no scaling.
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var scale = 0.0
+  if SQ_FAILED(get(v, 3, scale)):
+    return sq_throwerror(v, "failed to get scale")
+  obj.node.scale = vec2(scale.float32, scale.float32)
+  0
+
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the state of an object, although this can just be a internal state, 
   ## 
@@ -421,6 +467,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   ## 
   ## It adds all the object functions in the given Squirrel virtual machine.
   v.regGblFun(createObject, "createObject")
+  v.regGblFun(createTextObject, "createTextObject")
   v.regGblFun(deleteObject, "deleteObject")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
@@ -440,6 +487,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectRoom, "objectRoom")
   v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
+  v.regGblFun(objectScale, "objectScale")
   v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")

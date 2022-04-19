@@ -422,6 +422,16 @@ Bridge <-
  show = function() {
   return startglobalthread(@() {
     cameraInRoom(Bridge)
+    local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 900)
+    objectScale(text, 0.5)
+
+    objectColor(text, 0x30AAFF)
+    objectAlpha(text, 0.0)
+    objectAt(text, 320,180)
+    
+    objectAlphaTo(text, 1.0, 1.0, LINEAR)
+    breaktime(3.0)
+    
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
     objectState(bridgeBottle, GONE)

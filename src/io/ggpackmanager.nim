@@ -1,4 +1,4 @@
-import std/[streams, os, tables, json, sequtils, logging]
+import std/[streams, os, tables, json, sequtils, logging, strutils]
 import nimyggpack
 
 type
@@ -48,7 +48,7 @@ method assetExists*(self: GGPackFileSystemManager, entry: string): bool =
     let fullPath = joinPath(self.root, dir) & "/*"
     for file in os.walkFiles(fullPath):
       var (_, name, _) = splitFile(file)
-      if name == entry:
+      if cmpIgnoreCase(name, entry) == 0:
         return true
   false
 
