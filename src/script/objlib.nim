@@ -171,17 +171,27 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## See also stopObjectMotors. 
   var obj = obj(v, 2)
   if not obj.isNil:
-    var alpha = 0.0f
-    if SQ_FAILED(sq_getfloat(v, 3, alpha)):
+    var alpha = 0.0
+    if SQ_FAILED(get(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
-    alpha = clamp(alpha, 0.0f, 1.0f);
-    var t = 0.0f
-    if SQ_FAILED(sq_getfloat(v, 4, t)):
+    alpha = clamp(alpha, 0.0, 1.0);
+    var t = 0.0
+    if SQ_FAILED(get(v, 4, t)):
       return sq_throwerror(v, "failed to get time")
-    var interpolation: SQInteger
-    if sq_gettop(v) >= 5 or SQ_FAILED(sq_getinteger(v, 5, interpolation)):
+    var interpolation = 0
+    if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
     obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
+  0
+
+proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var enabled = 0
+  if SQ_FAILED(get(v, 3, enabled)):
+    return sq_throwerror(v, "failed to get enabled")
+  # TODO: objectBumperCycle
   0
 
 proc objectColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -251,8 +261,8 @@ proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var duration = 0.0
     if SQ_FAILED(get(v, 5, duration)):
       return sq_throwerror(v, "failed to get duration")
-    var interpolation = 0.SQInteger
-    if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
+    var interpolation = 0
+    if sq_gettop(v) >= 6 and SQ_FAILED(get(v, 6, interpolation)):
       interpolation = 0
     var destPos = vec2(x.float32, y.float32)
     obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
@@ -304,7 +314,7 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 5, duration)):
       return sq_throwerror(v, "failed to get duration")
     var interpolation = 0.SQInteger
-    if sq_gettop(v) >= 6 or SQ_FAILED(sq_getinteger(v, 6, interpolation)):
+    if sq_gettop(v) >= 6 and SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
     var destPos = vec2(x.float32, y.float32) + obj.node.pos
     obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
@@ -372,14 +382,14 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## objectRotateTo(firefly, direction, 12, LOOPING)
   var obj = obj(v, 2)
   if not obj.isNil:
-    var rotation = 0.0f
-    if SQ_FAILED(sq_getfloat(v, 3, rotation)):
+    var rotation = 0.0
+    if SQ_FAILED(get(v, 3, rotation)):
       return sq_throwerror(v, "failed to get rotation")
-    var duration = 0.0f
-    if SQ_FAILED(sq_getfloat(v, 4, duration)):
+    var duration = 0.0
+    if SQ_FAILED(get(v, 4, duration)):
       return sq_throwerror(v, "failed to get duration")
-    var interpolation = 0.SQInteger
-    if sq_gettop(v) != 5 or SQ_FAILED(sq_getinteger(v, 5, interpolation)):
+    var interpolation = 0
+    if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
     obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation.InterpolationMethod)
   0
@@ -475,6 +485,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
+  v.regGblFun(objectBumperCycle, "objectBumperCycle")
   v.regGblFun(objectColor, "objectColor")
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
