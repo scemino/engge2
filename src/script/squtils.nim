@@ -1,4 +1,6 @@
 import std/macros
+import std/logging
+import std/strformat
 import sqnim
 import vm
 
@@ -173,10 +175,37 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
+proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
+  let top = sq_gettop(v)
+  push(v, obj)
+  sq_pushstring(v, name, -1)
+  if SQ_FAILED(sq_get(v, -2)):
+    sq_settop(v, top)
+    debug fmt"can't find {name} function"
+    return 0
+
+  var nparams, nfreevars: int
+  discard sq_getclosureinfo(v, -1, nparams, nfreevars)
+  debug fmt"{name} function found with {nparams} parameters"
+  sq_settop(v, top)
+  nparams
+
 proc rawsafeget*(v: HSQUIRRELVM): SQInteger =
   let value = if SQ_SUCCEEDED(sq_rawget(v, -2)): 1 else: 0
   sq_pushinteger(v, value)
   1
+
+proc rawexists*(obj: HSQOBJECT, name: string): bool =
+  var v = gVm.v
+  let top = sq_gettop(v)
+  push(v, obj)
+  sq_pushstring(v, name, -1)
+  if SQ_SUCCEEDED(sq_rawget(v, -2)):
+    let oType = sq_gettype(v, -1)
+    sq_settop(v, top);
+    return oType != OT_NULL
+  sq_settop(v, top)
+  return false
 
 proc getId*(o: HSQOBJECT): int =
   result = 0

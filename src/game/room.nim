@@ -81,7 +81,7 @@ type
     node*: Node
     fps*: float
     layer: Layer
-    temporary: bool
+    temporary*: bool
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use

@@ -30,6 +30,7 @@ type Engine* = ref object of RootObj
   v: HSQUIRRELVM
   rooms*: seq[Room]
   actors*: seq[Object]
+  currentActor: Object
   room*: Room
   fade*: Tween[float]
   callbacks*: seq[Callback]
@@ -133,12 +134,72 @@ proc loadRoom*(name: string): Room =
       if obj.parent != "":
         result.getObj(obj.parent).node.addChild(obj.node)
 
+proc actorExit(self: Engine) =
+  if not self.currentActor.isNil and not self.room.isNil:
+    if rawExists(self.room.table, "actorExit"):
+      call(self.v, self.room.table, "actorExit", [self.currentActor.table])
+
+proc exitRoom(self: Engine, nextRoom: Room) =
+  if not self.room.isNil:
+    self.actorExit()
+
+    # call room exit function with the next room as a parameter if requested
+    let nparams = paramCount(self.v, self.room.table, "exit")
+    if nparams == 2:
+      call(self.v, self.room.table, "exit", [nextRoom.table])
+    else:
+      call(self.v, self.room.table, "exit")
+
+    # delete all temporary objects
+    for layer in self.room.layers.toSeq:
+      for obj in layer.objects:
+        if obj.temporary:
+          obj.delObject()
+
+    # call global function enteredRoom with the room as argument
+    call(self.v, rootTbl(self.v), "exitedRoom", [self.room.table])
+
+    # stop all local threads
+    for thread in self.threads:
+      if not thread.global:
+        thread.stop()
+
+proc actorEnter(self: Engine) =
+  if not self.currentActor.isNil:
+    # TODO: self.currentActor.stopWalking()
+    call(self.v, self.currentActor.table, "actorEnter")
+    if not self.room.isNil:
+      if rawExists(self.room.table, "actorEnter"):
+        call(self.v, self.room.table, "actorEnter", [self.currentActor.table])
+
+proc enterRoom(self: Engine, room: Room, door: Object = nil) =
+  ## Called when the room is entered.
+  debug fmt"call enter room function of {room.name}"
+  self.room = room
+  self.scene = room.scene
+
+  # call actor enter function and objects enter function
+  self.actorEnter()
+  for layer in room.layers:
+    for obj in layer.objects:
+      if rawExists(obj.table, "enter"):
+        call(self.v, obj.table, "enter")
+
+  # call room enter function with the door as a parameter if requested
+  let nparams = paramCount(self.v, self.room.table, "enter")
+  if nparams == 2:
+    call(self.v, self.room.table, "enter", [door.table])
+  else:
+    call(self.v, self.room.table, "enter")
+  
+  # call global function enteredRoom with the room as argument
+  call(self.v, rootTbl(self.v), "enteredRoom", [room.table])
+
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
     self.fade.enabled = false
-    self.room = room
-    self.scene = room.scene
-    call(self.v, self.room.table, "enter")
+    self.exitRoom(room)
+    self.enterRoom(room)
 
 proc update(self: Engine) =
   var elapsed = 1/60
