@@ -16,7 +16,7 @@ proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
   new(result)
   result.name = jAnim["name"].getStr()
   result.loop = toBool(jAnim, "loop")
-  result.fps = if jAnim.hasKey("fps") and jAnim["fps"].kind == JFloat: jAnim["fps"].getFloat else: 0
+  result.fps = if jAnim.hasKey("fps") and (jAnim["fps"].kind == JFloat or jAnim["fps"].kind == JInt): jAnim["fps"].getFloat else: 0
   result.flags = if jAnim.hasKey("flags") and jAnim["flags"].kind ==
       JInt: jAnim["flags"].getInt else: 0
   if jAnim.hasKey("frames") and jAnim["frames"].kind == JArray:

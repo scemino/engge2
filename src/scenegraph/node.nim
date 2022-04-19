@@ -65,7 +65,7 @@ proc localTransform(self: Node): Mat4f =
   ## Gets the location transformation = translation * rotation * scale.
   scale(rotate(translate(mat4(1.0f), vec3(self.pos, 0.0f)), glm.radians(self.rotation), 0.0f, 0.0f, 1.0f), self.scale.x, self.scale.y, 1.0f)
 
-proc transform*(self: Node, parentTrans: Mat4f): Mat4f =
+method transform*(self: Node, parentTrans: Mat4f): Mat4f {.base.} =
   # Gets the full transformation for this node.
   parentTrans * self.localTransform()
 
@@ -88,7 +88,7 @@ method addChild*(self: Node, child: Node) {.base.} =
   self.children.add(child)
   child.parent = self
 
-method drawCore(self: Node, transf: Mat4f) {.base.} =
+method drawCore(self: Node, transf: Mat4f) {.base, locks: "unknown".} =
   discard
 
 proc draw*(self: Node; parent = mat4(1.0f)) =

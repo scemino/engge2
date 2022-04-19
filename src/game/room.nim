@@ -198,7 +198,7 @@ proc delObject*(obj: Object) =
     
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
-  Layer(names: names, parallax: parallax, zsort: zsort)
+  result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
   for obj in self.objects.mitems:

@@ -178,7 +178,7 @@ proc gfxDrawQuad*(rect = Rectf(); color = White; transf = mat4f(1.0)) =
   gfxDrawQuad(rect.bottomLeft(), rect.size(), color, transf)
 
 proc getFinalTransform(transf: Mat4f): Mat4f =
-  translate(state.mvp * transf, vec3(-state.cameraPos.x, -state.cameraPos.y, 0.0f))
+  state.mvp * transf
 
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) = 
   # set blending

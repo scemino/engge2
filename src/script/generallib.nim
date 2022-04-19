@@ -47,10 +47,11 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     pos = obj.node.absolutePosition()
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
-  info fmt"cameraAt: {pos}"
   if not gEngine.cameraPanTo.isNil:
     gEngine.cameraPanTo.enabled = false
-  gEngine.cameraAt(pos - camera() / 2.0f)
+  var screenSize = gEngine.room.getScreenSize()
+  var at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
+  gEngine.cameraAt(at)
   0
 
 proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
