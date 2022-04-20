@@ -68,7 +68,7 @@ type
     alphaTo*: Motor
     rotateTo*: Motor
     moveTo*: Motor
-    nodeAnim: Motor
+    nodeAnim*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room

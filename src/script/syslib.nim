@@ -5,8 +5,10 @@ import squtils
 import ../game/thread
 import ../game/callback
 import ../game/engine
+import ../game/room
 import ../game/ids
 import ../game/breakwhilerunning
+import ../game/breakwhileanimating
 import ../game/utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -91,6 +93,7 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for time seconds.
   ## It is an error to call breaktime in a function that was not started with startthread.
+  ## 
   ## . code-block:: Squirrel
   ## for (local x = 1; x < 4; x += 1) {
   ##   playSound(soundPhoneRinging)
@@ -102,6 +105,21 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks while the thread referenced by threadId is running.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhilerunning in a function that was not started with startthread. 
+  ## 
+  ## . code-block:: Squirrel
+  ## local waitTID = 0
+  ## 
+  ##    if ( g.in_flashback && HotelElevator.requestedFloor == 13 ) {
+  ##     waitTID = startthread(HotelElevator.avoidPenthouse)
+  ##     breakwhilerunning(waitTID)
+  ## }
+  ## waitTID = 0
+  ## if (HotelElevator.requestedFloor >= 0) {
+  ##     // Continue executing other code
+  ## }
   var id = 0
   if sq_gettype(v, 2) == OT_INTEGER:
     discard sq_getinteger(v, 2, id)
@@ -123,6 +141,28 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.tasks.add newBreakWhileRunning(curThread.id, id)
     return -666
   0
+
+proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
+  ## Note, animatingItem can be an actor or an object.
+  ## It is an error to call breakwhileanimating in a function that was not started with startthread.
+  ## 
+  ## . code-block:: Squirrel
+  ## actorFace(ray, FACE_LEFT)
+  ## actorCostume(ray, "RayVomit")
+  ## actorPlayAnimation(ray, "vomit")
+  ## breakwhileanimating(ray)
+  ## actorCostume(ray, "RayAnimation")
+  var obj = obj(v, 2)
+  info "breakwhileanimating: " & obj.name
+  
+  var curThread = thread(v)
+  if curThread.isNil:
+    return sq_throwerror(v, "Current thread should be created with startthread")
+  
+  info fmt"add Breakwhileanimating pid={curThread.id}"
+  gEngine.tasks.add newBreakWhileAnimating(curThread.id, obj)
+  return -666
 
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Converts an integer to a char. 
@@ -337,6 +377,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(addFolder, "addFolder")
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
+  v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(sqChr, "chr")
   v.regGblFun(gameTime, "gameTime")
