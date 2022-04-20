@@ -75,6 +75,8 @@ type
     spriteSheet*: SpriteSheet
     texture*: Texture
     facing*: Facing
+    lockFacing: bool
+    facingMap: Table[Facing, Facing]
     renderOffset*: Vec2f
     walkSpeed*: Vec2f
     parent*: string
@@ -82,6 +84,7 @@ type
     fps*: float
     layer: Layer
     temporary*: bool
+    useWalkboxes*: bool
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -144,6 +147,22 @@ proc `room=`*(self: Object, room: Room) =
     info fmt"Add {self.name} in room {room.name}"
     room.layer(0).objects.add self
   self.r = room
+
+proc lockFacing*(self: Object, left, right, front, back: Facing) =
+  self.facingMap[FACE_LEFT] = left
+  self.facingMap[FACE_RIGHT] = right
+  self.facingMap[FACE_FRONT] = front
+  self.facingMap[FACE_BACK] = back
+  self.lockFacing = true
+
+proc unlockFacing*(self: Object) =
+  self.lockFacing = false
+
+proc resetLockFacing*(self: Object) =
+  self.facingMap[FACE_LEFT] = FACE_LEFT;
+  self.facingMap[FACE_RIGHT] = FACE_RIGHT;
+  self.facingMap[FACE_FRONT] = FACE_FRONT;
+  self.facingMap[FACE_BACK] = FACE_BACK;
 
 import ../game/nodeanim
 

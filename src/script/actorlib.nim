@@ -127,6 +127,44 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"Actor costume {name} {sheet}"
   actor.setCostume($name, $sheet)
 
+proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
+  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT. 
+  ## If "NO" is specified, it removes all locking and allows the actor to change its facing direction based on player input or otherwise. 
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  case sq_gettype(v, 3):
+  of OT_INTEGER:
+    var facing = 0
+    if SQ_FAILED(get(v, 3, facing)):
+      return sq_throwerror(v, "failed to get facing")
+    if facing == 0:
+      actor.unlockFacing()
+    else:
+      let allFacing = facing.Facing
+      actor.lockFacing(allFacing, allFacing, allFacing, allFacing)
+  of OT_TABLE:
+    var obj: HSQOBJECT
+    var back = FACE_BACK.int
+    var front = FACE_FRONT.int
+    var left = FACE_LEFT.int
+    var right = FACE_RIGHT.int
+    var reset = 0
+    discard sq_getstackobj(v, 3, obj)
+    getf(v, obj, "back", back)
+    getf(v, obj, "front", front)
+    getf(v, obj, "left", left)
+    getf(v, obj, "right", right)
+    getf(v, obj, "reset", reset)
+    if reset != 0:
+      actor.resetLockFacing()
+    else:
+      actor.lockFacing(left.Facing, right.Facing, front.Facing, back.Facing)
+  else:
+    return sq_throwerror(v, "unknown facing type")
+  0
+
 proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
   ## 
@@ -143,6 +181,19 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get y")
   actor.renderOffset = vec2f(x.float32, y.float32)
   return 0;
+
+proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Specifies whether the actor needs to abide by walkboxes or not.
+  ## 
+  ## . code-block:: Squirrel
+  ## actorUseWalkboxes(coroner, NO)
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var useWalkboxes = 1
+  if SQ_FAILED(get(v, 3, useWalkboxes)):
+    return sq_throwerror(v, "failed to get useWalkboxes")
+  actor.useWalkboxes = useWalkboxes != 0
 
 proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the walk speed of an actor.
@@ -186,6 +237,8 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorAt, "actorAt")
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
+  v.regGblFun(actorLockFacing, "actorLockFacing")
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
+  v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(createActor, "createActor")

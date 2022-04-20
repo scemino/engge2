@@ -14,6 +14,12 @@ soundTitleStinger1 <- defineSound("TitleCardStab1.ogg")
 soundTitleStinger2 <- defineSound("TitleCardStab2.ogg")
 soundTitleStinger3 <- defineSound("TitleCardStab3.ogg")
 soundTitleStinger4 <- defineSound("TitleCardStab4.ogg")
+musicBridgeA <- defineSound("Highway_Bridge_A.ogg")
+musicBridgeB <- defineSound("Highway_Bridge_B.ogg")
+musicBridgeC <- defineSound("Highway_Bridge_C.ogg")
+musicBridgeD <- defineSound("Highway_Bridge_D.ogg")
+musicBridgeE <- defineSound("Highway_Bridge_E.ogg")
+bridgeMusicPool <- [ musicBridgeA, musicBridgeB, musicBridgeC musicBridgeD, musicBridgeE ]
 
 soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
 
@@ -421,6 +427,7 @@ Bridge <-
 
  show = function() {
   return startglobalthread(@() {
+    //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
     local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 900)
     objectScale(text, 0.5)
@@ -438,6 +445,10 @@ Bridge <-
     objectState(bridgeChainsaw, GONE)
     objectTouchable(bridgeGateBack, YES)
     objectTouchable(bridgeGate, NO)
+    actorCostume(willie, "WilliePassedOutAnimation")
+    actorUseWalkboxes(willie, NO)
+    actorLockFacing(willie, FACE_RIGHT)
+    //objectHotspot(willie, -28,0,20,50)
     cameraAt(700,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
