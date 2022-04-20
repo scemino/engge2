@@ -167,14 +167,36 @@ proc resetLockFacing*(self: Object) =
 
 import ../game/nodeanim
 
-proc play*(self: Object, state: string; loop = false) =
+proc getFacing(self: Object): Facing =
+  if self.lockFacing:
+    self.facingMap[self.facing]
+  else:
+    self.facing
+
+proc suffix(self: Object): string =
+  case self.getFacing():
+  of FACE_BACK:
+    result = "_back"
+  of FACE_FRONT:
+    result = "_front"
+  of FACE_LEFT:
+    result = "_left"
+  of FACE_RIGHT:
+    result = "_right"
+
+proc playCore(self: Object, state: string; loop = false): bool =
   ## Plays an animation specified by the `state`. 
   for i in 0..<self.anims.len:
     let anim = self.anims[i]
     if anim.name == state:
       info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
       self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
-      return
+      return true
+
+proc play*(self: Object, state: string; loop = false) =
+  ## Plays an animation specified by the `state`. 
+  if not self.playCore(state, loop):
+    discard self.playCore(state & self.suffix(), loop)
 
 proc play*(self: Object, state: int; loop = false) =
   self.play fmt"state{state}"

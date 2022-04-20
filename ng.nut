@@ -453,7 +453,7 @@ Bridge <-
     actorAt(willie, Bridge.willieSpot)
     //actorUsePos(willie, Bridge.willieTalkSpot)
     //willie.dialog = "WillieBorisDialog"
-    actorPlayAnimation(willie, "awake_right")
+    actorPlayAnimation(willie, "awake")
     objectState(Bridge.willieObject, HERE)
     objectTouchable(Bridge.willieObject, YES)
     cameraAt(700,86)
@@ -463,9 +463,9 @@ Bridge <-
     startthread(Bridge.trainPassby)
     breaktime(2)
     breaktime(12.0)
-    actorPlayAnimation(willie, "drink_right")
+    actorPlayAnimation(willie, "drink")
     breakwhileanimating(willie)
-    actorPlayAnimation(willie, "awake_right")
+    actorPlayAnimation(willie, "awake")
        
     breaktime(10000)
   })
