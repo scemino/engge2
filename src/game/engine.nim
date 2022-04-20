@@ -232,6 +232,10 @@ proc update(self: Engine) =
   if not self.room.isNil:
     self.room.update(elapsed)
 
+  # update actors
+  for actor in self.actors.mitems:
+    actor.update(elapsed)
+
 proc clampPos(self: Engine, at: Vec2f): Vec2f =
   var screenSize = self.room.getScreenSize()
   var x = clamp(at.x, 0.0f, max(self.room.roomSize.x.float32 - screenSize.x.float32, 0.0f))

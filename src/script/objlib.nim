@@ -225,17 +225,46 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## objectHidden(oldRags, YES)
-  var table: HSQOBJECT
-  discard sq_getstackobj(v, 2, table)
-  var hidden: int
-  discard sq_getinteger(v, 3, hidden)
-  var obj = obj(table)
+  var obj = obj(v, 2)
   if obj.isNil:
-    warn fmt"Object {table} has not been found"
+    return sq_throwerror(v, "failed to get object or actor")
   else:
+    var hidden = 0
+    discard get(v, 3, hidden)
     info fmt"Sets object visible {obj.name} to {hidden == 0}"
     obj.node.visible = hidden == 0
   0
+
+proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets the touchable area of an actor or object.
+  ## This is a rectangle enclosed by the specified coordinates.
+  ## We also use this on the postalworker to enlarge his touchable area to make it easier to click on him while he's sorting mail. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectHotspot(willie, 14, 0, 14, 62)         // Willie standing up
+  ## objectHotspot(willie, -28, 0, 28, 50)        // Willie lying down drunk
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object or actor")
+  if sq_gettop(v) == 2:
+    var pos = obj.node.absolutePosition()
+    push(v, rectFromPositionSize(obj.hotspot.pos + vec2(pos.x.int32, pos.y.int32), obj.hotspot.size))
+    result = 1
+  else:
+    var left = 0
+    var top = 0
+    var right = 0
+    var bottom = 0
+    if SQ_FAILED(get(v, 3, left)):
+      return sq_throwerror(v, "failed to get left")
+    if SQ_FAILED(get(v, 4, top)):
+      return sq_throwerror(v, "failed to get top")
+    if SQ_FAILED(get(v, 5, right)):
+      return sq_throwerror(v, "failed to get right")
+    if SQ_FAILED(get(v, 6, bottom)):
+      return sq_throwerror(v, "failed to get bottom")
+    obj.hotspot = rect(left.int32, top.int32, (right-left).int32, (top-bottom).int32)
+    result = 0
 
 proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the object to the specified location over the time period specified.
@@ -489,6 +518,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectColor, "objectColor")
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
+  v.regGblFun(objectHotspot, "objectHotspot")
   v.regGblFun(objectMoveTo, "objectMoveTo")
   v.regGblFun(objectOffset, "objectOffset")
   v.regGblFun(objectOffsetTo, "objectOffsetTo")

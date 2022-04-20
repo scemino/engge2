@@ -41,6 +41,18 @@ proc `size=`*[T](self: var Rect[T], p: Vec2[T]) =
   self.w = p.x
   self.h = p.y
 
+proc top*[T](self: Rect[T]): T =
+  self.y + self.h
+
+proc bottom*[T](self: Rect[T]): T =
+  self.y + self.h
+
+proc left*[T](self: Rect[T]): T =
+  self.x
+
+proc right*[T](self: Rect[T]): T =
+  self.x + self.w
+
 proc topLeft*[T](self: Rect[T]): Vec2[T] =
   vec2(self.x, self.y + self.h)
 

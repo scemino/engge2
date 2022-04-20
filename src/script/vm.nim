@@ -1,6 +1,7 @@
 import std/[logging, strformat]
 import sqnim
 import glm
+import ../gfx/recti
 
 proc onError(v: HSQUIRRELVM, desc: SQString, source: SQString, line: SQInteger, column: SQInteger) {.cdecl.} =
   echo fmt"{source}({line},{column}): {desc}"
@@ -51,6 +52,21 @@ proc push*(v: HSQUIRRELVM, pos: Vec2i) {.inline.} =
 
 proc push*(v: HSQUIRRELVM, pos: Vec2f) {.inline.} =
   push(v, vec2(pos.x.int32,pos.y.int32))
+
+proc push*(v: HSQUIRRELVM, rect: Recti) {.inline.} =
+  sq_newtable(v)
+  sq_pushstring(v, "x1", -1)
+  sq_pushinteger(v, rect.left)
+  discard sq_newslot(v, -3, SQFalse)
+  sq_pushstring(v, "y1", -1)
+  sq_pushinteger(v, rect.top)
+  discard sq_newslot(v, -3, SQFalse)
+  sq_pushstring(v, "x2", -1)
+  sq_pushinteger(v, rect.right)
+  discard sq_newslot(v, -3, SQFalse)
+  sq_pushstring(v, "y2", -1)
+  sq_pushinteger(v, rect.bottom)
+  discard sq_newslot(v, -3, SQFalse)
 
 proc set*[T](v: HSQUIRRELVM, obj: HSQOBJECT, name: string, value: T) =
   sq_pushobject(v, obj)

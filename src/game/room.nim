@@ -77,7 +77,6 @@ type
     facing*: Facing
     lockFacing: bool
     facingMap: Table[Facing, Facing]
-    renderOffset*: Vec2f
     walkSpeed*: Vec2f
     parent*: string
     node*: Node
@@ -143,9 +142,11 @@ proc `room=`*(self: Object, room: Room) =
   if not oldRoom.isNil:
     info fmt"Remove {self.name} from room {oldRoom.name}"
     oldRoom.layer(0).objects.del oldRoom.layer(0).objects.find(self)
+    room.layer(0).node.removeChild self.node
   if not room.isNil:
     info fmt"Add {self.name} in room {room.name}"
     room.layer(0).objects.add self
+    room.layer(0).node.addChild self.node
   self.r = room
 
 proc lockFacing*(self: Object, left, right, front, back: Facing) =

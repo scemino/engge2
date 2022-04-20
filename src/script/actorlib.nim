@@ -165,6 +165,23 @@ proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "unknown facing type")
   0
 
+proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Plays the specified animation from the player's costume JSON filename.
+  ## If YES loop the animation. Default is NO.
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var animation = ""
+  if SQ_FAILED(get(v, 3, animation)):
+    return sq_throwerror(v, "failed to get animation")
+  var loop = 0
+  if sq_gettop(v) >= 4 and SQ_FAILED(get(v, 4, loop)):
+    return sq_throwerror(v, "failed to get loop")
+  info fmt"Play anim {actor.name} {animation} loop={loop}"
+  # TODO: actor.stopWalking()
+  actor.play(animation, loop != 0)
+  0
+
 proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
   ## 
@@ -179,7 +196,7 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get x")
   if SQ_FAILED(sq_getinteger(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
-  actor.renderOffset = vec2f(x.float32, y.float32)
+  actor.node.offset = vec2f(x.float32, y.float32)
   return 0;
 
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -224,6 +241,7 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_addref(v, actor.table)
 
   info "Create actor " &  actor.getName()
+  actor.node = newNode(actor.name)
   gEngine.actors.add(actor)
 
   sq_pushobject(v, actor.table)
@@ -238,6 +256,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
   v.regGblFun(actorLockFacing, "actorLockFacing")
+  v.regGblFun(actorPlayAnimation, "actorPlayAnimation")
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
