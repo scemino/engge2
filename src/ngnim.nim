@@ -4,6 +4,8 @@ import game/engine
 import script/vm
 import script/script
 import io/ggpackmanager
+import game/eventmanager
+import game/gameeventmanager
 
 proc onKey(key: InputKey, scancode: int32, action: InputAction,
     mods: InputModifierKey) =
@@ -30,6 +32,7 @@ proc main() =
 
   if fileExists("ThimbleweedPark.ggpack1"):
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
+    gEventMgr = newGameEventManager()
     runVm()
     app.run(render)
   else:

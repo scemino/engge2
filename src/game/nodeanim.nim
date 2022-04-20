@@ -14,6 +14,8 @@ type NodeAnim = ref object of Motor
     frameDuration: float
     loop: bool
     layers: seq[NodeAnim]
+    anim: ObjectAnimation
+    obj: Object
 
 proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
   var ss = obj.getSpriteSheet()
@@ -27,6 +29,8 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     newFps = if anim.fps == 0.0f: 10.0f else: anim.fps
 
   new(result)
+  result.obj = obj
+  result.anim = anim
   result.frames = frames
   result.frameDuration = 1.0 / newFps
   result.loop = loop or anim.loop
@@ -44,6 +48,12 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
   for layer in anim.layers:
     result.layers.add newNodeAnim(obj, layer, fps, newNode)
 
+proc trigSound(self: NodeAnim) =
+  if self.anim.triggers.len > 0:
+      var trigger = self.anim.triggers[self.index]
+      if trigger.len > 0:
+        self.obj.trig(trigger)
+
 method update(self: NodeAnim, el: float) =
   if self.frames.len != 0:
     self.elapsed += el
@@ -51,8 +61,10 @@ method update(self: NodeAnim, el: float) =
       self.elapsed = 0
       if self.index < self.frames.len - 1:
         self.index += 1
+        self.trigSound()
       elif self.loop:
         self.index = 0
+        self.trigSound()
       else:
         self.enabled = false
     self.node.setFrame(self.frames[self.index])

@@ -19,6 +19,7 @@ import ../scenegraph/textnode
 import motor
 import objanim
 import jsonutil
+import eventmanager
 
 const 
   GONE = 4
@@ -57,6 +58,7 @@ type
     polygon*: seq[Vec2i]
     name*: string
     visible*: bool
+  Trigger* = object
   Object* = ref object of RootObj
     n: string
     usePos*: Vec2f
@@ -84,6 +86,7 @@ type
     layer: Layer
     temporary*: bool
     useWalkboxes*: bool
+    triggers: Table[int, Trigger]
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -102,6 +105,10 @@ type
   RoomParser = object
     input: Stream
     filename: string
+
+# Trigger
+method trig(self: Trigger) {.base.} =
+  discard
 
 # Object
 proc `getSpriteSheet`*(self: Object): SpriteSheet =
@@ -165,7 +172,16 @@ proc resetLockFacing*(self: Object) =
   self.facingMap[FACE_FRONT] = FACE_FRONT;
   self.facingMap[FACE_BACK] = FACE_BACK;
 
-import ../game/nodeanim
+proc trig*(self: Object, name: string) =
+  debug fmt"Trigger object #{self.id} ({self.name}) sound '{name}'"
+  var trigNum: int
+  if parseInt(name, trigNum, 1) != 0:
+    if self.triggers.contains(trigNum):
+      self.triggers[trigNum].trig()
+    else:
+      warn fmt"Trigger #{trigNum} not found in object #{self.id} ({self.name})"
+  else:
+    gEventMgr.trig(name.substr(1))
 
 proc getFacing(self: Object): Facing =
   if self.lockFacing:
@@ -183,6 +199,8 @@ proc suffix(self: Object): string =
     result = "_left"
   of FACE_RIGHT:
     result = "_right"
+
+import ../game/nodeanim
 
 proc playCore(self: Object, state: string; loop = false): bool =
   ## Plays an animation specified by the `state`. 
@@ -237,11 +255,11 @@ proc update*(self: Object, elapsedSec: float) =
   self.moveTo.updateMotor(elapsedSec)
   self.nodeAnim.updateMotor(elapsedSec)
 
-proc delObject*(obj: Object) =
-  if not obj.isNil:
-    obj.layer.objects.del obj.layer.objects.find(obj)
-    obj.node.parent.removeChild obj.node
-    
+proc delObject*(self: Object) =
+  if not self.isNil:
+    self.layer.objects.del self.layer.objects.find(self)
+    self.node.parent.removeChild self.node
+
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
   result = Layer(names: names, parallax: parallax, zsort: zsort)
