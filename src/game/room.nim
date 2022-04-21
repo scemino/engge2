@@ -20,6 +20,7 @@ import motor
 import objanim
 import jsonutil
 import eventmanager
+import trigger
 
 const 
   GONE = 4
@@ -58,7 +59,6 @@ type
     polygon*: seq[Vec2i]
     name*: string
     visible*: bool
-  Trigger* = object
   Object* = ref object of RootObj
     n: string
     usePos*: Vec2f
@@ -86,7 +86,7 @@ type
     layer: Layer
     temporary*: bool
     useWalkboxes*: bool
-    triggers: Table[int, Trigger]
+    triggers*: Table[int, Trigger]
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -105,10 +105,6 @@ type
   RoomParser = object
     input: Stream
     filename: string
-
-# Trigger
-method trig(self: Trigger) {.base.} =
-  discard
 
 # Object
 proc `getSpriteSheet`*(self: Object): SpriteSheet =

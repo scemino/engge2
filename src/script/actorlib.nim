@@ -197,7 +197,7 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getinteger(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
   actor.node.offset = vec2f(x.float32, y.float32)
-  return 0;
+  0
 
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the actor needs to abide by walkboxes or not.

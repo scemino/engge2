@@ -26,35 +26,6 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.rooms.add room
   0
 
-proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Moves the camera to the specified room.
-  ## 
-  ## Does not move any of the actors.
-  ## 
-  ## .. code-block:: Squirrel
-  ## aStreetPhoneBook =
-  ## {
-  ##     name = "phone book"
-  ##     verbLookAt = function()
-  ##     {
-  ##         cameraInRoom(PhoneBook)
-  ##      }
-  ## }
-  var table: HSQOBJECT
-  sq_resetobject(table)
-  discard sq_getstackobj(v, 2, table)
-  let id = table.getId()
-  if id.isRoom():
-    gEngine.setRoom(room(id))
-  elif id.isObject():
-    let room = objRoom(table)
-    if room.isNil:
-      return sq_throwerror(v, "failed to get room")
-    gEngine.setRoom(room)
-  else:
-    return sq_throwerror(v, "failed to get room")
-  0
-
 proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the rooms that are in the game currently.
   ## 
@@ -171,7 +142,6 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
-  v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(masterRoomArray, "masterRoomArray")
   v.regGblFun(roomActors, "roomActors")

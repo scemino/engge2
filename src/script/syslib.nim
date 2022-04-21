@@ -164,15 +164,6 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.tasks.add newBreakWhileAnimating(curThread.id, obj)
   return -666
 
-proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  # Converts an integer to a char. 
-  var value: int
-  discard get(v, 2, value)
-  var s: string
-  s.add(chr(value))
-  push(v, s)
-  1
-
 proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns how long (in seconds) the game has been played for in total (not just this session).
   #
@@ -185,16 +176,6 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## }
   sq_pushfloat(v, gEngine.time * 1000.0)
   1
-
-proc is_oftype(v: HSQUIRRELVM, t: SQObjectType): SQInteger {.inline.} =
-  sq_pushinteger(v, if sq_gettype(v, 2) == t: 1 else: 0)
-  1
-
-proc is_string(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  is_oftype(v, OT_STRING)
-
-proc is_table(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  is_oftype(v, OT_TABLE)
 
 proc inputController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: inputController: not implemented")
@@ -211,17 +192,6 @@ proc logEvent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       msg = msg & $event
   info("event: " & msg)
   0
-  
-proc ord(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  # Returns the internal int value of x
-  var letter: SQString
-  if SQ_FAILED(sq_getstring(v, 2, letter)):
-    return sq_throwerror(v, "Failed to get letter")
-  if letter.len > 0:
-    sq_pushinteger(v, ord(letter[0]))
-  else:
-    sq_pushinteger(v, 0)
-  1
 
 proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Returns game time in milliseconds. 
@@ -379,14 +349,10 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breaktime, "breaktime")
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
-  v.regGblFun(sqChr, "chr")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")
-  v.regGblFun(is_string, "is_string")
-  v.regGblFun(is_table, "is_table")
   v.regGblFun(logEvent, "logEvent")
   v.regGblFun(microTime, "microTime")
-  v.regGblFun(ord, "ord")
   v.regGblFun(removeCallback, "removeCallback")
   v.regGblFun(startglobalthread, "startglobalthread")
   v.regGblFun(startthread, "startthread")

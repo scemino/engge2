@@ -6,6 +6,7 @@ import sqnim
 import glm
 import squtils
 import vm
+import ../game/ids
 import ../game/campanto
 import ../game/room
 import ../game/utils
@@ -52,6 +53,35 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var screenSize = gEngine.room.getScreenSize()
   var at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
   gEngine.cameraAt(at)
+  0
+
+proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Moves the camera to the specified room.
+  ## 
+  ## Does not move any of the actors.
+  ## 
+  ## .. code-block:: Squirrel
+  ## aStreetPhoneBook =
+  ## {
+  ##     name = "phone book"
+  ##     verbLookAt = function()
+  ##     {
+  ##         cameraInRoom(PhoneBook)
+  ##      }
+  ## }
+  var table: HSQOBJECT
+  sq_resetobject(table)
+  discard sq_getstackobj(v, 2, table)
+  let id = table.getId()
+  if id.isRoom():
+    gEngine.setRoom(room(id))
+  elif id.isObject():
+    let room = objRoom(table)
+    if room.isNil:
+      return sq_throwerror(v, "failed to get room")
+    gEngine.setRoom(room)
+  else:
+    return sq_throwerror(v, "failed to get room")
   0
 
 proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -101,6 +131,15 @@ proc cameraPos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.cameraPos())
   1
 
+proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  # Converts an integer to a char. 
+  var value: int
+  discard get(v, 2, value)
+  var s: string
+  s.add(chr(value))
+  push(v, s)
+  1
+
 proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   push(v, sq_gettype(v, 2) in types)
   1
@@ -111,6 +150,12 @@ proc is_array(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc is_function(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   is_oftype(v, [OT_CLOSURE, OT_NATIVECLOSURE])
 
+proc is_string(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  is_oftype(v, [OT_STRING])
+
+proc is_table(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  is_oftype(v, [OT_TABLE])
+
 proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the lines of the given `filename`. 
   var filename: string
@@ -120,6 +165,17 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   for line in gGGPackMgr.loadStream(filename).lines():
     sq_pushstring(v, line.cstring, -1)
     discard sq_arrayappend(v, -2)
+  1
+
+proc ord(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  # Returns the internal int value of x
+  var letter: SQString
+  if SQ_FAILED(sq_getstring(v, 2, letter)):
+    return sq_throwerror(v, "Failed to get letter")
+  if letter.len > 0:
+    sq_pushinteger(v, ord(letter[0]))
+  else:
+    sq_pushinteger(v, 0)
   1
 
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -234,11 +290,16 @@ proc register_generallib*(v: HSQUIRRELVM) =
   ## It adds all the general functions in the given Squirrel virtual machine.
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
+  v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(cameraPanTo, "cameraPanTo")
   v.regGblFun(cameraPos, "cameraPos")
+  v.regGblFun(sqChr, "chr")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
+  v.regGblFun(is_string, "is_string")
+  v.regGblFun(is_table, "is_table")
   v.regGblFun(loadArray, "loadArray")
+  v.regGblFun(ord, "ord")
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")

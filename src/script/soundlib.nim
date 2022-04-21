@@ -1,12 +1,65 @@
 import std/logging
+import std/tables
 import sqnim
 import vm
 import squtils
 import ../game/utils
+import ../game/room
 import ../game/engine
 import ../audio/audio
+import ../audio/soundtrigger
 
 proc soundVolume(v: HSQUIRRELVM, kind: VolumeKind): SQInteger
+
+proc get(v: HSQUIRRELVM, i: int, value: var SoundDefinition): SQRESULT =
+  var id = 0
+  result = sq_getinteger(v, i, id)
+  value = soundDef(id)
+
+proc getarray(v: HSQUIRRELVM, o: HSQOBJECT, arr: var seq[SoundDefinition]) =
+  sq_pushobject(v, o)
+  sq_pushnull(v)
+  while SQ_SUCCEEDED(sq_next(v, -2)):
+    var sound: SoundDefinition
+    discard get(v, -1, sound)
+    arr.add(sound)
+    sq_pop(v, 2)
+  sq_pop(v, 1)
+
+proc getarray(v: HSQUIRRELVM, i: int, arr: var seq[SoundDefinition]): SQRESULT =
+  var obj: HSQOBJECT
+  result = sq_getstackobj(v, i, obj)
+  getarray(v, obj, arr)
+
+proc actorSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Plays a sound at the specified actor's location.
+  ## If no sound is given, then it will turn off the trigger.
+  ## If a list of multiple sounds or an array are given, will randomly choose between the sound files.
+  ## The triggerNumber says which trigger in the animation JSON file should be used as a trigger to play the sound. 
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get actor or object")
+  var trigNum = 0
+  if SQ_FAILED(get(v, 3, trigNum)):
+    return sq_throwerror(v, "failed to get trigger number")
+  let numSounds = sq_gettop(v) - 3
+  if numSounds != 0:
+    var tmp = 0
+    if numSounds == 1 and SQ_SUCCEEDED(get(v, 4, tmp)) and tmp == 0:
+      obj.triggers.del trigNum
+    else:
+      var sounds: seq[SoundDefinition]
+      if sq_gettype(v, 4) == OT_ARRAY:
+        if SQ_FAILED(getarray(v, 4, sounds)):
+          return sq_throwerror(v, "failed to get sounds")
+      else:
+        sounds.setLen numSounds
+        for i in 0..<numSounds:
+          discard get(v, 4 + i, sounds[i])
+
+      var trigger = newSoundTrigger(sounds)
+      obj.triggers[trigNum] = trigger
+  0
 
 proc defineSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Defines a sound and binds it to an id.
@@ -234,19 +287,20 @@ proc register_sndlib*(v: HSQUIRRELVM) =
   ## Registers the game sound library.
   ## 
   ## It adds all the sound functions in the given Squirrel virtual machine `v`.
+  v.regGblFun(actorSound, "actorSound")
   v.regGblFun(defineSound, "defineSound")
   v.regGblFun(fadeOutSound, "fadeOutSound")
   v.regGblFun(isSoundPlaying, "isSoundPlaying")
   v.regGblFun(loopMusic, "loopMusic")
   v.regGblFun(loopSound, "loopSound")
   v.regGblFun(masterSoundVolume, "masterSoundVolume")
+  v.regGblFun(musicMixVolume, "musicMixVolume")
   v.regGblFun(playMusic, "playMusic")
   v.regGblFun(playSound, "playSound")
   v.regGblFun(playSoundVolume, "playSoundVolume")
-  v.regGblFun(soundVolume, "soundVolume")
   v.regGblFun(soundMixVolume, "soundMixVolume")
-  v.regGblFun(musicMixVolume, "musicMixVolume")
-  v.regGblFun(talkieMixVolume, "talkieMixVolume")
+  v.regGblFun(soundVolume, "soundVolume")
   v.regGblFun(stopAllSounds, "stopAllSounds")
   v.regGblFun(stopMusic, "stopMusic")
   v.regGblFun(stopSound, "stopSound")
+  v.regGblFun(talkieMixVolume, "talkieMixVolume")
