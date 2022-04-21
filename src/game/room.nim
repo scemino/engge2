@@ -71,6 +71,7 @@ type
     rotateTo*: Motor
     moveTo*: Motor
     nodeAnim*: Motor
+    walkTo*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
@@ -107,6 +108,18 @@ type
   RoomParser = object
     input: Stream
     filename: string
+
+# Facing
+proc flip*(facing: Facing): Facing =
+  case facing:
+  of FACE_BACK:
+    result = FACE_FRONT
+  of FACE_FRONT:
+    result = FACE_BACK
+  of FACE_LEFT:
+    result = FACE_RIGHT
+  of FACE_RIGHT:
+    result = FACE_LEFT
 
 # Object
 proc `getSpriteSheet`*(self: Object): SpriteSheet =
@@ -260,6 +273,7 @@ proc update*(self: Object, elapsedSec: float) =
   self.rotateTo.updateMotor(elapsedSec)
   self.moveTo.updateMotor(elapsedSec)
   self.nodeAnim.updateMotor(elapsedSec)
+  self.walkTo.updateMotor(elapsedSec)
 
 proc delObject*(self: Object) =
   if not self.isNil:

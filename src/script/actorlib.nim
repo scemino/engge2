@@ -3,6 +3,7 @@ import std/strformat
 import glm
 import sqnim
 import squtils
+import vm
 import ../game/engine
 import ../game/actor
 import ../game/utils
@@ -28,6 +29,13 @@ proc getFacing(dir: SQInteger, facing: Facing): Facing =
     of 8: FACE_BACK
     else: 
        FACE_RIGHT
+
+proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
+  let d = obj.node.pos - actor.node.pos
+  if d.x == 0:
+    result = if d.y > 0: FACE_FRONT else: FACE_BACK
+  else:
+    result = if d.x > 0: FACE_RIGHT else: FACE_LEFT
 
 proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the transparency for an actor's image in [0.0..1.0]
@@ -126,6 +134,37 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   discard sq_getstring(v, 4, sheet)
   info fmt"Actor costume {name} {sheet}"
   actor.setCostume($name, $sheet)
+
+proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Makes the actor face a given direction.
+  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT.
+  ## Similar to actorTurnTo, but will not animate the change, it will instantly be in the specified direction. 
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  let nArgs = sq_gettop(v)
+  if nArgs == 2:
+    var dir = actor.facing
+    push(v, dir.int)
+    result = 1
+  else:
+    if sq_gettype(v, 3) == OT_INTEGER:
+      var dir = 0
+      if SQ_FAILED(get(v, 3, dir)):
+        return sq_throwerror(v, "failed to get direction")
+      # FACE_FLIP ?
+      if dir == 0x10:
+        let facing = actor.facing.flip()
+        actor.facing = facing
+      else:
+        actor.facing = dir.Facing
+    else:
+      let actor2 = actor(v, 3)
+      if actor2.isNil:
+        return sq_throwerror(v, "failed to get actor to face to")
+      let facing = getFacingToFaceTo(actor, actor2)
+      actor.facing = facing
+    result = 0
 
 proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actor = actor(v, 2)
@@ -262,6 +301,28 @@ proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.walkSpeed = vec2f(x.float32, y.float32)
   0
 
+proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let nArgs = sq_gettop(v)
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  if nArgs == 3:
+    var obj = obj(v, 3)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get actor or object")
+    else:
+      actor.walk(obj.node.pos + obj.usePos) # TODO: toFacing(obj.useDir))
+  elif nArgs == 4:
+    var x, y: int
+    if SQ_FAILED(get(v, 3, x)):
+      return sq_throwerror(v, "failed to get x")
+    if SQ_FAILED(get(v, 4, y)):
+      return sq_throwerror(v, "failed to get y")
+    actor.walk(vec2(x.float32, y.float32)) # TODO: toFacing(obj.useDir))
+  else:
+    return sq_throwerror(v, "invalid number of arguments in actorWalkTo")
+  0
+
 proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Creates a new actor from a table.
   ## 
@@ -289,6 +350,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorAt, "actorAt")
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
+  v.regGblFun(actorFace, "actorFace")
   v.regGblFun(actorHidden, "actorHidden")
   v.regGblFun(actorHideLayer, "actorHideLayer")
   v.regGblFun(actorLockFacing, "actorLockFacing")
@@ -298,4 +360,5 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
+  v.regGblFun(actorWalkTo, "actorWalkTo")
   v.regGblFun(createActor, "createActor")

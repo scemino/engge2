@@ -21,7 +21,10 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
   var ss = obj.getSpriteSheet()
   var frames: seq[SpriteSheetFrame]
   for frame in anim.frames:
-    frames.add(ss.frames[frame])
+    if frame == "null":
+      frames.add(SpriteSheetFrame())
+    else:
+      frames.add(ss.frames[frame])
   var newFps: float32
   if fps != 0.0f:
     newFps = fps.float32

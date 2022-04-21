@@ -472,7 +472,7 @@ Bridge <-
  show = function() {
   return startglobalthread(@() {
     actorAt(boris, Bridge.borisStartSpot)
-    // actorFace(boris, FACE_RIGHT)
+    actorFace(boris, FACE_RIGHT)
     // pickupObject(borisNote, boris)
     // pickupObject(borisWallet, boris)
     // pickupObject(borisHotelKeycard, boris)
@@ -506,8 +506,8 @@ Bridge <-
     actorPlayAnimation(willie, "awake")
     objectState(Bridge.willieObject, HERE)
     objectTouchable(Bridge.willieObject, YES)
-    //cameraAt(700,86)
-    cameraAt(210,86)
+    cameraAt(700,86)
+    //cameraAt(210,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
     cameraPanTo(210, 86, 12, EASE_INOUT)
@@ -519,7 +519,7 @@ Bridge <-
     actorPlayAnimation(willie, "awake")
     breaktime(2)
     //selectActor(boris)
-    //actorWalkTo(boris, Bridge.bridgeGateBack)
+    actorWalkTo(boris, Bridge.bridgeGateBack)
     //breakwhilewalking(boris)
     //cameraFollow(boris)
     //breaktime(1.0)

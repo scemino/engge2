@@ -1,4 +1,5 @@
 import std/json
+import glm
 import sqnim
 import nimyggpack
 import room
@@ -8,6 +9,7 @@ import ../gfx/image
 import ../gfx/texture
 import ../gfx/spritesheet
 import objanim
+import walkto
 
 proc newActor*(): Object =
   Object(facing: FACE_FRONT)
@@ -23,3 +25,6 @@ proc setCostume*(self: Object, name, sheet: string) =
   self.spriteSheet = loadSpriteSheet(path & ".json")
   self.texture = newTexture(newImage(self.spriteSheet.meta.image))
   self.play("stand")
+
+proc walk*(self: Object, dest: Vec2f) =
+  self.walkTo = newWalkTo(self, dest)

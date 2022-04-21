@@ -175,6 +175,9 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
+proc call*(o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
+  call(gVm.v, o, name, args)
+
 proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
   let top = sq_gettop(v)
   push(v, obj)
