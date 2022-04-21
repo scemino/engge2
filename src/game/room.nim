@@ -87,6 +87,8 @@ type
     temporary*: bool
     useWalkboxes*: bool
     triggers*: Table[int, Trigger]
+    volume*: float
+    hiddenLayers: seq[string]
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -139,6 +141,14 @@ proc layer*(self: Room, layer: int): Layer =
   for l in self.layers:
     if l.zsort == layer:
       return l
+
+proc showLayer*(self: Object, layer: string, visible: bool) =
+  if visible:
+    if not self.hiddenLayers.contains(layer):
+      self.hiddenLayers.add(layer)
+  else:
+    if self.hiddenLayers.contains(layer):
+      self.hiddenLayers.del self.hiddenLayers.find(layer)
 
 proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r

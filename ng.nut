@@ -366,6 +366,45 @@ TitleCards <-
 defineRoom(Opening)
 defineRoom(TitleCards)
 
+boris <- {
+  _key = "boris"
+  name = "@30072"
+  fullname = "@30073"
+  icon = "icon_boris"
+  detective = NO
+  flags = PERSON|MALE
+  onLadder = NO
+ 
+  function showHideLayers() {
+    actorHideLayer(boris, "splash")
+  }
+ }
+
+ function borisCostume()
+ {
+  actorCostume(boris, "BorisAnimation")
+  actorWalkSpeed(boris, 30, 15)
+  actorRenderOffset(boris, 0, 45)
+  //actorTalkColors(boris, talkColorBoris)
+  //actorTalkOffset(boris, 0, defaultTextOffset)
+  actorHidden(boris, OFF)
+  //objectLit(boris, 1)
+  //footstepsNormal(boris)
+  boris.showHideLayers()
+ }
+
+createActor(boris)
+actorVolume(boris, 0.7)
+// addSelectableActor(6, boris)
+// setActorDefaults(boris)
+// actorSlotSelectable(6, YES)
+// defineVerbs(6)
+// verbUIColors(6, {	nameid = "boris", sentence = 0xffffff, 
+//  verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
+//  verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
+//  inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
+borisCostume()
+
 willie <- { 
   _key = "willie"
   name = "willie"
@@ -432,6 +471,12 @@ Bridge <-
 
  show = function() {
   return startglobalthread(@() {
+    actorAt(boris, Bridge.borisStartSpot)
+    // actorFace(boris, FACE_RIGHT)
+    // pickupObject(borisNote, boris)
+    // pickupObject(borisWallet, boris)
+    // pickupObject(borisHotelKeycard, boris)
+    // pickupObject(borisPrototypeToy, boris)
     //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
     local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 900)
@@ -461,7 +506,8 @@ Bridge <-
     actorPlayAnimation(willie, "awake")
     objectState(Bridge.willieObject, HERE)
     objectTouchable(Bridge.willieObject, YES)
-    cameraAt(700,86)
+    //cameraAt(700,86)
+    cameraAt(210,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
     cameraPanTo(210, 86, 12, EASE_INOUT)
@@ -471,6 +517,15 @@ Bridge <-
     actorPlayAnimation(willie, "drink")
     breakwhileanimating(willie)
     actorPlayAnimation(willie, "awake")
+    breaktime(2)
+    //selectActor(boris)
+    //actorWalkTo(boris, Bridge.bridgeGateBack)
+    //breakwhilewalking(boris)
+    //cameraFollow(boris)
+    //breaktime(1.0)
+    //sayLine(boris, "@25541", 
+    //"@25542")
+    //breakwhiletalking(boris)
        
     breaktime(10000)
   })

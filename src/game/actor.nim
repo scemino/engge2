@@ -10,7 +10,7 @@ import ../gfx/spritesheet
 import objanim
 
 proc newActor*(): Object =
-  Object()
+  Object(facing: FACE_FRONT)
 
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
@@ -22,4 +22,4 @@ proc setCostume*(self: Object, name, sheet: string) =
   var path = if sheet.len == 0: json["sheet"].str else: sheet 
   self.spriteSheet = loadSpriteSheet(path & ".json")
   self.texture = newTexture(newImage(self.spriteSheet.meta.image))
-
+  self.play("stand")

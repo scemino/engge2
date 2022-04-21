@@ -127,6 +127,31 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"Actor costume {name} {sheet}"
   actor.setCostume($name, $sheet)
 
+proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var hidden = 0
+  if SQ_FAILED(get(v, 3, hidden)):
+    return sq_throwerror(v, "failed to get hidden")
+  actor.node.visible = hidden == 0
+
+proc actorShowHideLayer(v: HSQUIRRELVM, visible: bool): SQInteger =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var layer: string
+  if SQ_FAILED(get(v, 3, layer)):
+    return sq_throwerror(v, "failed to get layer")
+  actor.showLayer(layer, visible)
+  0
+
+proc actorHideLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  actorShowHideLayer(v, false)
+
+proc actorShowLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  actorShowHideLayer(v, true)
+
 proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
   ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT. 
@@ -212,6 +237,15 @@ proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get useWalkboxes")
   actor.useWalkboxes = useWalkboxes != 0
 
+proc actorVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var volume = 0.0
+  if SQ_FAILED(get(v, 3, volume)):
+    return sq_throwerror(v, "failed to get volume")
+  actor.volume = volume
+
 proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the walk speed of an actor.
   ## 
@@ -255,9 +289,13 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorAt, "actorAt")
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
+  v.regGblFun(actorHidden, "actorHidden")
+  v.regGblFun(actorHideLayer, "actorHideLayer")
   v.regGblFun(actorLockFacing, "actorLockFacing")
   v.regGblFun(actorPlayAnimation, "actorPlayAnimation")
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
+  v.regGblFun(actorShowLayer, "actorShowLayer")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
+  v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(createActor, "createActor")
