@@ -2,13 +2,12 @@ import std/[logging, strformat]
 import sqnim
 import vm
 import squtils
+import ../audio/audio
 import ../game/thread
 import ../game/callback
 import ../game/engine
 import ../game/room
-import ../game/ids
-import ../game/breakwhilerunning
-import ../game/breakwhileanimating
+import ../game/breakwhilecond
 import ../game/utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -104,6 +103,16 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get time")
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
+proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
+  var curThread = thread(v)
+  if curThread.isNil:
+    return sq_throwerror(v, "Current thread should be created with startthread")
+  
+  info "curThread.id: " & $curThread.id
+  info fmt"add breakwhilecond pid={curThread.id}"
+  gEngine.tasks.add newBreakWhileCond(curThread.id, name, pred)
+  return -666
+
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while the thread referenced by threadId is running.
   ## Once the thread finishes execution, the method will continue running.
@@ -125,27 +134,17 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard sq_getinteger(v, 2, id)
   info "breakwhilerunning: " & $id
   
-  if isThread(id):
-    var curThread = thread(v)
-    if curThread.isNil:
-      return sq_throwerror(v, "Current thread should be created with startthread")
-    
-    info "curThread.id: " & $curThread.id
-    var t = thread(id);
-    if t.isNil:
-      warn "thread not found: " & $id
-      return 0
+  var t = thread(id);
+  if t.isNil:
+    warn "thread not found: " & $id
+    return 0
 
-    info fmt"add BreakWhileRunning pid={curThread.id} id={id}"
-    #curThread.suspend()
-    gEngine.tasks.add newBreakWhileRunning(curThread.id, id)
-    return -666
-  0
+  breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = thread(id).isNil)
 
 proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
   ## Note, animatingItem can be an actor or an object.
-  ## It is an error to call breakwhileanimating in a function that was not started with startthread.
+  ## It is an error to call breakwhileanimating in a function that was not started with `startthread`.
   ## 
   ## . code-block:: Squirrel
   ## actorFace(ray, FACE_LEFT)
@@ -154,15 +153,35 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## breakwhileanimating(ray)
   ## actorCostume(ray, "RayAnimation")
   var obj = obj(v, 2)
-  info "breakwhileanimating: " & obj.name
-  
-  var curThread = thread(v)
-  if curThread.isNil:
-    return sq_throwerror(v, "Current thread should be created with startthread")
-  
-  info fmt"add Breakwhileanimating pid={curThread.id}"
-  gEngine.tasks.add newBreakWhileAnimating(curThread.id, obj)
-  return -666
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not thread(id).isNil)
+
+proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## If an actor is specified, breaks until actor has finished walking.
+  ## Once arrived at destination, the method will continue running.
+  ## It is an error to call breakwhilewalking in a function that was not started with `startthread`.
+  ## 
+  ## . code-block:: Squirrel
+  ## startthread(@(){
+  ##    actorWalkTo(currentActor, Nickel.copyTron)
+  ##    breakwhilewalking(currentActor)
+  ##    pushSentence(VERB_USE, nickel, Nickel.copyTron)
+  ##})
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  breakwhilecond(v, fmt"breakwhilewalking({obj.name})", proc (): bool = not obj.walkTo.isNil and obj.walkTo.enabled)
+
+proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks until specified sound has finished playing.
+  ## Once sound finishes, the method will continue running.
+  var sound = sound(v, 2)
+  if not sound.isNil:
+    result = breakwhilecond(v, fmt"breakwhilesound({sound.id})", proc (): bool = gEngine.audio.playing(sound))
+  else:
+    var soundDef = soundDef(v, 2)
+    result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 
 proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns how long (in seconds) the game has been played for in total (not just this session).
@@ -349,6 +368,8 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breaktime, "breaktime")
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
+  v.regGblFun(breakwhilesound, "breakwhilesound")
+  v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")
   v.regGblFun(logEvent, "logEvent")

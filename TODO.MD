@@ -37,9 +37,9 @@
 - [x] actorCostume
 - [ ] actorDistanceTo
 - [ ] actorDistanceWithin
-- [ ] actorFace
-- [ ] actorHidden
-- [ ] actorHideLayer
+- [x] actorFace
+- [x] actorHidden
+- [x] actorHideLayer
 - [ ] actorInTrigger
 - [ ] actorInWalkbox
 - [x] actorLockFacing
@@ -47,7 +47,7 @@
 - [ ] actorPosX, actorPosY
 - [x] actorRenderOffset
 - [ ] actorRoom
-- [ ] actorShowLayer
+- [x] actorShowLayer
 - [ ] actorSlotSelectable
 - [ ] actorStand
 - [ ] actorStopWalking
@@ -57,11 +57,11 @@
 - [ ] actorTurnTo
 - [ ] actorUsePos
 - [x] actorUseWalkboxes
-- [ ] actorVolume
+- [x] actorVolume
 - [ ] actorWalking
 - [ ] actorWalkForward
 - [x] actorWalkSpeed
-- [ ] actorWalkTo
+- [x] actorWalkTo
 - [ ] addSelectableActor
 - [x] createActor
 - [ ] flashSelectableActor
@@ -181,9 +181,9 @@
 - [ ] breakwhilecutscene
 - [ ] breakwhiledialog
 - [x] breakwhilerunning
-- [ ] breakwhilesound
+- [x] breakwhilesound
 - [ ] breakwhiletalking
-- [ ] breakwhilewalking
+- [x] breakwhilewalking
 - [x] gameTime
 - [x] inputController
 - [x] logEvent

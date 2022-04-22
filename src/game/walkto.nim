@@ -27,7 +27,7 @@ proc actorArrived(self: WalkTo) =
 method update(self: WalkTo, el: float) =
   let d = distance(self.dest, self.obj.node.pos)
   let delta = self.dest - self.obj.node.pos
-  let walkspeed = self.obj.walkSpeed*el
+  let walkspeed = self.obj.walkSpeed * el
   info fmt"walk: d={d} delta={delta}"
   var dx, dy: float
   if d < 1.0:
@@ -39,7 +39,7 @@ method update(self: WalkTo, el: float) =
     else:
       dx = -min(walkspeed.x, -delta.x)
     if delta.y > 0.0:
-      dx = min(walkspeed.y, delta.y)
+      dy = min(walkspeed.y, delta.y)
     else:
       dy = -min(walkspeed.y, -delta.y)
     info fmt"walk: dx={dx} dy={dy}"

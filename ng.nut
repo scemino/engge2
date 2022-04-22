@@ -520,7 +520,7 @@ Bridge <-
     breaktime(2)
     //selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
-    //breakwhilewalking(boris)
+    breakwhilewalking(boris)
     //cameraFollow(boris)
     //breaktime(1.0)
     //sayLine(boris, "@25541", 

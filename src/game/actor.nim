@@ -26,5 +26,8 @@ proc setCostume*(self: Object, name, sheet: string) =
   self.texture = newTexture(newImage(self.spriteSheet.meta.image))
   self.play("stand")
 
+proc stand*(self: Object) =
+  self.play("stand")
+
 proc walk*(self: Object, dest: Vec2f) =
   self.walkTo = newWalkTo(self, dest)
