@@ -13,6 +13,7 @@ type
     args*: seq[HSQOBJECT]
     waitTime*: float
     numFrames*: int
+    pauseable*: bool
     init: bool
     stopRequest: bool
 
@@ -26,6 +27,7 @@ proc newThread*(name: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj,
   result.env_obj = env_obj
   result.closureObj = closureObj
   result.args = args
+  result.pauseable = true
 
   sq_addref(result.v, result.thread_obj)
   sq_addref(result.v, result.envObj)
@@ -69,7 +71,7 @@ proc resume*(self: Thread) =
       discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
 
 proc suspend*(self: Thread) =
-  if not self.isSuspended:
+  if self.pauseable and not self.isSuspended:
     discard sq_suspendvm(self.getThread())
 
 proc stop*(self: Thread) =

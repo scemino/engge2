@@ -374,6 +374,17 @@ proc threadid(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_pushinteger(v, 0)
   1
 
+proc threadpauseable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Specify whether a thread should be pauseable or not.
+  ## If a thread is not pauseable, it won't be possible to pause this thread.
+  let t = thread(v, 2)
+  if t.isNil:
+    return sq_throwerror(v, "failed to get thread")
+  var pauseable = 0
+  if SQ_FAILED(get(v, 3, pauseable)):
+    return sq_throwerror(v, "failed to get pauseable")
+  t.pauseable = pauseable != 0
+
 proc register_syslib*(v: HSQUIRRELVM) =
   ## Registers the game system library.
   ## 
@@ -398,4 +409,5 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(startthread, "startthread")
   v.regGblFun(stopthread, "stopthread")
   v.regGblFun(threadid, "threadid")
+  v.regGblFun(threadpauseable, "threadpauseable")
   

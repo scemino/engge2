@@ -177,7 +177,6 @@
 - [x] addFolder
 - [x] breakhere
 - [x] breaktime
-- [ ] breakwhile
 - [x] breakwhileanimating
 - [ ] breakwhilecamera
 - [ ] breakwhilecutscene
@@ -197,7 +196,7 @@
 - [x] startthread
 - [x] stopthread
 - [x] threadid
-- [ ] threadpauseable
+- [x] threadpauseable
 
 ## Object
 

@@ -18,9 +18,7 @@ proc soundDef*(id: int): SoundDefinition =
 proc soundDef*(v: HSQUIRRELVM, i: int): SoundDefinition =
   var id: int
   if SQ_SUCCEEDED(get(v, i, id)):
-    soundDef(id)
-  else:
-    nil
+    result = soundDef(id)
 
 proc sound*(id: int): SoundId =
   for sound in gEngine.audio.sounds:
@@ -31,9 +29,7 @@ proc sound*(id: int): SoundId =
 proc sound*(v: HSQUIRRELVM, i: int): SoundId =
   var id: int
   if SQ_SUCCEEDED(get(v, i, id)):
-    sound(id)
-  else:
-    nil
+    result = sound(id)
 
 proc room*(id: int): Room =
   for room in gEngine.rooms:
@@ -50,9 +46,7 @@ proc room*(table: HSQOBJECT): Room =
 proc room*(v: HSQUIRRELVM, i: int): Room =
   var table: HSQOBJECT
   if SQ_SUCCEEDED(get(v, i, table)):
-    room(table)
-  else:
-    nil
+    result = room(table)
 
 proc actor*(table: HSQOBJECT): Object =
   for actor in gEngine.actors:
@@ -63,9 +57,7 @@ proc actor*(table: HSQOBJECT): Object =
 proc actor*(v: HSQUIRRELVM, i: int): Object =
   var table: HSQOBJECT
   if SQ_SUCCEEDED(get(v, i, table)):
-    actor(table)
-  else:
-    nil
+    result = actor(table)
 
 proc obj*(table: HSQOBJECT): Object =
   for actor in gEngine.actors:
@@ -104,6 +96,11 @@ proc thread*(id: int): Thread =
     if t.id == id:
       return t
   nil
+
+proc thread*(v: HSQUIRRELVM, i: int): Thread =
+  var id: int
+  if SQ_SUCCEEDED(get(v, i, id)):
+    result = thread(id)
 
 proc easing*(easing: int): easing_func =
   case easing and 7:
