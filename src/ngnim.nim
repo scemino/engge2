@@ -6,6 +6,7 @@ import script/script
 import io/ggpackmanager
 import game/eventmanager
 import game/gameeventmanager
+import game/resmanager
 
 proc onKey(key: InputKey, scancode: int32, action: InputAction,
     mods: InputModifierKey) =
@@ -24,7 +25,8 @@ proc runVm() =
 
 proc main() =
   addHandler(newConsoleLogger())
-  addHandler(newFileLogger("log.txt"))
+  addHandler(newFileLogger("errors.log", levelThreshold=lvlError))
+  addHandler(newRollingFileLogger("ng.log"))
   info("# Welcome to ngnim")
 
   app.init(title = "ngnim")
@@ -32,6 +34,7 @@ proc main() =
 
   if fileExists("ThimbleweedPark.ggpack1"):
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
+    gResMgr = newResManager()
     gEventMgr = newGameEventManager()
     runVm()
     app.run(render)

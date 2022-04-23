@@ -7,11 +7,8 @@ import ../script/squtils
 import ../gfx/recti
 import ../gfx/spritesheet
 import ../gfx/texture
-import ../gfx/image
 import ../gfx/color
-import ../gfx/bmfont
 import ../gfx/text
-import ../io/ggpackmanager
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
@@ -21,6 +18,7 @@ import objanim
 import jsonutil
 import eventmanager
 import trigger
+import resmanager
 
 const 
   GONE = 4
@@ -313,8 +311,8 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   obj.r = self
   # load spritesheet if any
   if sheet.len > 0:
-    obj.spriteSheet = loadSpriteSheet(sheet & ".json")
-    obj.texture = newTexture(newImage(obj.spriteSheet.meta.image))
+    obj.spriteSheet = gResMgr.spritesheet(sheet)
+    obj.texture = gResMgr.texture(obj.spriteSheet.meta.image)
   
   # create anim if any
   if frames.len > 0:
@@ -352,11 +350,7 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
   obj.table.setId(newObjId())
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
-  var path = fmt"{fontName}.fnt"
-  if not gGGPackMgr.assetExists(path):
-    path = fmt"{fontName}Font.fnt"
-
-  var font = parseBmFontFromPack(path)
+  var font = gResMgr.font(fontName)
   var text = newText(font, text, align, maxWidth, White)
   text.update()
 
@@ -517,8 +511,8 @@ proc parseRoom(self: var RoomParser): Room =
           scaling.trigger = jScaling["trigger"].getStr()
         result.scalings.add(scaling)
 
-  result.spriteSheet = loadSpriteSheet(result.sheet & ".json")
-  result.texture = newTexture(newImage(result.spriteSheet.meta.image))
+  result.spriteSheet = gResMgr.spritesheet(result.sheet)
+  result.texture = gResMgr.texture(result.spriteSheet.meta.image)
 
 proc parseRoom*(s: Stream, filename: string = ""): Room =
   ## Parses from a stream `s` into a `Room`. `filename` is only needed

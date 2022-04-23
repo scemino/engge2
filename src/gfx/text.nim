@@ -4,8 +4,8 @@ import glm
 import bmfont
 import color
 import recti
-import image
 import texture
+import ../game/resmanager
 import graphics
 
 type
@@ -124,8 +124,7 @@ proc width(self: Text, reader: TokenReader, tok: Token): float32 =
 
 proc update*(self: Text) =
   var (_, name, _) = splitFile(self.font.path)
-  let img = newImage(name & ".png")
-  self.texture = newTexture(img)
+  self.texture = gResMgr.texture(name & ".png")
 
   # Reset
   self.vertices.setLen 0
