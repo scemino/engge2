@@ -479,7 +479,7 @@ Bridge <-
     // pickupObject(borisPrototypeToy, boris)
     //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
-    local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 900)
+    local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 200)
     objectScale(text, 0.5)
 
     objectColor(text, 0x30AAFF)

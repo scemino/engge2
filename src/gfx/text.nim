@@ -19,13 +19,14 @@ type
     ## A text can contains color in hexadecimal with this format: #RRGGBB
     font*: BmFont
     texture*: Texture
-    text*: string
-    color*: Color
-    align*: TextAlignment
+    txt: string
+    col: Color
+    txtAlign: TextAlignment
     vertices: seq[Vertex]
-    bounds*: Vec2f
-    maxWidth*: float32
+    bnds: Vec2f
+    maxW: float32
     quads: seq[Rectf]
+    dirty: bool
   CharInfo = object
     chr: char
     pos: Vec2f
@@ -94,7 +95,38 @@ iterator items*(self: TokenReader): Token =
     yield tok
 
 proc newText*(font: BmFont, text: string; align = taLeft; maxWidth = 0.0f; color = White): Text =
-  Text(font: font, text: text, align: align, maxWidth: maxWidth, color: color)
+  Text(font: font, txt: text, txtAlign: align, maxW: maxWidth, col: color, dirty: true)
+
+proc `text=`*(self: Text, text: string) =
+  self.txt = text
+  self.dirty = true
+
+proc `text`*(self: Text): string =
+  self.txt
+
+proc `color=`*(self: Text, col: Color) =
+  self.col = col
+  self.dirty = true
+
+proc `color`*(self: Text): Color =
+  self.col
+
+proc `maxWidth=`*(self: Text, maxW: float) =
+  self.maxW = maxW
+  self.dirty = true
+
+proc `maxWidth`*(self: Text): float =
+  self.maxW
+
+proc `align=`*(self: Text, align: TextAlignment) =
+  self.txtAlign = align
+  self.dirty = true
+
+proc `align`*(self: Text): TextAlignment =
+  self.txtAlign
+
+proc `bounds`*(self: Text): Vec2f =
+  self.bnds
 
 proc normalize(texture: Texture, v: Vec2i): Vec2f =
   var textureSize = vec2(texture.width, texture.height)
@@ -122,77 +154,78 @@ proc width(self: Text, reader: TokenReader, tok: Token): float32 =
   for c in reader.substr(tok):
     result += self.font.getGlyph(c).advance.float32
 
-proc update*(self: Text) =
-  var (_, name, _) = splitFile(self.font.path)
-  self.texture = gResMgr.texture(name & ".png")
+proc update(self: Text) =
+  if self.dirty:
+    self.dirty = false
+    var (_, name, _) = splitFile(self.font.path)
+    self.texture = gResMgr.texture(name & ".png")
 
-  # Reset
-  self.vertices.setLen 0
-  self.bounds = Vec2f()
-  var color = self.color
-  
-  # split text by tokens and split tokens by lines
-  var lines: seq[Line]
-  var line: Line
-  var reader = newTokenReader(self.text)
-  var x: float32
-  for tok in reader:
-    # ignore color token width
-    let w = if tok.id == tiColor or tok.id == tiNewLine: 0.0f else: self.width(reader, tok)
-    # new line if width > maxWidth or newline character
-    if tok.id == tiNewLine or (self.maxWidth > 0 and line.tokens.len > 0 and x + w > self.maxWidth):
-      lines.add line
-      line.tokens.setLen(0)
-      x = 0
-    if tok.id != tiNewLine:
-      if line.tokens.len != 0 or tok.id != tiWhitespace:
-        line.tokens.add(tok)
-        x += w
-  lines.add line
-
-  # create quads for all characters
-  var maxW: float32
-  let lineHeight = self.font.lineHeight.float32
-  var y = -lineHeight
-  for line in lines.mitems:
-    var prevChar: char
-    var x: float32
-    for tok in line.tokens:
-      if tok.id == tiColor:
-        var iColor: int
-        discard parseHex(reader.substr(tok), iColor, 1)
-        color = rgba(iColor or 0xFF000000'i32)
-      else:
-        for c in reader.substr(tok):
-          let glyph = self.font.getGlyph(c)
-          # let kern = self.font.getKerning(prevChar, c)
-          let kern = 0.0f
-          prevChar = c
-          line.charInfos.add(CharInfo(chr: c, pos: vec2f(x + kern, y), color: color, glyph: glyph))
-          # self.quads.add(rect(x, y, glyph.bounds.x.float32 + glyph.bounds.w.float32, lineHeight))
-          x += glyph.advance.float32
-    self.quads.add(rect(0.0f, y, x, lineHeight))
-    maxW = max(maxW, x)
-    y -= lineHeight
-
-  # Align text
-  if self.align == taRight:
-    for i in 0..<lines.len:
-      let w = maxW - self.quads[i].w
-      for info in lines[i].charInfos.mitems:
-        info.pos.x += w
-  elif self.align == taCenter:
-    for i in 0..<lines.len:
-      let w = maxW - self.quads[i].w
-      for info in lines[i].charInfos.mitems:
-        info.pos.x += w / 2
-
-  # Add the glyphs to the vertices
-  for line in lines:
-    for info in line.charInfos:
-      self.addGlyphQuad(info)
+    # Reset
+    self.vertices.setLen 0
+    self.bnds = Vec2f()
+    var color = self.color
     
-  self.bounds = vec2(maxW, lines.len.float32 * self.font.lineHeight.float32)
+    # split text by tokens and split tokens by lines
+    var lines: seq[Line]
+    var line: Line
+    var reader = newTokenReader(self.text)
+    var x: float32
+    for tok in reader:
+      # ignore color token width
+      let w = if tok.id == tiColor or tok.id == tiNewLine: 0.0f else: self.width(reader, tok)
+      # new line if width > maxWidth or newline character
+      if tok.id == tiNewLine or (self.maxWidth > 0 and line.tokens.len > 0 and x + w > self.maxWidth):
+        lines.add line
+        line.tokens.setLen(0)
+        x = 0
+      if tok.id != tiNewLine:
+        if line.tokens.len != 0 or tok.id != tiWhitespace:
+          line.tokens.add(tok)
+          x += w
+    lines.add line
+
+    # create quads for all characters
+    var maxW: float32
+    let lineHeight = self.font.lineHeight.float32
+    var y = -lineHeight
+    for line in lines.mitems:
+      var prevChar: char
+      var x: float32
+      for tok in line.tokens:
+        if tok.id == tiColor:
+          var iColor: int
+          discard parseHex(reader.substr(tok), iColor, 1)
+          color = rgba(iColor or 0xFF000000'i32)
+        else:
+          for c in reader.substr(tok):
+            let glyph = self.font.getGlyph(c)
+            let kern = self.font.getKerning(prevChar, c)
+            prevChar = c
+            line.charInfos.add(CharInfo(chr: c, pos: vec2f(x + kern, y), color: color, glyph: glyph))
+            # self.quads.add(rect(x, y, glyph.bounds.x.float32 + glyph.bounds.w.float32, lineHeight))
+            x += glyph.advance.float32
+      self.quads.add(rect(0.0f, y, x, lineHeight))
+      maxW = max(maxW, x)
+      y -= lineHeight
+
+    # Align text
+    if self.align == taRight:
+      for i in 0..<lines.len:
+        let w = maxW - self.quads[i].w
+        for info in lines[i].charInfos.mitems:
+          info.pos.x += w
+    elif self.align == taCenter:
+      for i in 0..<lines.len:
+        let w = maxW - self.quads[i].w
+        for info in lines[i].charInfos.mitems:
+          info.pos.x += w / 2
+
+    # Add the glyphs to the vertices
+    for line in lines:
+      for info in line.charInfos:
+        self.addGlyphQuad(info)
+      
+    self.bnds = vec2(maxW, lines.len.float32 * self.font.lineHeight.float32)
 
 # proc drawQuadLine(quad: Rectf, transf: Mat4f) =
 #   var vertices = [Vertex(pos: quad.topLeft, color: White),
@@ -203,6 +236,7 @@ proc update*(self: Text) =
 
 proc draw*(self: Text; transf = mat4f(1.0)) =
   if not self.font.isNil:
+    self.update()
     self.texture.bindTexture()
     gfxDraw(self.vertices, transf)
 

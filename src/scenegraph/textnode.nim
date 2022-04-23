@@ -15,7 +15,6 @@ proc newTextNode*(text: Text): TextNode =
 method updateColor(self: TextNode, color: Color) =
   self.nodeColor = rgbaf(color, self.nodeColor.a)
   self.text.color = self.nodeColor
-  self.text.update()
 
 method drawCore(self: TextNode, transf: Mat4f) =
   self.text.draw(transf)

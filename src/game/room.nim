@@ -352,7 +352,6 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
 
   var font = gResMgr.font(fontName)
   var text = newText(font, text, align, maxWidth, White)
-  text.update()
 
   obj.node = newTextNode(text)
   self.layer(0).objects.add(obj)
