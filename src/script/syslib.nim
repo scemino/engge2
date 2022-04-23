@@ -202,14 +202,31 @@ proc inputController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc logEvent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let numArgs = sq_gettop(v)
-  var msg: string
-  var event: SQString
-  if SQ_SUCCEEDED(sq_getstring(v, 2, event)):
-    msg = $event
+  var msg, event: string
+  if SQ_FAILED(get(v, 2, event)):
+    return sq_throwerror(v, "failed to get event")
   if numArgs == 3:
-    if SQ_SUCCEEDED(sq_getstring(v, 3, event)):
-      msg = msg & $event
-  info("event: " & msg)
+    if SQ_FAILED(get(v, 3, event)):
+      return sq_throwerror(v, "failed to get message")
+    msg = event & ": " & msg
+  info(msg)
+  0
+
+proc logInfo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Like a print statement, but gets sent to the output log file instead.
+  ## Useful for testing. 
+  var msg: string
+  if SQ_FAILED(get(v, 2, msg)):
+    return sq_throwerror(v, "failed to get message")
+  info(msg)
+  0
+
+proc logWarning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sends a warning message to the output log file.
+  var msg: string
+  if SQ_FAILED(get(v, 2, msg)):
+    return sq_throwerror(v, "failed to get message")
+  warn(msg)
   0
 
 proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -373,6 +390,8 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")
   v.regGblFun(logEvent, "logEvent")
+  v.regGblFun(logInfo, "logInfo")
+  v.regGblFun(logWarning, "logWarning")
   v.regGblFun(microTime, "microTime")
   v.regGblFun(removeCallback, "removeCallback")
   v.regGblFun(startglobalthread, "startglobalthread")

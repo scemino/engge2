@@ -5,6 +5,7 @@
 * [ ] actor animations
 * [ ] actor walking
 * [ ] actor talking
+* [ ] actor scaling
 * [ ] lips
 * [ ] blink
 * [ ] input
@@ -188,8 +189,8 @@
 - [x] gameTime
 - [x] inputController
 - [x] logEvent
-- [ ] logInfo
-- [ ] logWarning
+- [x] logInfo
+- [x] logWarning
 - [x] microTime
 - [x] removeCallback
 - [x] startglobalthread
