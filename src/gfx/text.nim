@@ -94,9 +94,6 @@ iterator items*(self: TokenReader): Token =
   while self.readToken(tok):
     yield tok
 
-proc newText*(font: BmFont, text: string; align = taLeft; maxWidth = 0.0f; color = White): Text =
-  Text(font: font, txt: text, txtAlign: align, maxW: maxWidth, col: color, dirty: true)
-
 proc `text=`*(self: Text, text: string) =
   self.txt = text
   self.dirty = true
@@ -233,6 +230,10 @@ proc update(self: Text) =
 #     Vertex(pos: quad.bottomRight, color: White),
 #     Vertex(pos: quad.bottomLeft, color: White)]
 #   gfxDrawLineLoop(vertices, transf)
+
+proc newText*(font: BmFont, text: string; align = taCenter; maxWidth = 0.0f; color = White): Text =
+  result = Text(font: font, txt: text, txtAlign: align, maxW: maxWidth, col: color, dirty: true)
+  result.update()
 
 proc draw*(self: Text; transf = mat4f(1.0)) =
   if not self.font.isNil:

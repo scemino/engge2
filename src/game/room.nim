@@ -353,7 +353,16 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
   var font = gResMgr.font(fontName)
   var text = newText(font, text, align, maxWidth, White)
 
-  obj.node = newTextNode(text)
+  var node = newTextNode(text)
+  case align:
+  of taLeft:
+    node.setAnchorNorm(vec2(0f, 0.5f))
+  of taCenter:
+    node.setAnchorNorm(vec2(0.5f, 0.5f))
+  of taRight:
+    node.setAnchorNorm(vec2(1f, 0.5f))
+  obj.node = node
+  
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
   obj.layer = self.layer(0)
@@ -440,6 +449,7 @@ proc parseRoom(self: var RoomParser): Room =
   result.roomSize =  roomSize
   result.fullscreen = fullscreen.int32
   result.overlay = Transparent
+  result.scene = newScene()
 
   # backgrounds
   var names: seq[string]

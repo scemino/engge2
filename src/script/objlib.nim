@@ -62,7 +62,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var text: string
   if SQ_FAILED(get(v, 3, text)):
     return sq_throwerror(v, "failed to get text")
-  var taAlign = taLeft
+  var taAlign = taCenter
   var maxWidth = 0.0f
   if sq_gettop(v) == 4:
     var align: int
@@ -434,6 +434,14 @@ proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   obj.node.scale = vec2(scale.float32, scale.float32)
   0
 
+proc objectScreenSpace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets the object in the screen space.
+  ## It means that its position is relative to the screen, not to the room.
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  gEngine.screen.addChild obj.node
+
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the state of an object, although this can just be a internal state, 
   ## 
@@ -529,6 +537,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
   v.regGblFun(objectScale, "objectScale")
+  v.regGblFun(objectScreenSpace, "objectScreenSpace")
   v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")

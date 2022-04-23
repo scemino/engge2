@@ -39,6 +39,7 @@ type Engine* = ref object of RootObj
   time*: float # time in seconds
   audio*: AudioSystem
   scene*: Scene
+  screen*: Scene
   cameraPanTo*: Motor
 
 var gEngine*: Engine
@@ -54,6 +55,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.v = v
   result.audio = newAudioSystem()
   result.scene = newScene()
+  result.screen = newScene()
   result.seedWithTime()
 
 proc `seed=`*(self: Engine, seed: int64) =
@@ -72,7 +74,6 @@ proc loadRoom*(name: string): Room =
   info "room background: " & name
   let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
   result = parseRoom(content)
-  result.scene = newScene()
   getf(gVm.v, gVm.v.rootTbl(), name, result.table)
   result.table.setId(newRoomId())
   for i in 0..<result.layers.len:
@@ -254,13 +255,17 @@ proc cameraPos*(self: Engine): Vec2f =
 proc render*(self: Engine) =
   self.update()
   
-  # draw room
+  # draw scene
   gfxClear(Gray)
   if not self.room.isNil:
     var camSize = self.room.getScreenSize()
     camera(camSize.x.float32, camSize.y.float32)
     
   self.scene.draw()
+
+  # draw screen
+  camera(1280, 720)
+  gEngine.screen.draw()
 
   # draw fade
   let fade = if self.fade.enabled: self.fade.current() else: 0.0

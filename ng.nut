@@ -488,6 +488,12 @@ Bridge <-
     
     objectAlphaTo(text, 1.0, 1.0, LINEAR)
     //breaktime(3.0)
+
+    local gameover = createTextObject("sayline", "GAME OVER", ALIGN_CENTER)
+    objectColor(gameover, 0xe12500)
+    objectAt(gameover, 1280/2,720/2)
+    objectScale(gameover, 4.0)
+    objectScreenSpace(gameover)
     
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
@@ -506,8 +512,8 @@ Bridge <-
     actorPlayAnimation(willie, "awake")
     objectState(Bridge.willieObject, HERE)
     objectTouchable(Bridge.willieObject, YES)
-    cameraAt(700,86)
-    //cameraAt(210,86)
+    // cameraAt(700,86)
+    cameraAt(210,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
     cameraPanTo(210, 86, 12, EASE_INOUT)
