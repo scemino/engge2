@@ -489,7 +489,7 @@ Bridge <-
     objectAlphaTo(text, 1.0, 1.0, LINEAR)
     //breaktime(3.0)
 
-    local gameover = createTextObject("sayline", "GAME OVER", ALIGN_CENTER)
+    local gameover = createTextObject("sayline", "Game Over")
     objectColor(gameover, 0xe12500)
     objectAt(gameover, 1280/2,720/2)
     objectScale(gameover, 4.0)

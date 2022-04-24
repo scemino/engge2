@@ -1,10 +1,10 @@
 import std/os
 import std/parseutils
 import glm
-import bmfont
 import color
 import recti
 import texture
+import font
 import ../game/resmanager
 import graphics
 
@@ -17,7 +17,7 @@ type
     ## This class allows to render a text.
     ## 
     ## A text can contains color in hexadecimal with this format: #RRGGBB
-    font*: BmFont
+    font*: Font
     texture*: Texture
     txt: string
     col: Color
@@ -183,7 +183,7 @@ proc update(self: Text) =
 
     # create quads for all characters
     var maxW: float32
-    let lineHeight = self.font.lineHeight.float32
+    let lineHeight = self.font.getLineHeight.float32
     var y = -lineHeight
     for line in lines.mitems:
       var prevChar: char
@@ -222,7 +222,7 @@ proc update(self: Text) =
       for info in line.charInfos:
         self.addGlyphQuad(info)
       
-    self.bnds = vec2(maxW, lines.len.float32 * self.font.lineHeight.float32)
+    self.bnds = vec2(maxW, lines.len.float32 * self.font.getLineHeight.float32)
 
 # proc drawQuadLine(quad: Rectf, transf: Mat4f) =
 #   var vertices = [Vertex(pos: quad.topLeft, color: White),
@@ -231,7 +231,7 @@ proc update(self: Text) =
 #     Vertex(pos: quad.bottomLeft, color: White)]
 #   gfxDrawLineLoop(vertices, transf)
 
-proc newText*(font: BmFont, text: string; align = taCenter; maxWidth = 0.0f; color = White): Text =
+proc newText*(font: Font, text: string; align = taCenter; maxWidth = 0.0f; color = White): Text =
   result = Text(font: font, txt: text, txtAlign: align, maxW: maxWidth, col: color, dirty: true)
   result.update()
 

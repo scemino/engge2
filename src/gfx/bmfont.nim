@@ -1,23 +1,18 @@
 import std/parseutils
 import std/streams
 import recti
+import ../gfx/font
 import ../io/ggpackmanager
 
 type 
   Char = object
     id*, x*, y*, w*, h*, xoff*, yoff*, xadv*, page, chnl: int
     letter: string
-  Glyph* = object
-    ## represents a glyph: a part of an image for a specific font character
-    advance*: int       ## Offset to move horizontally to the next character.
-    bounds*: Recti      ## Bounding rectangle of the glyph, in coordinates relative to the baseline.
-    textureRect*: Recti ## Texture coordinates of the glyph inside the font's texture.
   Kerning = object
     first, second, amount: int
-  BmFont* = ref object of RootObj
+  BmFont* = ref object of Font
     ## Represents a bitmap font
-    path*: string
-    lineHeight*, base*, scaleW, scaleH, pages, packed: int
+    lnHeight, base, scaleW, scaleH, pages, packed: int
     chars: seq[Char]
     kernings: seq[Kerning]
 
@@ -34,7 +29,7 @@ proc parseBmFont*(stream: Stream, path: string): BmFont =
       while off < line.len:
         case key:
         of "lineHeight":
-          off += parseInt(line, result.lineHeight, off + 1) + 1
+          off += parseInt(line, result.lnHeight, off + 1) + 1
         of "base":
           off += parseInt(line, result.base, off + 1) + 1
         of "scaleW":
@@ -133,12 +128,15 @@ proc loadBmFromPack*(path: string): BmFont =
   result = parseBmFont(stream, path)
   stream.close()
 
-proc getKerning*(self: BmFont, prev, next: char): float32 =
+method getLineHeight*(self: BmFont): int =
+  self.lnHeight
+
+method getKerning*(self: BmFont, prev, next: char): float32 =
   for kern in self.kernings:
     if kern.first == ord(prev) and kern.second == ord(next):
       return kern.amount.float32
 
-proc getGlyph*(self: BmFont, chr: char): Glyph =
+method getGlyph*(self: BmFont, chr: char): Glyph =
   for c in self.chars:
     if c.id == ord(chr):
-      return Glyph(advance: c.xadv, bounds: rect(c.xoff.int32, self.lineHeight.int32 - c.yoff.int32 - c.h.int32, c.w.int32, c.h.int32), textureRect: rect(c.x.int32, c.y.int32, c.w.int32, c.h.int32))
+      return Glyph(advance: c.xadv, bounds: rect(c.xoff.int32, self.lnHeight.int32 - c.yoff.int32 - c.h.int32, c.w.int32, c.h.int32), textureRect: rect(c.x.int32, c.y.int32, c.w.int32, c.h.int32))
