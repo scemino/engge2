@@ -53,9 +53,9 @@
 - [ ] actorSlotSelectable
 - [ ] actorStand
 - [ ] actorStopWalking
-- [ ] actorTalkColors
+- [x] actorTalkColors
 - [ ] actorTalking
-- [ ] actorTalkOffset
+- [x] actorTalkOffset
 - [ ] actorTurnTo
 - [ ] actorUsePos
 - [x] actorUseWalkboxes

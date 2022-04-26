@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables, unicode]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
 import glm
 import sqnim
 import ids
@@ -13,14 +13,12 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
 import ../scenegraph/textnode
-import ../io/ggpackmanager
 import motor
 import objanim
 import jsonutil
 import eventmanager
 import trigger
 import resmanager
-import talking
 
 const 
   GONE = 4
@@ -60,8 +58,8 @@ type
     name*: string
     visible*: bool
   TalkingState* = object
-    ids: seq[tuple[id: int, mumble: bool]]
     obj*: Object
+    color*: Color
   Object* = ref object of RootObj
     n: string
     usePos*: Vec2f
@@ -96,6 +94,8 @@ type
     volume*: float
     hiddenLayers: seq[string]
     talkingState*: TalkingState
+    talkColor*: Color
+    talkOffset*: Vec2i
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use

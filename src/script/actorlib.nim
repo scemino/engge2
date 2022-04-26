@@ -264,6 +264,28 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.node.offset = vec2f(x.float32, y.float32)
   0
 
+proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Set the text color of the specified actor's text that appears when they speak. 
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var color: int
+  if SQ_FAILED(get(v, 3, color)):
+    return sq_throwerror(v, "failed to get talk color")
+  actor.talkColor = rgb(color)
+
+proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Specifies the offset that will be applied to the actor's speech text that appears on screen.
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var x, y: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 3, x)):
+    return sq_throwerror(v, "failed to get x")
+  if SQ_FAILED(sq_getinteger(v, 4, y)):
+    return sq_throwerror(v, "failed to get y")
+  actor.talkOffset = vec2(x.int32, y.int32)
+
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the actor needs to abide by walkboxes or not.
   ## 
@@ -344,7 +366,13 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushobject(v, actor.table)
   1
 
-proc sayLine(v: HSQUIRRELVM, mumble: bool): SQInteger =
+proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Causes an actor to say a line of dialog and play the appropriate talking animations.
+  ## In the first example, the actor ray will say the line.
+  ## In the second, the selected actor will say the line.
+  ## In the third example, the first line is displayed, then the second one.
+  ## See also:
+  ## - `mumbleLine method`
   var obj: Object
   var index: int
   if sq_gettype(v, 2) == OT_TABLE:
@@ -361,21 +389,56 @@ proc sayLine(v: HSQUIRRELVM, mumble: bool): SQInteger =
     if SQ_FAILED(get(v, index + i, text)):
       return sq_throwerror(v, "failed to get text")
     texts.add text
-  info fmt"sayline: {texts}, mumble: {mumble}"
-  obj.say(texts)
+  info fmt"sayline: {texts}"
+  obj.say(texts, obj.talkColor)
   0
 
-proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  sayLine(v, true)
-
-proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Causes an actor to say a line of dialog and play the appropriate talking animations.
+proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Say a line of dialog and play the appropriate talking animations.
   ## In the first example, the actor ray will say the line.
   ## In the second, the selected actor will say the line.
   ## In the third example, the first line is displayed, then the second one.
   ## See also:
-  ## - `mumbleLine method` 
-  sayLine(v, false)
+  ## - `mumbleLine method`
+  var x, y: int
+  var text: string
+  var duration = -1.0
+  if SQ_FAILED(get(v, 2, x)):
+    return sq_throwerror(v, "failed to get x")
+  if SQ_FAILED(get(v, 3, y)):
+    return sq_throwerror(v, "failed to get y")
+  var color: Color
+  if sq_gettype(v, 4) == OT_INTEGER:
+    var c: int
+    if SQ_FAILED(get(v, 4, c)):
+      return sq_throwerror(v, "failed to get color")
+    color = rgb(c)
+    if SQ_FAILED(get(v, 5, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    if SQ_FAILED(get(v, 6, text)):
+      return sq_throwerror(v, "failed to get text")
+  else:
+    var actor = actor(v, 4)
+    if actor.isNil:
+      return sq_throwerror(v, "failed to get actor")
+    var pos = roomToScreen(actor.node.pos)
+    x = pos.x.int
+    y = pos.y.int
+    color = actor.talkColor
+    if SQ_FAILED(get(v, 6, text)):
+      return sq_throwerror(v, "failed to get text")
+
+  info fmt"TODO: sayline: ({x},{y}) text={text} color={color} duration={duration}"
+  0
+
+proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Makes actor say a line or multiple lines.
+  ## Unlike sayLine this line will not interrupt any other talking on the screen.
+  ## Cannot be interrupted by normal sayLines.
+  ## See also:
+  ## - `sayLine method`. 
+  # TODO: gEngine.stopTalking()
+  sayLine(v)
 
 proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Causes the actor to become the selected actor.
@@ -400,6 +463,8 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorPlayAnimation, "actorPlayAnimation")
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
   v.regGblFun(actorShowLayer, "actorShowLayer")
+  v.regGblFun(actorTalkColors, "actorTalkColors")
+  v.regGblFun(actorTalkOffset, "actorTalkOffset")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
@@ -407,4 +472,5 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(createActor, "createActor")
   v.regGblFun(mumbleLine, "mumbleLine")
   v.regGblFun(sayLine, "sayLine")
+  v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")

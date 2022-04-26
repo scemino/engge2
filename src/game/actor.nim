@@ -40,7 +40,7 @@ proc setCostume*(self: Object, name, sheet: string) =
 proc walk*(self: Object, dest: Vec2f) =
   self.walkTo = newWalkTo(self, dest)
 
-proc roomToScreen(pos: Vec2f): Vec2f =
+proc roomToScreen*(pos: Vec2f): Vec2f =
   let screenSize = gEngine.room.getScreenSize()
   vec2(1280f, 720f) * (pos - cameraPos()) / vec2(screenSize.x.float32, screenSize.y.float32)
 
@@ -89,12 +89,18 @@ proc say(self: TalkingState, texts: seq[string], obj: Object) =
       self.loadActorSpeech(name)
 
     self.obj.sayNode.remove()
-    self.obj.sayNode = newTextNode newText(gResMgr.font("sayline"), txt, taCenter, 600, White)
-    self.obj.sayNode.pos = roomToScreen(self.obj.node.pos)
+    var text = newText(gResMgr.font("sayline"), txt, taCenter, 600, self.color)
+    self.obj.sayNode = newTextNode text
+    var pos = roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
+    # clamp position to keep it on screen
+    pos.x = clamp(pos.x, 10f + text.bounds.x / 2f, 1280f - text.bounds.x / 2f)
+    pos.y = clamp(pos.y, 10f + text.bounds.y.float32, 720f - text.bounds.y.float32)
+    self.obj.sayNode.pos = pos
     self.obj.sayNode.setAnchorNorm(vec2(0.5f, 0.5f))
     gEngine.screen.addChild self.obj.sayNode
     self.obj.talking = newTalking(self.obj.sayNode, 2f)
 
-proc say*(self: Object, texts: seq[string]) =
+proc say*(self: Object, texts: seq[string], color: Color) =
   self.talkingState.obj = self
+  self.talkingState.color = color
   self.talkingState.say(texts, self)

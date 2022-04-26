@@ -2,6 +2,9 @@ print("rnd1: " + random(0, 180) + "\n")
 print("rnd2: " + random(100.0, 150.0) + "\n")
 print("chr(36): " + chr(36) + "\n")
 
+const talkColorBoris		= 0x3ea4b5
+const defaultTextOffset = 90
+
 soundTowerLight <- defineSound("TowerLight.wav")
 soundTowerLight2 <- defineSound("TowerLight2.wav")
 soundWindBirds <- defineSound("WindBirds.ogg")
@@ -385,8 +388,8 @@ boris <- {
   actorCostume(boris, "BorisAnimation")
   actorWalkSpeed(boris, 30, 15)
   actorRenderOffset(boris, 0, 45)
-  //actorTalkColors(boris, talkColorBoris)
-  //actorTalkOffset(boris, 0, defaultTextOffset)
+  actorTalkColors(boris, talkColorBoris)
+  actorTalkOffset(boris, 0, defaultTextOffset)
   actorHidden(boris, OFF)
   //objectLit(boris, 1)
   //footstepsNormal(boris)
@@ -495,7 +498,7 @@ Bridge <-
     objectScale(gameover, 4.0)
     objectScreenSpace(gameover)
 
-    sayLine(boris, "Welcome to engge")
+    sayLine(boris, "@40123", "@40124")
     
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
