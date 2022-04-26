@@ -138,3 +138,8 @@ method removeChild*(self: Node, node: Node) {.base.} =
 method removeAll*(self: Node) {.base.} =
   ## Removes all nodes from `self`.
   self.children.setLen 0
+
+method remove*(self: Node) {.base.} =
+  ## Removes this node from its parent.
+  if not self.isNil and not self.parent.isNil:
+    self.parent.removeChild self

@@ -67,21 +67,23 @@
 - [ ] addSelectableActor
 - [x] createActor
 - [ ] flashSelectableActor
+- [ ] isActor
 - [ ] isActorOnScreen
 - [ ] isActorSelectable
+- [ ] is_actor
 - [ ] masterActorArray
-- [ ] mumbleLine
-- [ ] sayLine
+- [x] mumbleLine
+- [x] sayLine
 - [ ] sayLineAt
 - [ ] selectActor
-- [ ] stopSentence
 - [ ] stopTalking
 - [ ] triggerActors
+- [ ] verbUIColors
 
 ## General
 
+- [ ] activeVerb
 - [ ] adhocalytics
-- [ ] addTrigger
 - [ ] arrayShuffle
 - [x] assetExists
 - [x] cameraAt
@@ -91,44 +93,28 @@
 - [x] cameraPanTo
 - [x] cameraPos
 - [x] chr
-- [ ] clampInWalkbox
-- [ ] createLight, lightBrightness, lightConeDirection, lightConeAngle, lightConeFalloff, lightCutOffRadius, lightHalfRadius, lightTurnOn, lightZRange
 - [ ] cursorPosX
 - [ ] cursorPosY
 - [ ] cutscene
 - [ ] cutsceneOverride
 - [ ] distance
-- [ ] enableTrigger
 - [ ] exCommand EX_ALLOW_SAVEGAMES, EX_POP_CHARACTER_SELECTION, EX_AUTOSAVE, EX_AUTOSAVE_STATE, EX_BUTTON_HOVER_SOUND, EX_CAMERA_TRACKING, EX_FORCE_TALKIE_TEXT, EX_IDLE_TIME, EX_OPTIONS_MUSIC, EX_RESTART, EX_SHOW_OPTIONS
 - [ ] findScreenPosition
 - [ ] frameCounter
-- [ ] getPrivatePref, setPrivatePref
-- [ ] getUserPref, setUserPref
 - [ ] in_array
 - [ ] incutscene
 - [ ] indialog
-- [ ] inputHUD
-- [ ] inputOff
-- [ ] inputOn
-- [ ] inputSilentOff
-- [ ] inputState
 - [ ] inputVerbs
+- [ ] integer
 - [x] is_array
 - [x] is_function
 - [x] is_string
 - [x] is_table
-- [ ] isInputOn
-- [ ] isInventoryOnScreen
-- [ ] jiggleInventory
 - [x] loadArray
 - [ ] markAchievement
 - [ ] markProgress
 - [ ] markStat
-- [ ] moveCursorTo
 - [x] ord
-- [ ] pickupObject
-- [ ] pickupReplacementObject
-- [ ] popInventory
 - [ ] pushSentence
 - [x] random
 - [x] randomfrom
@@ -136,13 +122,12 @@
 - [x] randomodds
 - [x] randomseed
 - [ ] refreshUI
-- [ ] removeInventory
-- [ ] removeTrigger
 - [x] screenSize
 - [ ] setAmbientLight
 - [ ] setDebugger
 - [ ] setVerb
 - [ ] startDialog
+- [ ] stopSentence
 - [ ] strcount
 - [ ] strcrc
 - [ ] strfind
@@ -152,15 +137,21 @@
 - [ ] strreplace
 - [ ] strsplit
 - [ ] translate
-- [ ] verbUIColors
 
 ## Room
 
+- [x] addCallback
+- [ ] addTrigger
+- [ ] clampInWalkbox
+- [ ] createLight, lightBrightness, lightConeDirection, lightConeAngle, lightConeFalloff, lightCutOffRadius, lightHalfRadius, lightTurnOn, lightZRange
 - [ ] definePseudoRoom
 - [x] defineRoom
+- [ ] enableTrigger
 - [ ] enterRoomFromDoor
 - [ ] findRoom
 - [x] masterRoomArray
+- [x] removeCallback
+- [ ] removeTrigger
 - [x] roomActors
 - [ ] roomEffect
 - [x] roomFade
@@ -173,7 +164,6 @@
 ## System
 
 - [x] activeController
-- [x] addCallback
 - [x] addFolder
 - [x] breakhere
 - [x] breaktime
@@ -181,17 +171,30 @@
 - [ ] breakwhilecamera
 - [ ] breakwhilecutscene
 - [ ] breakwhiledialog
+- [ ] breakwhileinputoff
 - [x] breakwhilerunning
 - [x] breakwhilesound
 - [ ] breakwhiletalking
 - [x] breakwhilewalking
+- [x] dumpvar
 - [x] gameTime
+- [ ] getPrivatePref
+- [ ] getUserPref
+- [ ] include
+- [ ] inputHUD
+- [ ] inputOff
+- [ ] inputOn
+- [ ] inputSilentOff
+- [ ] inputState
 - [x] inputController
+- [ ] isInputOn
 - [x] logEvent
 - [x] logInfo
 - [x] logWarning
 - [x] microTime
-- [x] removeCallback
+- [ ] moveCursorTo
+- [ ] setPrivatePref
+- [ ] setUserPref
 - [x] startglobalthread
 - [x] startthread
 - [x] stopthread
@@ -205,7 +208,9 @@
 - [x] deleteObject
 - [ ] findObjectAt
 - [x] is_object
+- [ ] isInventoryOnScreen
 - [x] isObject
+- [ ] jiggleInventory
 - [ ] jiggleObject
 - [x] loopObjectState
 - [x] objectAlpha
@@ -244,7 +249,11 @@
 - [ ] objectUsePosY
 - [ ] objectValidUsePos
 - [ ] objectValidVerb
+- [ ] pickupObject
+- [ ] pickupReplacementObject
 - [x] playObjectState
+- [ ] popInventory
+- [ ] removeInventory
 - [ ] setDefaultObject
 - [ ] shakeObject
 - [ ] stopObjectMotors

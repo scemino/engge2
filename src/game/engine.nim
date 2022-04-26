@@ -30,7 +30,7 @@ type Engine* = ref object of RootObj
   v: HSQUIRRELVM
   rooms*: seq[Room]
   actors*: seq[Object]
-  currentActor: Object
+  currentActor*: Object
   room*: Room
   fade*: Tween[float]
   callbacks*: seq[Callback]

@@ -494,6 +494,8 @@ Bridge <-
     objectAt(gameover, 1280/2,720/2)
     objectScale(gameover, 4.0)
     objectScreenSpace(gameover)
+
+    sayLine(boris, "Welcome to engge")
     
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
@@ -527,10 +529,9 @@ Bridge <-
     //selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
+    sayLine(boris, "engge test 1, 2, ..")
     //cameraFollow(boris)
     //breaktime(1.0)
-    //sayLine(boris, "@25541", 
-    //"@25542")
     //breakwhiletalking(boris)
        
     breaktime(10000)

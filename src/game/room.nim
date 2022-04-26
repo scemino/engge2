@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
+import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables, unicode]
 import glm
 import sqnim
 import ids
@@ -13,12 +13,14 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
 import ../scenegraph/textnode
+import ../io/ggpackmanager
 import motor
 import objanim
 import jsonutil
 import eventmanager
 import trigger
 import resmanager
+import talking
 
 const 
   GONE = 4
@@ -57,6 +59,9 @@ type
     polygon*: seq[Vec2i]
     name*: string
     visible*: bool
+  TalkingState* = object
+    ids: seq[tuple[id: int, mumble: bool]]
+    obj*: Object
   Object* = ref object of RootObj
     n: string
     usePos*: Vec2f
@@ -70,6 +75,7 @@ type
     moveTo*: Motor
     nodeAnim*: Motor
     walkTo*: Motor
+    talking*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
@@ -81,6 +87,7 @@ type
     walkSpeed*: Vec2f
     parent*: string
     node*: Node
+    sayNode*: Node
     fps*: float
     layer: Layer
     temporary*: bool
@@ -88,6 +95,7 @@ type
     triggers*: Table[int, Trigger]
     volume*: float
     hiddenLayers: seq[string]
+    talkingState*: TalkingState
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -272,6 +280,7 @@ proc update*(self: Object, elapsedSec: float) =
   self.moveTo.updateMotor(elapsedSec)
   self.nodeAnim.updateMotor(elapsedSec)
   self.walkTo.updateMotor(elapsedSec)
+  self.talking.updateMotor(elapsedSec)
 
 proc delObject*(self: Object) =
   if not self.isNil:

@@ -1,4 +1,4 @@
-import std/[streams, os, tables, json, sequtils, logging, strutils]
+import std/[streams, os, tables, json, sequtils, logging, strutils, strformat]
 import nimyggpack
 
 type
@@ -8,7 +8,7 @@ type
     directories: seq[string] # directories where to search files
   GGPackFileManager = ref object of GGPackManager
     path: string
-    ggpack: GGPackDecoder
+    ggpacks: seq[GGPackDecoder]
 
 proc newGGPackFileSystemManager*(root: string, directories: varargs[string]): GGPackFileSystemManager =
   new(result)
@@ -55,18 +55,31 @@ method assetExists*(self: GGPackFileSystemManager, entry: string): bool =
 proc newGGPackFileManager*(path: string): GGPackFileManager =
   new(result)
   result.path = path
-  result.ggpack = newGGPackDecoder(newFileStream(path), xorKeys["56ad"])
+  info fmt"Search ggpack in {path.substr(0, path.len-2) & '*'}"
+  for file in os.walkFiles(path.substr(0, path.len-2) & '*'):
+    info fmt"Add ggpack {file}"
+    result.ggpacks.add newGGPackDecoder(newFileStream(file), xorKeys["56ad"])
 
 method loadStream(self: GGPackFileManager, path: string): Stream =
-  var (_, _, ext) = splitFile(path)
-  if ext == ".wimpy":
-    newStringStream(pretty(self.ggpack.extractTable(path)))
-  else:
-    self.ggpack.extract(path)
+  var entry = path.toLower
+  var (_, _, ext) = splitFile(entry)
+  for pack in self.ggpacks:
+    if pack.entries.contains(entry):
+      if ext == ".wimpy":
+        return newStringStream(pretty(pack.extractTable(entry)))
+      else:
+        return pack.extract(entry)
+  error fmt"{entry} not found"
+  for pack in self.ggpacks:
+    error pack.entries
 
 method listFiles*(self: GGPackFileManager): seq[string] =
-  for (entry,_) in self.ggpack.entries.pairs:
-    result.add("ggpack://" & self.path & "/" & entry)
+  for pack in self.ggpacks:
+    for (entry,_) in pack.entries.pairs:
+      result.add("ggpack://" & self.path & "/" & entry)
 
-method assetExists*(self: GGPackFileManager, entry: string): bool =
-  self.ggpack.entries.contains(entry)
+method assetExists*(self: GGPackFileManager, path: string): bool =
+  var entry = path.toLower
+  for pack in self.ggpacks:
+    if pack.entries.contains(entry):
+      return true

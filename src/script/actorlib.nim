@@ -126,14 +126,15 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   
-  var name: SQString
-  if SQ_FAILED(sq_getstring(v, 3, name)):
+  var name: string
+  if SQ_FAILED(get(v, 3, name)):
     return sq_throwerror(v, "failed to get name")
   
-  var sheet: SQString
-  discard sq_getstring(v, 4, sheet)
+  var sheet: string
+  if sq_gettop(v) == 4:
+    discard get(v, 4, sheet)
   info fmt"Actor costume {name} {sheet}"
-  actor.setCostume($name, $sheet)
+  actor.setCostume(name, sheet)
 
 proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes the actor face a given direction.
@@ -302,6 +303,7 @@ proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Tells the specified actor to walk to an x/y position or to an actor position or to an object position.
   let nArgs = sq_gettop(v)
   var actor = actor(v, 2)
   if actor.isNil:
@@ -342,6 +344,47 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushobject(v, actor.table)
   1
 
+proc sayLine(v: HSQUIRRELVM, mumble: bool): SQInteger =
+  var obj: Object
+  var index: int
+  if sq_gettype(v, 2) == OT_TABLE:
+    obj = obj(v, 2)
+    index = 3
+  else:
+    index = 2
+    obj = gEngine.currentActor
+  
+  var numIds = sq_gettop(v) - index + 1
+  var texts: seq[string]
+  for i in 0..<numIds:
+    var text: string
+    if SQ_FAILED(get(v, index + i, text)):
+      return sq_throwerror(v, "failed to get text")
+    texts.add text
+  info fmt"sayline: {texts}, mumble: {mumble}"
+  obj.say(texts)
+  0
+
+proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  sayLine(v, true)
+
+proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Causes an actor to say a line of dialog and play the appropriate talking animations.
+  ## In the first example, the actor ray will say the line.
+  ## In the second, the selected actor will say the line.
+  ## In the third example, the first line is displayed, then the second one.
+  ## See also:
+  ## - `mumbleLine method` 
+  sayLine(v, false)
+
+proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Causes the actor to become the selected actor.
+  ## If they are in the same room as the last selected actor the camera will pan over to them.
+  ## If they are in a different room, the camera will cut to the new room.
+  ## The UI will change to reflect the new actor and their inventory. 
+  gEngine.currentActor = obj(v, 2)
+  0
+
 proc register_actorlib*(v: HSQUIRRELVM) =
   ## Registers the game actor library
   ## 
@@ -362,3 +405,6 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(actorWalkTo, "actorWalkTo")
   v.regGblFun(createActor, "createActor")
+  v.regGblFun(mumbleLine, "mumbleLine")
+  v.regGblFun(sayLine, "sayLine")
+  v.regGblFun(selectActor, "selectActor")

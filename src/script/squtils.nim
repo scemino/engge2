@@ -175,6 +175,21 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
+proc callFunc*[T](v: HSQUIRRELVM, ret: var T, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
+  sq_pushobject(v, o)
+  sq_pushstring(v, name, -1)
+  discard sq_get(v, -2)
+
+  sq_pushobject(v, o)
+  for arg in args:
+    sq_pushobject(v, arg)
+  discard sq_call(v, 1 + args.len, SQTrue, SQTrue)
+  discard get(v, -1, ret)
+  sq_pop(v, 1)
+
+proc callFunc*[T](ret: var T, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
+  callFunc(gVm.v, ret, o, name, args)
+
 proc call*(o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
   call(gVm.v, o, name, args)
 
