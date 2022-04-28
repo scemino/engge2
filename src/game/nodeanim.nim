@@ -7,15 +7,15 @@ import room
 import objanim
 
 type NodeAnim = ref object of Motor
-    node: SpriteNode
-    frames: seq[SpriteSheetFrame]
-    index: int
-    elapsed: float
-    frameDuration: float
-    loop: bool
-    layers: seq[NodeAnim]
-    anim: ObjectAnimation
-    obj: Object
+  node: SpriteNode
+  frames: seq[SpriteSheetFrame]
+  index: int
+  elapsed: float
+  frameDuration: float
+  loop: bool
+  layers: seq[NodeAnim]
+  anim: ObjectAnimation
+  obj: Object
 
 proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
   var ss = obj.getSpriteSheet()
@@ -46,6 +46,8 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
 
   if frames.len > 0:
     result.node = newSpriteNode(obj.getTexture(), frames[0])
+    result.node.name = anim.name
+    result.node.visible = not obj.hiddenLayers.contains(anim.name)
     newNode.addChild result.node
   
   for layer in anim.layers:

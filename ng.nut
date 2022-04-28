@@ -474,8 +474,8 @@ Bridge <-
 
  show = function() {
   return startglobalthread(@() {
-    actorAt(boris, Bridge.borisStartSpot)
-    actorFace(boris, FACE_RIGHT)
+    actorAt(boris, Bridge.bridgeGateBack)
+    actorFace(boris, FACE_FRONT)
     // pickupObject(borisNote, boris)
     // pickupObject(borisWallet, boris)
     // pickupObject(borisHotelKeycard, boris)
@@ -532,7 +532,7 @@ Bridge <-
     //selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
-    sayLine(boris, "engge test 1, 2, ..")
+    sayLine(boris, "@40124")
     //cameraFollow(boris)
     //breaktime(1.0)
     //breakwhiletalking(boris)

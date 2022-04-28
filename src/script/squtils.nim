@@ -208,11 +208,6 @@ proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
   sq_settop(v, top)
   nparams
 
-proc rawsafeget*(v: HSQUIRRELVM): SQInteger =
-  let value = if SQ_SUCCEEDED(sq_rawget(v, -2)): 1 else: 0
-  sq_pushinteger(v, value)
-  1
-
 proc rawexists*(obj: HSQOBJECT, name: string): bool =
   var v = gVm.v
   let top = sq_gettop(v)
@@ -227,7 +222,7 @@ proc rawexists*(obj: HSQOBJECT, name: string): bool =
 
 proc getId*(o: HSQOBJECT): int =
   result = 0
-  if rawsafeget(gVm.v) == 1:
+  if o.rawexists("_id"):
     getf(gVm.v, o, "_id", result)
 
 proc setId*(o: HSQOBJECT, id: int) =

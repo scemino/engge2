@@ -92,7 +92,7 @@ type
     useWalkboxes*: bool
     triggers*: Table[int, Trigger]
     volume*: float
-    hiddenLayers: seq[string]
+    hiddenLayers*: seq[string]
     talkingState*: TalkingState
     talkColor*: Color
     talkOffset*: Vec2i
@@ -163,11 +163,15 @@ proc layer*(self: Room, layer: int): Layer =
 
 proc showLayer*(self: Object, layer: string, visible: bool) =
   if visible:
-    if not self.hiddenLayers.contains(layer):
-      self.hiddenLayers.add(layer)
-  else:
     if self.hiddenLayers.contains(layer):
       self.hiddenLayers.del self.hiddenLayers.find(layer)
+  else:
+    if not self.hiddenLayers.contains(layer):
+      self.hiddenLayers.add(layer)
+  if not self.node.isNil:
+    for node in self.node.children:
+      if node.name == layer:
+        node.visible = visible
 
 proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r
@@ -286,6 +290,11 @@ proc delObject*(self: Object) =
   if not self.isNil:
     self.layer.objects.del self.layer.objects.find(self)
     self.node.parent.removeChild self.node
+
+proc setHeadIndex*(self: Object, head: int) =
+  info fmt"Show head {head}"
+  for i in 1..6:
+    self.showLayer(fmt"head{i}", i == head)
 
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =

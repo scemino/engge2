@@ -15,15 +15,20 @@ import ../gfx/color
 import ../gfx/graphics
 import ../scenegraph/node
 import ../scenegraph/textnode
-import ../game/talking
 import ../audio/audio
+import ../io/lip
+import ../io/textdb
+import ../game/talking
 import resmanager
 import objanim
 import walkto
-import ../io/textdb
 
 proc newActor*(): Object =
-  Object(facing: FACE_FRONT)
+  result = Object(facing: FACE_FRONT)
+  result.showLayer("blink", false)
+  result.showLayer("eyes_left", false)
+  result.showLayer("eyes_right", false)
+  result.setHeadIndex(1)
 
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
@@ -58,7 +63,7 @@ proc talkieKey(self: TalkingState): string =
   else:
     getf(self.obj.table, "_key", result)
 
-proc loadActorSpeech(self: TalkingState, name: string) =
+proc loadActorSpeech(self: TalkingState, name: string): SoundId =
   info fmt"loadActorSpeech {name}.ogg"
   var soundDefinition = newSoundDefinition(name & ".ogg")
   gEngine.audio.soundDefs.add(soundDefinition)
@@ -66,11 +71,13 @@ proc loadActorSpeech(self: TalkingState, name: string) =
     error fmt"File {name}.ogg not found"
   else:
     # TODO: add actor id
-    discard gEngine.audio.play(soundDefinition, scTalk)
+    result = gEngine.audio.play(soundDefinition, scTalk)
 
-proc say(self: TalkingState, texts: seq[string], obj: Object) =
+proc say(self: var TalkingState, texts: seq[string], obj: Object) =
   # TODO: process other texts
   var txt = texts[0]
+  var lip: Lip
+  var soundId: SoundId
   if txt.len > 0:
     if txt[0] == '@':
       var id: int
@@ -82,11 +89,11 @@ proc say(self: TalkingState, texts: seq[string], obj: Object) =
       var path = name & ".lip"
 
       # TODO: actor animation
-      # var hasSpeech = gGGPackMgr.assetExists(path)
+      if gGGPackMgr.assetExists(path):
+        lip = newLip(path)
 
-      # TODO: load lip
       # TODO: call sayingLine
-      self.loadActorSpeech(name)
+      soundId = self.loadActorSpeech(name)
 
     self.obj.sayNode.remove()
     var text = newText(gResMgr.font("sayline"), txt, taCenter, 600, self.color)
@@ -98,7 +105,7 @@ proc say(self: TalkingState, texts: seq[string], obj: Object) =
     self.obj.sayNode.pos = pos
     self.obj.sayNode.setAnchorNorm(vec2(0.5f, 0.5f))
     gEngine.screen.addChild self.obj.sayNode
-    self.obj.talking = newTalking(self.obj.sayNode, 2f)
+    self.obj.talking = newTalking(self.obj, lip, soundId)
 
 proc say*(self: Object, texts: seq[string], color: Color) =
   self.talkingState.obj = self
