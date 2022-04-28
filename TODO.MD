@@ -4,7 +4,6 @@
 * [ ] actor costume
 * [ ] actor animations
 * [ ] actor walking
-* [ ] actor talking
 * [ ] actor scaling
 * [ ] lips
 * [ ] blink
@@ -17,6 +16,7 @@
 * [ ] achievements
 * [ ] UI dialogs
 * [ ] shaders
+* [x] actor talking
 * [x] audio
 * [x] squirrel bindings
 * [x] easy squirrel constants bindings

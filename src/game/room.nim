@@ -9,6 +9,7 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/color
 import ../gfx/text
+import ../gfx/graphics
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
@@ -292,7 +293,6 @@ proc delObject*(self: Object) =
     self.node.parent.removeChild self.node
 
 proc setHeadIndex*(self: Object, head: int) =
-  info fmt"Show head {head}"
   for i in 1..6:
     self.showLayer(fmt"head{i}", i == head)
 
@@ -311,6 +311,10 @@ proc getScreenSize*(self: Room): Vec2i =
   of 172: vec2(428'i32, 240'i32)
   of 256: vec2(640'i32, 360'i32)
   else: vec2(self.roomSize.x, self.height)
+
+proc roomToScreen*(self: Room, pos: Vec2f): Vec2f =
+  let screenSize = self.getScreenSize()
+  vec2(1280f, 720f) * (pos - cameraPos()) / vec2(screenSize.x.float32, screenSize.y.float32)
 
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   var obj = Object(temporary: true)

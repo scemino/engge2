@@ -4,7 +4,6 @@ import sqnim
 import engine
 import room
 import thread
-import ids
 import ../script/squtils
 import ../util/easing
 import ../audio/audio

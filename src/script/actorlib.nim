@@ -421,7 +421,7 @@ proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var actor = actor(v, 4)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
-    var pos = roomToScreen(actor.node.pos)
+    var pos = gEngine.room.roomToScreen(actor.node.pos)
     x = pos.x.int
     y = pos.y.int
     color = actor.talkColor
