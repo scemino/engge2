@@ -1,8 +1,8 @@
 import motor
-import room
-import ../util/tween
-import ../util/easing
-import ../scenegraph/node
+import ../room
+import ../../util/tween
+import ../../util/easing
+import ../../scenegraph/node
 
 type AlphaTo = ref object of Motor
     obj: Object

@@ -13,7 +13,7 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/spritenode
 import ../scenegraph/textnode
-import motor
+import motors/motor
 import objanim
 import jsonutil
 import eventmanager
@@ -229,7 +229,7 @@ proc suffix(self: Object): string =
   of FACE_RIGHT:
     result = "_right"
 
-import ../game/nodeanim
+import ../game/motors/nodeanim
 
 proc playCore(self: Object, state: string; loop = false): bool =
   ## Plays an animation specified by the `state`. 

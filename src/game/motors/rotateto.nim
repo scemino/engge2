@@ -1,7 +1,7 @@
 import motor
-import ../scenegraph/node
-import ../util/tween
-import ../util/easing
+import ../../scenegraph/node
+import ../../util/tween
+import ../../util/easing
 
 type RotateTo = ref object of Motor
     node: Node

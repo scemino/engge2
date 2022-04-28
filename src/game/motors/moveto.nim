@@ -1,9 +1,9 @@
-import motor
-import room
 import glm
-import ../util/tween
-import ../util/easing
-import ../scenegraph/node
+import motor
+import ../room
+import ../../util/tween
+import ../../util/easing
+import ../../scenegraph/node
 
 type MoveTo = ref object of Motor
     obj: Object

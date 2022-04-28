@@ -1,10 +1,10 @@
 import std/tables
-import ../gfx/spritesheet
-import ../scenegraph/node
-import ../scenegraph/spritenode
+import ../../gfx/spritesheet
+import ../../scenegraph/node
+import ../../scenegraph/spritenode
 import motor
-import room
-import objanim
+import ../room
+import ../objanim
 
 type NodeAnim = ref object of Motor
   node: SpriteNode

@@ -2,11 +2,11 @@ import std/tables
 import std/logging
 import std/strformat
 import motor
-import ../scenegraph/node
-import ../game/room
-import ../io/lip
-import ../audio/audio
-import ../game/engine
+import ../../scenegraph/node
+import ../../game/room
+import ../../io/lip
+import ../../audio/audio
+import ../../game/engine
 
 const letterToIndex = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 1 ,'H': 4, 'X': 1}.toTable
 

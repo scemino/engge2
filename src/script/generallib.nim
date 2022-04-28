@@ -7,7 +7,7 @@ import glm
 import squtils
 import vm
 import ../game/ids
-import ../game/campanto
+import ../game/motors/campanto
 import ../game/room
 import ../game/utils
 import ../game/engine

@@ -18,10 +18,10 @@ import ../scenegraph/textnode
 import ../audio/audio
 import ../io/lip
 import ../io/textdb
-import ../game/talking
 import resmanager
 import objanim
-import walkto
+import motors/talking
+import motors/walkto
 
 proc newActor*(): Object =
   result = Object(facing: FACE_FRONT)

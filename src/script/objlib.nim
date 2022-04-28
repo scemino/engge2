@@ -6,9 +6,9 @@ import vm
 import ../game/engine
 import ../game/ids
 import ../game/room
-import ../game/alphato
-import ../game/rotateto
-import ../game/moveto
+import ../game/motors/alphato
+import ../game/motors/rotateto
+import ../game/motors/moveto
 import ../game/utils
 import ../util/easing
 import ../gfx/color

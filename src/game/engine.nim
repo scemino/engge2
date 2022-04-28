@@ -8,7 +8,7 @@ import ids
 import task
 import ../script/squtils
 import ../script/vm
-import ../game/motor
+import ../game/motors/motor
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics

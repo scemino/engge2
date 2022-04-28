@@ -1,11 +1,11 @@
 import glm
 import motor
-import ../util/tween
-import ../util/easing
-import ../game/utils
-import ../game/engine
-import ../game/room
-import ../gfx/graphics
+import ../../util/tween
+import ../../util/easing
+import ../../game/utils
+import ../../game/engine
+import ../../game/room
+import ../../gfx/graphics
 
 type CameraPanTo = ref object of Motor
     tween: Tween[Vec2f]

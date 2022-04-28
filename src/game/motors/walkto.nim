@@ -1,9 +1,9 @@
-import motor
-import room
 import glm
-import utils
-import ../script/squtils
-import ../scenegraph/node
+import motor
+import ../room
+import ../utils
+import ../../script/squtils
+import ../../scenegraph/node
 
 type WalkTo = ref object of Motor
     obj: Object
