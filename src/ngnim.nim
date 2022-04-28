@@ -30,7 +30,7 @@ proc main() =
   addHandler(newRollingFileLogger("ng.log"))
   info("# Welcome to ngnim")
 
-  app.init(title = "ngnim")
+  app.init(title = "engge II")
   app.setKeyCallback(onKey)
 
   if fileExists("ThimbleweedPark.ggpack1"):

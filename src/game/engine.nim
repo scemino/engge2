@@ -30,7 +30,7 @@ type Engine* = ref object of RootObj
   v: HSQUIRRELVM
   rooms*: seq[Room]
   actors*: seq[Object]
-  currentActor*: Object
+  actor*: Object
   room*: Room
   fade*: Tween[float]
   callbacks*: seq[Callback]
@@ -64,6 +64,25 @@ proc `seed=`*(self: Engine, seed: int64) =
 proc `seed`*(self: Engine): int64 =
   self.seed
 
+proc `currentActor`*(self: Engine): Object =
+  self.actor
+
+proc follow(self: Engine, actor: Object) =
+  ## TODO: follows actor
+  discard
+
+proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
+  self.actor = actor
+  # TODO:
+  # call("onActorSelected", [actor.table, userSelected])
+  # let room = if actor.isNil: nil else: actor.room
+  # if not room.isNil:
+  #   if room.table.rawExists("onActorSelected"):
+  #     room.table.call("onActorSelected", [actor, userSelected])
+
+  # if not actor.isNil:
+  #   self.follow(actor)
+
 proc getObj(room: Room, name: string): Object =
   for layer in room.layers:
       for obj in layer.objects:
@@ -74,7 +93,7 @@ proc loadRoom*(name: string): Room =
   info "room background: " & name
   let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
   result = parseRoom(content)
-  getf(gVm.v, gVm.v.rootTbl(), name, result.table)
+  getf(name, result.table)
   result.table.setId(newRoomId())
   for i in 0..<result.layers.len:
     var layer = result.layers[i]
@@ -158,7 +177,7 @@ proc exitRoom(self: Engine, nextRoom: Room) =
           obj.delObject()
 
     # call global function enteredRoom with the room as argument
-    call(self.v, rootTbl(self.v), "exitedRoom", [self.room.table])
+    call("exitedRoom", [self.room.table])
 
     # stop all local threads
     for thread in self.threads:
@@ -194,7 +213,7 @@ proc enterRoom(self: Engine, room: Room, door: Object = nil) =
     call(self.v, self.room.table, "enter")
   
   # call global function enteredRoom with the room as argument
-  call(self.v, rootTbl(self.v), "enteredRoom", [room.table])
+  call("enteredRoom", [room.table])
 
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:

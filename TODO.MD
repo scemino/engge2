@@ -5,7 +5,7 @@
 * [ ] actor animations
 * [ ] actor walking
 * [ ] actor scaling
-* [ ] lips
+* [x] lips
 * [ ] blink
 * [ ] input
 * [ ] input mapping
@@ -46,15 +46,16 @@
 - [ ] actorInWalkbox
 - [x] actorLockFacing
 - [x] actorPlayAnimation
-- [ ] actorPosX, actorPosY
+- [x] actorPosX
+- [x] actorPosY
 - [x] actorRenderOffset
-- [ ] actorRoom
+- [x] actorRoom
 - [x] actorShowLayer
 - [ ] actorSlotSelectable
 - [ ] actorStand
 - [ ] actorStopWalking
 - [x] actorTalkColors
-- [ ] actorTalking
+- [x] actorTalking
 - [x] actorTalkOffset
 - [ ] actorTurnTo
 - [ ] actorUsePos
@@ -67,15 +68,14 @@
 - [ ] addSelectableActor
 - [x] createActor
 - [ ] flashSelectableActor
-- [ ] isActor
-- [ ] isActorOnScreen
+- [x] isActorOnScreen
 - [ ] isActorSelectable
-- [ ] is_actor
-- [ ] masterActorArray
+- [x] is_actor
+- [x] masterActorArray
 - [x] mumbleLine
 - [x] sayLine
 - [ ] sayLineAt
-- [ ] selectActor
+- [x] selectActor
 - [ ] stopTalking
 - [ ] triggerActors
 - [ ] verbUIColors

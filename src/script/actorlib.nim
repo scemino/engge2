@@ -9,6 +9,8 @@ import ../game/actor
 import ../game/utils
 import ../game/room
 import ../gfx/color
+import ../gfx/graphics
+import ../gfx/recti
 import ../scenegraph/node
 
 proc getOppositeFacing(facing: Facing): Facing =
@@ -176,6 +178,17 @@ proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get hidden")
   actor.node.visible = hidden == 0
 
+proc actorRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  let room = actor.room
+  if room.isNil:
+    sq_pushnull(v)
+  else:
+    push(v, room.table)
+  1
+
 proc actorShowHideLayer(v: HSQUIRRELVM, visible: bool): SQInteger =
   var actor = actor(v, 2)
   if actor.isNil:
@@ -230,6 +243,20 @@ proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "unknown facing type")
   0
 
+proc actorPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  push(v, actor.node.pos.x.int)
+  1
+
+proc actorPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  push(v, actor.node.pos.y.int)
+  1
+
 proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Plays the specified animation from the player's costume JSON filename.
   ## If YES loop the animation. Default is NO.
@@ -273,6 +300,24 @@ proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 3, color)):
     return sq_throwerror(v, "failed to get talk color")
   actor.talkColor = rgb(color)
+
+proc actorTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## If an actor is specified, returns true if that actor is currently talking.
+  ## If no actor is specified, returns true if the player's current actor is currently talking.
+  ## 
+  ## . code-block:: Squirrel
+  ## actorTalking()
+  ## actorTalking(vo)
+  var actor: Object
+  if sq_gettop(v) == 2:
+    actor = actor(v, 2)
+    if actor.isNil:
+      return sq_throwerror(v, "failed to get actor")
+  else:
+    actor = gEngine.currentActor
+  let isTalking = not actor.isNil and not actor.talking.isNil and actor.talking.enabled
+  sq_pushbool(v, isTalking)
+  1
 
 proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies the offset that will be applied to the actor's speech text that appears on screen.
@@ -431,6 +476,37 @@ proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"TODO: sayline: ({x},{y}) text={text} color={color} duration={duration}"
   0
 
+proc isActorOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## returns true if the specified actor is currently in the screen.
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+
+  if actor.room != gEngine.room:
+    push(v, false)
+  else:
+    let pos = actor.node.pos - cameraPos()
+    let size = camera()
+    var isOnScreen = rect(0.0f, 0.0f, size.x, size.y).contains(pos)
+    push(v, isOnScreen)
+  1
+
+proc is_actor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## If an actor is specified, returns true otherwise returns false.
+  var actor = actor(v, 2)
+  push(v, not actor.isNil)
+  1
+
+proc masterActorArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns an array with every single actor that has been defined in the game so far, including non-player characters.
+  ## See also masterRoomArray. 
+  var actors = gEngine.actors
+  sq_newarray(v, 0);
+  for actor in actors:
+    sq_pushobject(v, actor.table)
+    discard sq_arrayappend(v, -2)
+  1
+
 proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes actor say a line or multiple lines.
   ## Unlike sayLine this line will not interrupt any other talking on the screen.
@@ -461,16 +537,23 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorHideLayer, "actorHideLayer")
   v.regGblFun(actorLockFacing, "actorLockFacing")
   v.regGblFun(actorPlayAnimation, "actorPlayAnimation")
+  v.regGblFun(actorPosX, "actorPosX")
+  v.regGblFun(actorPosY, "actorPosY")
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
+  v.regGblFun(actorRoom, "actorRoom")
   v.regGblFun(actorShowLayer, "actorShowLayer")
   v.regGblFun(actorTalkColors, "actorTalkColors")
+  v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(actorWalkTo, "actorWalkTo")
   v.regGblFun(createActor, "createActor")
+  v.regGblFun(is_actor, "is_actor")
+  v.regGblFun(isActorOnScreen, "isActorOnScreen")
   v.regGblFun(mumbleLine, "mumbleLine")
+  v.regGblFun(masterActorArray, "masterActorArray")
   v.regGblFun(sayLine, "sayLine")
   v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")

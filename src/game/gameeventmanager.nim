@@ -14,7 +14,7 @@ proc newGameEventManager*(): GameEventManager =
 
 method trig(self: GameEventManager, name: string) =
   var id = 0
-  getf(gVm.v, rootTbl(gVm.v), name, id)
+  getf(name, id)
   var sound = soundDef(id)
   if sound.isNil:
     warn fmt"Cannot trig sound '{name}', sound not found (id={id})"

@@ -161,6 +161,9 @@ template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
     discard get(v, -1, value)
     sq_pop(v, 1)
 
+template getf*[T](name: string, value: var T) =
+  getf(gVm.v, rootTbl(gVm.v), name, value)
+
 template getf*[T](o: HSQOBJECT, name: string, value: var T) =
   getf(gVm.v, o, name, value)
 
@@ -192,6 +195,9 @@ proc callFunc*[T](ret: var T, o: HSQOBJECT, name: string; args: openArray[HSQOBJ
 
 proc call*(o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
   call(gVm.v, o, name, args)
+
+proc call*(name: string; args: openArray[HSQOBJECT] = []) =
+  call(gVm.v, rootTbl(gVm.v), name, args)
 
 proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
   let top = sq_gettop(v)
