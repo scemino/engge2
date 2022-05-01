@@ -16,7 +16,7 @@ import ../scenegraph/spritenode
 import ../scenegraph/textnode
 import motors/motor
 import objanim
-import jsonutil
+import ../util/jsonutil
 import eventmanager
 import trigger
 import resmanager

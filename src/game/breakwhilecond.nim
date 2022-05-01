@@ -1,6 +1,6 @@
 import std/logging
 import task
-import utils
+import ../util/utils
 import thread
 
 type 

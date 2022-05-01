@@ -2,7 +2,7 @@ import std/logging
 import std/strformat
 import engine
 import eventmanager
-import utils
+import ../util/utils
 import ../audio/audio
 import ../script/vm
 import ../script/squtils

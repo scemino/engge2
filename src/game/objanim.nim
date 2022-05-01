@@ -1,5 +1,5 @@
 import std/json
-import jsonutil
+import ../util/jsonutil
 
 type
   ObjectAnimation* = ref object of RootObj

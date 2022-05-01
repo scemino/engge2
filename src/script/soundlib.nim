@@ -3,7 +3,7 @@ import std/tables
 import sqnim
 import vm
 import squtils
-import ../game/utils
+import ../util/utils
 import ../game/room
 import ../game/engine
 import ../audio/audio

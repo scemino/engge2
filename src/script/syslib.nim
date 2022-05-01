@@ -8,7 +8,7 @@ import ../game/callback
 import ../game/engine
 import ../game/room
 import ../game/breakwhilecond
-import ../game/utils
+import ../util/utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")

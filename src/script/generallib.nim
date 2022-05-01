@@ -9,7 +9,7 @@ import vm
 import ../game/ids
 import ../game/motors/campanto
 import ../game/room
-import ../game/utils
+import ../util/utils
 import ../game/engine
 import ../gfx/graphics
 import ../util/easing

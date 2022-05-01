@@ -6,7 +6,7 @@ import squtils
 import vm
 import ../game/engine
 import ../game/actor
-import ../game/utils
+import ../util/utils
 import ../game/room
 import ../gfx/color
 import ../gfx/graphics

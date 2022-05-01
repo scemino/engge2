@@ -1,7 +1,7 @@
 import glm
 import motor
 import ../room
-import ../utils
+import ../../util/utils
 import ../../script/squtils
 import ../../scenegraph/node
 

@@ -2,7 +2,7 @@ import glm
 import motor
 import ../../util/tween
 import ../../util/easing
-import ../../game/utils
+import ../../util/utils
 import ../../game/engine
 import ../../game/room
 import ../../gfx/graphics

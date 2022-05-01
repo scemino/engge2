@@ -3,7 +3,7 @@ import std/tables
 import std/logging
 import sqnim
 import squtils
-import ../game/utils
+import ../util/utils
 import ../game/engine
 import ../game/overlayto
 import ../game/room

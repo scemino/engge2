@@ -1,9 +1,9 @@
 import std/sequtils
 import glm
 import sqnim
-import engine
-import room
-import thread
+import ../game/engine
+import ../game/room
+import ../game/thread
 import ../script/squtils
 import ../util/easing
 import ../audio/audio

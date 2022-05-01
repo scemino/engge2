@@ -9,7 +9,7 @@ import ../game/room
 import ../game/motors/alphato
 import ../game/motors/rotateto
 import ../game/motors/moveto
-import ../game/utils
+import ../util/utils
 import ../util/easing
 import ../gfx/color
 import ../gfx/recti
