@@ -1,4 +1,5 @@
 import std/strformat
+import std/tables
 import std/logging
 import sqnim
 import squtils
@@ -36,7 +37,7 @@ proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##     enterRoomFromDoor(room)
   ##     breaktime(0.10)
   ## }
-  sq_newarray(v, 0);
+  sq_newarray(v, 0)
   for room in gEngine.rooms:
     sq_pushobject(v, room.table)
     discard sq_arrayappend(v, -2)
@@ -137,6 +138,19 @@ proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.tasks.add overlayTo
   0
 
+proc walkboxHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets walkbox to be hidden (YES) or not (NO).
+  ## If the walkbox is hidden, the actors cannot walk to any point within that area anymore, nor to any walkbox that's connected to it on the other side from the actor.
+  ## Often used on small walkboxes below a gate or door to keep the actor from crossing that boundary if the gate/door is closed. 
+  var walkbox: string
+  if SQ_FAILED(get(v, 2, walkbox)):
+    return sq_throwerror(v, "failed to get object or walkbox")
+  var hidden = 0
+  if SQ_FAILED(get(v, 3, hidden)):
+    return sq_throwerror(v, "failed to get object or hidden")
+  gEngine.room.walkboxHidden(walkbox, hidden != 0)
+  0
+
 proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
   ## 
@@ -147,4 +161,5 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(roomFade, "roomFade")
   v.regGblFun(roomLayer, "roomLayer")
   v.regGblFun(roomOverlayColor, "roomOverlayColor")
+  v.regGblFun(walkboxHidden, "walkboxHidden")
   

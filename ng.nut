@@ -474,7 +474,7 @@ Bridge <-
 
  show = function() {
   return startglobalthread(@() {
-    actorAt(boris, Bridge.bridgeGateBack)
+    actorAt(boris, Bridge.borisStartSpot)
     actorFace(boris, FACE_FRONT)
     // pickupObject(borisNote, boris)
     // pickupObject(borisWallet, boris)
@@ -482,23 +482,18 @@ Bridge <-
     // pickupObject(borisPrototypeToy, boris)
     //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
-    local text = createTextObject("sayline", "None of us were prepared for what we'd find that night.", ALIGN_CENTER | 200)
-    objectScale(text, 0.5)
-
-    objectColor(text, 0x30AAFF)
-    objectAlpha(text, 0.0)
-    objectAt(text, 320,180)
-    
-    objectAlphaTo(text, 1.0, 1.0, LINEAR)
     //breaktime(3.0)
 
-    local gameover = createTextObject("sayline", "Game Over")
-    objectColor(gameover, 0xe12500)
-    objectAt(gameover, 1280/2,720/2)
-    objectScale(gameover, 4.0)
-    objectScreenSpace(gameover)
-
     sayLine(boris, "@40123", "@40124")
+
+    // startglobalthread(@() {
+    //   do {
+    //     walkboxHidden("gate", YES)
+    //     breaktime(2.0)
+    //     walkboxHidden("gate", NO)
+    //     breaktime(2.0)
+    //   }
+    // })
     
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
@@ -517,11 +512,16 @@ Bridge <-
     actorPlayAnimation(willie, "awake")
     objectState(Bridge.willieObject, HERE)
     objectTouchable(Bridge.willieObject, YES)
-    // cameraAt(700,86)
+    actorWalkTo(boris, Bridge.bridgeGateBack)
+    breakwhilewalking()
+    actorWalkTo(boris, Bridge.borisStartSpot)
+    breakwhilewalking()
+    actorWalkTo(boris, Bridge.bridgeGateBack)
+    //cameraAt(700,86)
     cameraAt(210,86)
-    roomFade(FADE_IN, 2)
+    //roomFade(FADE_IN, 2)
     breaktime(6)
-    cameraPanTo(210, 86, 12, EASE_INOUT)
+    //cameraPanTo(210, 86, 12, EASE_INOUT)
     startthread(Bridge.trainPassby)
     breaktime(2)
     breaktime(12.0)

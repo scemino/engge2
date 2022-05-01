@@ -73,7 +73,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     maxWidth = (align and 0x00000000000FFFFF).float
     case hAlign:
     of 0x0000000010000000:
-      taAlign = taLeft;
+      taAlign = taLeft
     of 0x0000000020000000:
       taAlign = taCenter
     of 0x0000000040000000:

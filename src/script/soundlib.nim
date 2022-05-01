@@ -106,7 +106,7 @@ proc isSoundPlaying(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if not soundDef.isNil:
       sq_pushinteger(v, if gEngine.audio.playing(soundDef): 1 else: 0)
     else:
-      sq_pushinteger(v, 0);
+      sq_pushinteger(v, 0)
   1
 
 proc playSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =

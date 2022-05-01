@@ -34,8 +34,8 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var duration: SQFloat
   if SQ_FAILED(sq_getfloat(v, 2, duration)):
     return sq_throwerror(v, "failed to get duration")
-  var meth: HSQOBJECT;
-  sq_resetobject(meth);
+  var meth: HSQOBJECT
+  sq_resetobject(meth)
   if SQ_FAILED(sq_getstackobj(v, 3, meth)) or not sq_isclosure(meth):
     return sq_throwerror(v, "failed to get method")
 
@@ -134,7 +134,7 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard sq_getinteger(v, 2, id)
   info "breakwhilerunning: " & $id
   
-  var t = thread(id);
+  var t = thread(id)
   if t.isNil:
     warn "thread not found: " & $id
     return 0

@@ -20,6 +20,9 @@ import jsonutil
 import eventmanager
 import trigger
 import resmanager
+import ../polyBool/polyBool
+import walkbox
+import graph
 
 const 
   GONE = 4
@@ -53,11 +56,6 @@ type
     otProp,
     otSpot,
     otTrigger
-  Walkbox* = object
-    ## Represents an area where an actor can or cannot walk
-    polygon*: seq[Vec2i]
-    name*: string
-    visible*: bool
   TalkingState* = object
     obj*: Object
     color*: Color
@@ -112,6 +110,8 @@ type
     overlay*: Color               ## Color of the overlay
     scene*: Scene                 ## This is the scene representing the hierarchy of a room
     entering: bool                ## indicates whether or not an actor is entering this room
+    mergedPolygon*: seq[Walkbox]
+    pathFinder: PathFinder
   RoomParser = object
     input: Stream
     filename: string
@@ -197,10 +197,10 @@ proc unlockFacing*(self: Object) =
   self.lockFacing = false
 
 proc resetLockFacing*(self: Object) =
-  self.facingMap[FACE_LEFT] = FACE_LEFT;
-  self.facingMap[FACE_RIGHT] = FACE_RIGHT;
-  self.facingMap[FACE_FRONT] = FACE_FRONT;
-  self.facingMap[FACE_BACK] = FACE_BACK;
+  self.facingMap[FACE_LEFT] = FACE_LEFT
+  self.facingMap[FACE_RIGHT] = FACE_RIGHT
+  self.facingMap[FACE_FRONT] = FACE_FRONT
+  self.facingMap[FACE_BACK] = FACE_BACK
 
 proc trig*(self: Object, name: string) =
   debug fmt"Trigger object #{self.id} ({self.name}) sound '{name}'"
@@ -390,17 +390,6 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
   obj.layer = self.layer(0)
   obj
 
-proc parsePolygon(text: string): Walkbox =
-  var points: seq[Vec2i]
-  var i = 1
-  while i < text.len:
-    var x, y: int
-    i += parseInt(text, x, i) + 1
-    i += parseInt(text, y, i) + 3
-    var p = vec2(x.int32, y.int32)
-    points.add(p)
-  Walkbox(polygon: points, visible: true)
-
 proc parseScaling(node: JsonNode): Scaling =
   assert(node.kind == JArray)
   var
@@ -502,7 +491,7 @@ proc parseRoom(self: var RoomParser): Room =
   # walkboxes
   if jRoom.hasKey("walkboxes"):
     for jWalkbox in jRoom["walkboxes"].items():
-      var walkbox = parsePolygon(jWalkbox["polygon"].getStr)
+      var walkbox = parseWalkbox(jWalkbox["polygon"].getStr)
       if jWalkbox.hasKey("name") and jWalkbox["name"].kind == JString:
         walkbox.name = jWalkbox["name"].getStr
       result.walkboxes.add(walkbox)
@@ -544,6 +533,7 @@ proc parseRoom(self: var RoomParser): Room =
 
   result.spriteSheet = gResMgr.spritesheet(result.sheet)
   result.texture = gResMgr.texture(result.spriteSheet.meta.image)
+  result.mergedPolygon = merge(result.walkboxes)
 
 proc parseRoom*(s: Stream, filename: string = ""): Room =
   ## Parses from a stream `s` into a `Room`. `filename` is only needed
@@ -571,6 +561,20 @@ proc objectParallaxLayer*(self: Room, obj: Object, zsort: int) =
         # update scenegraph
         layer.node.addChild obj.node
         obj.layer = layer
+
+proc walkboxHidden*(self: Room, name: string, hidden: bool) =
+  for wb in self.walkboxes.mitems:
+    if wb.name == name:
+      wb.visible = not hidden
+      # 1 walkbox has change so update merged polygon
+      self.mergedPolygon = merge(self.walkboxes)
+      self.pathFinder = nil
+      return
+
+proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
+  if self.pathFinder.isNil:
+    self.pathFinder = newPathFinder(self.mergedPolygon)
+  self.pathFinder.calculatePath(frm, to)
 
 proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:

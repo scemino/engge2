@@ -20,6 +20,7 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
+import ../polyBool/polyBool
 from std/times import getTime, toUnix, nanosecond
 
 type Engine* = ref object of RootObj
@@ -68,7 +69,7 @@ proc `currentActor`*(self: Engine): Object =
   self.actor
 
 proc follow(self: Engine, actor: Object) =
-  ## TODO: follows actor
+  # TODO: follows actor
   discard
 
 proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
@@ -281,6 +282,19 @@ proc render*(self: Engine) =
     camera(camSize.x.float32, camSize.y.float32)
     
   self.scene.draw()
+  # if not self.room.isNil:
+    # for wb in self.room.walkboxes:
+    #   var vert: seq[Vertex]
+    #   let color = if wb.visible: Green else: Red
+    #   for pt in wb.polygon:
+    #     vert.add newVertex(pt.x.float32, pt.y.float32, color)
+    #   gfxDrawLineLoop(vert)
+  
+    # var vert: seq[Vertex]
+    # for walkbox in self.room.mergedPolygon:
+    #   for pt in walkbox.polygon:
+    #     vert.add newVertex(pt.x.float32, pt.y.float32, Orange)
+    # gfxDrawLineLoop(vert)
 
   # draw screen
   camera(1280, 720)

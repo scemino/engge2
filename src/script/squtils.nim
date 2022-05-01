@@ -221,7 +221,7 @@ proc rawexists*(obj: HSQOBJECT, name: string): bool =
   sq_pushstring(v, name, -1)
   if SQ_SUCCEEDED(sq_rawget(v, -2)):
     let oType = sq_gettype(v, -1)
-    sq_settop(v, top);
+    sq_settop(v, top)
     return oType != OT_NULL
   sq_settop(v, top)
   return false

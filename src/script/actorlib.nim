@@ -501,7 +501,7 @@ proc masterActorArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array with every single actor that has been defined in the game so far, including non-player characters.
   ## See also masterRoomArray. 
   var actors = gEngine.actors
-  sq_newarray(v, 0);
+  sq_newarray(v, 0)
   for actor in actors:
     sq_pushobject(v, actor.table)
     discard sq_arrayappend(v, -2)
@@ -521,7 +521,7 @@ proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If they are in the same room as the last selected actor the camera will pan over to them.
   ## If they are in a different room, the camera will cut to the new room.
   ## The UI will change to reflect the new actor and their inventory. 
-  gEngine.currentActor = obj(v, 2)
+  gEngine.setCurrentActor obj(v, 2)
   0
 
 proc register_actorlib*(v: HSQUIRRELVM) =

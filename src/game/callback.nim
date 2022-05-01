@@ -18,6 +18,6 @@ proc call(self: Callback) =
 
 proc update*(self: Callback, elapsed: float): bool =
   self.elapsed += elapsed
-  result = self.elapsed > self.duration;
+  result = self.elapsed > self.duration
   if result:
     self.call()

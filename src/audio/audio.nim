@@ -144,9 +144,9 @@ proc update*(self: SoundId, audio: AudioSystem) =
   #   entityVolume = if room != entity.room: 0 else: entity.volume
 
   #   if room == entity.room:
-  #     let width = room.screenSize.x;
+  #     let width = room.screenSize.x
   #     let diff = abs(at.x - entity.pos.x)
-  #     entityVolume = (1.5f - (diff / width)) / 1.5f;
+  #     entityVolume = (1.5f - (diff / width)) / 1.5f
   #     if entityVolume < 0:
   #       entityVolume = 0
   #     let pan = clamp((entity.pos.x - at.x) / (width / 2), -1.0, 1.0)
