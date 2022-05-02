@@ -30,6 +30,6 @@ method transform*(self: ParallaxNode, parentTrans: Mat4f): Mat4f =
 method drawCore(self: ParallaxNode, transf: Mat4f) =
   var t = transf
   for frame in self.frames:
-    var myTransf = translate(t, vec3f(0, frame.sourceSize.y.float32 - frame.spriteSourceSize.h.float32 - frame.spriteSourceSize.y.float32, 0.0f))
+    var myTransf = translate(t, vec3f(frame.spriteSourceSize.x.float32, frame.sourceSize.y.float32 - frame.spriteSourceSize.h.float32 - frame.spriteSourceSize.y.float32, 0.0f))
     gfxDrawSprite(frame.frame / self.texture.size, self.texture, self.nodeColor, myTransf)
     t = translate(transf, frame.frame.w.float32, 0.0f, 0.0f)

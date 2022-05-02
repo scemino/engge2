@@ -524,7 +524,6 @@ proc parseRoom(self: var RoomParser): Room =
       let layer = newLayer(names, parallax, zsort)
       layer.room = result
       result.layers.add(layer)
-  result.layers.sort((x, y) => cmp(y.zsort, x.zsort))
 
   # walkboxes
   if jRoom.hasKey("walkboxes"):
