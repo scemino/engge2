@@ -155,7 +155,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not thread(id).isNil)
+  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.isNil and obj.nodeAnim.enabled)
 
 proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, breaks until actor has finished walking.

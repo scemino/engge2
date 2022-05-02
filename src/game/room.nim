@@ -285,7 +285,7 @@ proc play*(self: Object, state: string; loop = false) =
     discard self.playCore(state & self.suffix(), loop)
 
 proc play*(self: Object, state: int; loop = false) =
-  self.play fmt"state{state}"
+  self.play fmt"state{state}", loop
   self.state = state
 
 proc setState*(self: Object, state: int) =

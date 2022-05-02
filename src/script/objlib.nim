@@ -122,8 +122,8 @@ proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   if sq_gettype(v, 3) == OT_INTEGER:
-    var index: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 3, index)):
+    var index: int
+    if SQ_FAILED(get(v, 3, index)):
       return sq_throwerror(v, "failed to get state")
     obj.play(index, true)
   else:

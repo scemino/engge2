@@ -1,8 +1,8 @@
 # TODO
 
 * [ ] dear imgui
-* [ ] actor costume
-* [ ] actor animations
+* [x] actor costume
+* [x] actor animations
 * [x] actor walking
   * [x] path finding
   * [x] animation
