@@ -4,12 +4,7 @@ import nimgl/opengl
 import color
 import graphics
 import ../app/room
-
-proc vec2f*(p: Vec2i): Vec2f =
-  vec2(p.x.float32, p.y.float32)
-
-proc vec2i*(p: Vec2f): Vec2i =
-  vec2(p.x.int32, p.y.int32)
+import ../util/glmutil
 
 proc drawLines*(pos: Vec2f, v: openArray[Vec2f], color: Color, loop = false) =
   var vertices = v.toSeq.map(v => newVertex(v.x, v.y, color)).toSeq

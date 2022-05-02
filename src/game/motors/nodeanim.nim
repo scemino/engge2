@@ -5,6 +5,7 @@ import ../../scenegraph/spritenode
 import motor
 import ../room
 import ../objanim
+import ../../util/glmutil
 
 type NodeAnim = ref object of Motor
   node: SpriteNode
@@ -46,12 +47,15 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
 
   if frames.len > 0:
     result.node = newSpriteNode(obj.getTexture(), frames[0])
+    result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
     result.node.visible = not obj.hiddenLayers.contains(anim.name)
+    if anim.offsets.len > 0:
+      result.node.pos = vec2f(anim.offsets[0])
     newNode.addChild result.node
   
   for layer in anim.layers:
-    result.layers.add newNodeAnim(obj, layer, fps, newNode)
+    result.layers.add newNodeAnim(obj, layer, fps, newNode, loop)
 
 proc trigSound(self: NodeAnim) =
   if self.anim.triggers.len > 0:
@@ -73,6 +77,8 @@ method update(self: NodeAnim, el: float) =
       else:
         self.enabled = false
     self.node.setFrame(self.frames[self.index])
+    if self.anim.offsets.len > 0:
+      self.node.pos = vec2f(self.anim.offsets[self.index])
   elif self.layers.len != 0:
     var enabled = false
     for layer in self.layers:

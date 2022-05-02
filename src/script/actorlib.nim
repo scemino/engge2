@@ -1,5 +1,6 @@
 import std/logging
 import std/strformat
+import std/options
 import glm
 import sqnim
 import squtils
@@ -31,6 +32,15 @@ proc getFacing(dir: SQInteger, facing: Facing): Facing =
     of 8: FACE_BACK
     else: 
        FACE_RIGHT
+
+proc getFacing(dir: Direction): Facing =
+  case dir:
+  of dRight: FACE_RIGHT
+  of dLeft:  FACE_LEFT
+  of dFront: FACE_FRONT
+  of dBack:  FACE_BACK
+  else: 
+      FACE_RIGHT
 
 proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
   let d = obj.node.pos - actor.node.pos
@@ -66,7 +76,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       let pos = spot.node.pos + spot.usePos
       actor.room = spot.room
       actor.node.pos = pos
-      actor.facing = getFacing(spot.useDir.SQInteger, actor.facing)
+      actor.setFacing(getFacing(spot.useDir.SQInteger, actor.getFacing))
     else:
       var room = room(v, 3)
       if room.isNil:
@@ -100,7 +110,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if numArgs == 6 and SQ_FAILED(sq_getinteger(v, 6, dir)):
       return sq_throwerror(v, "failed to get direction")
     actor.node.pos = vec2f(x.float32, y.float32)
-    actor.facing = getFacing(dir, actor.facing)
+    actor.setFacing(getFacing(dir, actor.getFacing))
     actor.room = room
     0
   else:
@@ -147,7 +157,7 @@ proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get actor")
   let nArgs = sq_gettop(v)
   if nArgs == 2:
-    var dir = actor.facing
+    var dir = actor.getFacing
     push(v, dir.int)
     result = 1
   else:
@@ -157,16 +167,16 @@ proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
         return sq_throwerror(v, "failed to get direction")
       # FACE_FLIP ?
       if dir == 0x10:
-        let facing = actor.facing.flip()
-        actor.facing = facing
+        let facing = actor.getFacing.flip()
+        actor.setFacing facing
       else:
-        actor.facing = dir.Facing
+        actor.setFacing dir.Facing
     else:
       let actor2 = actor(v, 3)
       if actor2.isNil:
         return sq_throwerror(v, "failed to get actor to face to")
       let facing = getFacingToFaceTo(actor, actor2)
-      actor.facing = facing
+      actor.setFacing facing
     result = 0
 
 proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -380,14 +390,14 @@ proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if obj.isNil:
       return sq_throwerror(v, "failed to get actor or object")
     else:
-      actor.walk(obj.node.pos + obj.usePos) # TODO: toFacing(obj.useDir))
+      actor.walk(obj.node.pos + obj.usePos, some(getFacing(obj.useDir)))
   elif nArgs == 4:
     var x, y: int
     if SQ_FAILED(get(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    actor.walk(vec2(x.float32, y.float32)) # TODO: toFacing(obj.useDir))
+    actor.walk(vec2(x.float32, y.float32))
   else:
     return sq_throwerror(v, "invalid number of arguments in actorWalkTo")
   0
@@ -406,6 +416,8 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
   info "Create actor " &  actor.getName()
   actor.node = newNode(actor.name)
+  actor.node.zOrderFunc = proc (): int = actor.node.pos.y.int
+  actor.node.scaleFunc = proc (): float32 = actor.room.getScaling(actor.node.pos.y)
   gEngine.actors.add(actor)
 
   sq_pushobject(v, actor.table)

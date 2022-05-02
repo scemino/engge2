@@ -475,7 +475,7 @@ Bridge <-
  show = function() {
   return startglobalthread(@() {
     actorAt(boris, Bridge.borisStartSpot)
-    actorFace(boris, FACE_FRONT)
+    actorFace(boris, FACE_RIGHT)
     // pickupObject(borisNote, boris)
     // pickupObject(borisWallet, boris)
     // pickupObject(borisHotelKeycard, boris)
@@ -486,15 +486,6 @@ Bridge <-
 
     sayLine(boris, "@40123", "@40124")
 
-    // startglobalthread(@() {
-    //   do {
-    //     walkboxHidden("gate", YES)
-    //     breaktime(2.0)
-    //     walkboxHidden("gate", NO)
-    //     breaktime(2.0)
-    //   }
-    // })
-    
     // Bridge.bridgeGate.gate_state = CLOSED
     objectState(bridgeBody, GONE)
     objectState(bridgeBottle, GONE)
@@ -514,9 +505,6 @@ Bridge <-
     objectTouchable(Bridge.willieObject, YES)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking()
-    actorWalkTo(boris, Bridge.borisStartSpot)
-    breakwhilewalking()
-    actorWalkTo(boris, Bridge.bridgeGateBack)
     //cameraAt(700,86)
     cameraAt(210,86)
     //roomFade(FADE_IN, 2)

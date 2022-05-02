@@ -3,8 +3,14 @@
 * [ ] dear imgui
 * [ ] actor costume
 * [ ] actor animations
-* [ ] actor walking
-* [ ] actor scaling
+* [x] actor walking
+  * [x] path finding
+  * [x] animation
+  * [x] animation offsets
+  * [x] zsort
+  * [x] scaling
+  * [x] walk facing
+  * [x] final facing
 * [x] lips
 * [ ] blink
 * [ ] input
@@ -159,7 +165,7 @@
 - [x] roomOverlayColor
 - [ ] roomRotateTo
 - [ ] roomSize
-- [ ] walkboxHidden
+- [x] walkboxHidden
 
 ## System
 
@@ -239,7 +245,7 @@
 - [x] objectRotateTo
 - [x] objectScale
 - [ ] objectScaleTo
-- [ ] objectScreenSpace
+- [x] objectScreenSpace
 - [ ] objectShader
 - [x] objectSort
 - [x] objectState

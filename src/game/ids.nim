@@ -18,6 +18,7 @@ const
   
 var
   gRoomId = START_ROOMID
+  gActorId = START_ACTORID
   gObjId = START_OBJECTID
   gSoundDefId = START_SOUNDDEFID
   gSoundId = START_SOUNDID
@@ -49,6 +50,10 @@ proc newRoomId*(): int =
 proc newObjId*(): int =
   result = gObjId
   gObjId += 1
+
+proc newActorId*(): int =
+  result = gActorId
+  gActorId += 1
 
 proc newSoundDefId*(): int =
   result = gSoundDefId

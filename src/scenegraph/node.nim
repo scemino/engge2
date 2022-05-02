@@ -18,11 +18,23 @@ type
     size: Vec2f
     visible*: bool
     nodeColor*: Color
+    zOrderFunc*: proc (): int
+    scaleFunc*: proc (): float32
 
 method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White) {.base.} =
   self.visible = visible
   self.scale = scale
   self.nodeColor = color
+
+proc getZSort*(self: Node): int =
+  if self.zOrderFunc.isNil: self.zOrder else: self.zOrderFunc()
+
+proc getScale(self: Node): Vec2f =
+  if self.scaleFunc.isNil:
+    self.scale
+  else: 
+    let scale = self.scaleFunc() 
+    vec2(scale, scale)
 
 method updateColor(self: Node, color: Color) {.base.} =
   self.nodeColor = rgbaf(color, self.nodeColor.a)
@@ -67,7 +79,8 @@ proc setSize*(self: Node, size: Vec2f) =
 
 proc localTransform(self: Node): Mat4f =
   ## Gets the location transformation = translation * rotation * scale.
-  scale(rotate(translate(mat4(1.0f), vec3(self.pos + self.offset, 0.0f)), glm.radians(self.rotation), 0.0f, 0.0f, 1.0f), self.scale.x, self.scale.y, 1.0f)
+  var scale = self.getScale()
+  translate(scale(rotate(translate(mat4(1.0f), vec3(self.pos, 0.0f)), glm.radians(self.rotation), 0.0f, 0.0f, 1.0f), scale.x, scale.y, 1.0f), vec3(self.offset, 0f))
 
 method transform*(self: Node, parentTrans: Mat4f): Mat4f {.base.} =
   # Gets the full transformation for this node.
@@ -100,7 +113,7 @@ proc draw*(self: Node; parent = mat4(1.0f)) =
   if self.visible:
     var transf = self.transform(parent)
     var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
-    self.children.sort(proc(x, y: Node):int = cmp(y.zOrder, x.zOrder))
+    self.children.sort(proc(x, y: Node):int = cmp(y.getZSort, x.getZSort))
     self.drawCore(myTransf)
     for node in self.children:
       node.draw(transf)

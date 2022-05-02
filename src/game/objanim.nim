@@ -1,4 +1,5 @@
 import std/json
+import glm
 import ../util/jsonutil
 
 type
@@ -7,6 +8,7 @@ type
     frames*: seq[string]
     layers*: seq[ObjectAnimation]
     triggers*: seq[string]
+    offsets*: seq[Vec2i]
     loop*: bool
     fps*: float32
     flags*: int
@@ -32,6 +34,10 @@ proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
   if jAnim.hasKey("triggers") and jAnim["triggers"].kind == JArray:
     for jTrigger in jAnim["triggers"].items:
       result.triggers.add(jTrigger.getStr)
+  
+  if jAnim.hasKey("offsets") and jAnim["offsets"].kind == JArray:
+    for jOffset in jAnim["offsets"].items:
+      result.offsets.add(parseVec2i(jOffset.getStr))
 
 proc parseObjectAnimations*(jAnims: JsonNode): seq[ObjectAnimation] =
   for jAnim in jAnims:

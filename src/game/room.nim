@@ -20,7 +20,6 @@ import ../util/jsonutil
 import eventmanager
 import trigger
 import resmanager
-import ../polyBool/polyBool
 import walkbox
 import graph
 
@@ -71,6 +70,8 @@ type
     rotateTo*: Motor
     moveTo*: Motor
     nodeAnim*: Motor
+    animLoop: bool
+    animName: string
     walkTo*: Motor
     talking*: Motor
     table*: HSQOBJECT
@@ -78,7 +79,7 @@ type
     r: Room
     spriteSheet*: SpriteSheet
     texture*: Texture
-    facing*: Facing
+    facing: Facing
     lockFacing: bool
     facingMap: Table[Facing, Facing]
     walkSpeed*: Vec2f
@@ -104,6 +105,7 @@ type
     layers*: seq[Layer]           ## Parallax layers of a room
     walkboxes*: seq[Walkbox]      ## Represents the areas where an actor can or cannot walk
     scalings*: seq[Scaling]       ## Defines the scaling of the actor in the room
+    scaling*: Scaling             ## Defines the scaling of the actor in the room
     texture*: Texture             ## Texture used by the spritesheet
     spriteSheet*: SpriteSheet     ## Spritesheet to use when a sprtie is displayed in the room
     table*: HSQOBJECT             ## Squirrel table representing this room
@@ -115,6 +117,30 @@ type
   RoomParser = object
     input: Stream
     filename: string
+
+proc newObject*(facing: Facing): Object =
+  Object(facing: facing)
+
+proc getScaling*(self: Scaling, yPos: float32): float32 =
+  if self.values.len == 0:
+    1.0f
+  else:
+    for i in 0..<self.values.len:
+      let scaling = self.values[i]
+      if yPos < scaling.y.float32:
+        if i == 0:
+          return self.values[i].scale
+        else:
+          let prevScaling = self.values[i - 1]
+          let dY = scaling.y - prevScaling.y
+          let dScale = scaling.scale - prevScaling.scale
+          let p = (yPos - prevScaling.y.float32) / dY.float32
+          let scale = prevScaling.scale + (p * dScale)
+          return scale
+    self.values[^1].scale
+
+proc getScaling*(self: Room, yPos: float32): float32 =
+  self.scaling.getScaling(yPos)
 
 # Facing
 proc flip*(facing: Facing): Facing =
@@ -213,7 +239,7 @@ proc trig*(self: Object, name: string) =
   else:
     gEventMgr.trig(name.substr(1))
 
-proc getFacing(self: Object): Facing =
+proc getFacing*(self: Object): Facing =
   if self.lockFacing:
     self.facingMap[self.facing]
   else:
@@ -226,9 +252,19 @@ proc suffix(self: Object): string =
   of FACE_FRONT:
     result = "_front"
   of FACE_LEFT:
-    result = "_left"
+    # there is no animation with `left` suffix but use left and flip the sprite
+    result = "_right"
   of FACE_RIGHT:
     result = "_right"
+
+proc play*(self: Object, state: string; loop = false)
+
+proc setFacing*(self: Object, facing: Facing) =
+  if self.facing != facing:
+    info fmt"set facing: {facing}"
+    self.facing = facing
+    if not self.nodeAnim.isNil and self.nodeAnim.enabled:
+      self.play(self.animName, self.animLoop)
 
 import ../game/motors/nodeanim
 
@@ -243,6 +279,8 @@ proc playCore(self: Object, state: string; loop = false): bool =
 
 proc play*(self: Object, state: string; loop = false) =
   ## Plays an animation specified by the `state`. 
+  self.animName = state
+  self.animLoop = loop
   if not self.playCore(state, loop):
     discard self.playCore(state & self.suffix(), loop)
 
@@ -530,6 +568,7 @@ proc parseRoom(self: var RoomParser): Room =
         if jScaling.hasKey("trigger") and jScaling["trigger"].kind == JString:
           scaling.trigger = jScaling["trigger"].getStr()
         result.scalings.add(scaling)
+    result.scaling = result.scalings[0]
 
   result.spriteSheet = gResMgr.spritesheet(result.sheet)
   result.texture = gResMgr.texture(result.spriteSheet.meta.image)

@@ -1,6 +1,4 @@
 import std/algorithm
-import std/logging
-import std/strformat
 import glm
 import walkbox
 import indprioqueue
@@ -231,9 +229,7 @@ proc search(self: AStar, source, target: int) =
   var pq = newIndexedPriorityQueue(addr self.fCost)
   pq.insert(source)
   while pq.len > 0:
-    info fmt"pq.len = {pq.len}"
     var NCN = pq.pop()
-    info fmt"NCN = {NCN}"
     self.spt[NCN] = self.sf[NCN]
     if NCN == target:
       return
