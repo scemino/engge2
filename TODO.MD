@@ -111,7 +111,6 @@
 - [ ] incutscene
 - [ ] indialog
 - [ ] inputVerbs
-- [ ] integer
 - [x] is_array
 - [x] is_function
 - [x] is_string
@@ -180,7 +179,7 @@
 - [ ] breakwhileinputoff
 - [x] breakwhilerunning
 - [x] breakwhilesound
-- [ ] breakwhiletalking
+- [x] breakwhiletalking
 - [x] breakwhilewalking
 - [x] dumpvar
 - [x] gameTime

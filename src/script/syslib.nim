@@ -31,8 +31,8 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##   return
   ##}
   let count = sq_gettop(v)
-  var duration: SQFloat
-  if SQ_FAILED(sq_getfloat(v, 2, duration)):
+  var duration: float
+  if SQ_FAILED(get(v, 2, duration)):
     return sq_throwerror(v, "failed to get duration")
   var meth: HSQOBJECT
   sq_resetobject(meth)
@@ -56,7 +56,7 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let callback = newCallback(duration, methodName, args)
   gEngine.callbacks.add(callback)
 
-  sq_pushinteger(v, callback.id)
+  push(v, callback.id)
   return 1
 
 proc addFolder(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -84,8 +84,8 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## while(isSoundPlaying(soundPhoneBusy)) {
   ##   breakhere(5)
   ##}
-  var numFrames: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 2, numFrames)):
+  var numFrames: int
+  if SQ_FAILED(get(v, 2, numFrames)):
     return sq_throwerror(v, "failed to get numFrames")
   breakfunc(v, proc (t: Thread) = t.numFrames = numFrames)
 
@@ -98,8 +98,8 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##   playSound(soundPhoneRinging)
   ##   breaktime(5.0)
   ## }
-  var time: SQFloat
-  if SQ_FAILED(sq_getfloat(v, 2, time)):
+  var time: float
+  if SQ_FAILED(get(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
   breakfunc(v, proc (t: Thread) = t.waitTime = time)
 
@@ -131,7 +131,7 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## }
   var id = 0
   if sq_gettype(v, 2) == OT_INTEGER:
-    discard sq_getinteger(v, 2, id)
+    discard get(v, 2, id)
   info "breakwhilerunning: " & $id
   
   var t = thread(id)
@@ -156,6 +156,40 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.isNil and obj.nodeAnim.enabled)
+
+proc isSomeoneTalking(): bool =
+  ## Returns true if at least 1 actor is talking.
+  for obj in gEngine.actors:
+    if not obj.talking.isNil and not obj.talking.enabled:
+      return true
+  for layer in gEngine.room.layers:
+    for obj in layer.objects:
+      if not obj.talking.isNil and not obj.talking.enabled:
+        return true
+
+proc breakwhiletalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## If an actor is specified, breaks until actor has finished talking.
+  ## If no actor is specified, breaks until ALL actors have finished talking.
+  ## Once talking finishes, the method will continue running.
+  ## It is an error to call breakwhiletalking in a function that was not started with startthread. 
+  ## 
+  ## . code-block:: Squirrel
+  ## while(closeToWillie()) {
+  ##     local line = randomfrom(lines)
+  ##     breakwhiletalking(willie)
+  ##     mumbleLine(willie, line)
+  ##     breakwhiletalking(willie)
+  ## }
+  let nArgs = sq_gettop(v)
+  if nArgs == 1:
+    breakwhilecond(v, fmt"breakwhiletalking(all)", isSomeoneTalking)
+  elif nArgs == 2:
+    var obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object")
+    breakwhilecond(v, fmt"breakwhiletalking({obj.name})", proc (): bool = not obj.talking.isNil and obj.talking.enabled)
+  else:
+    sq_throwerror(v, "Invalid number of arguments for breakwhiletalking")
 
 proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, breaks until actor has finished walking.
@@ -233,13 +267,13 @@ proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Returns game time in milliseconds. 
   # Based on when the machine is booted and runs all the time (not paused or saved).
   # See also gameTime, which is in seconds. 
-  sq_pushfloat(v, gEngine.time * 1000.0)
+  push(v, gEngine.time * 1000.0)
   1
 
 proc removeCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # removeCallback(id: int) remove the given callback
   var id = 0
-  if SQ_FAILED(sq_getinteger(v, 2, id)):
+  if SQ_FAILED(get(v, 2, id)):
     return sq_throwerror(v, "failed to get callback")
   for i in 0..<gEngine.callbacks.len:
     let cb = gEngine.callbacks[i]
@@ -326,15 +360,15 @@ proc stopthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## * `startthread`
   ## * `startglobalthread`
   var id: int
-  if SQ_FAILED(sq_getinteger(v, 2, id)):
-    sq_pushinteger(v, 0)
+  if SQ_FAILED(get(v, 2, id)):
+    push(v, 0)
     return 1
 
   let t = thread(id)
   if not t.isNil:
     t.stop()
 
-  sq_pushinteger(v, 0)
+  push(v, 0)
   1
 
 proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -369,9 +403,9 @@ proc threadid(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## }
   let t = thread(v)
   if not t.isNil:
-    sq_pushinteger(v, t.id)
+    push(v, t.id)
   else:
-    sq_pushinteger(v, 0)
+    push(v, 0)
   1
 
 proc threadpauseable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -397,6 +431,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(breakwhilesound, "breakwhilesound")
+  v.regGblFun(breakwhiletalking, "breakwhiletalking")
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")
