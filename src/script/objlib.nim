@@ -9,6 +9,7 @@ import ../game/room
 import ../game/motors/alphato
 import ../game/motors/rotateto
 import ../game/motors/moveto
+import ../game/motors/offsetto
 import ../util/utils
 import ../util/easing
 import ../gfx/color
@@ -286,7 +287,7 @@ proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
-      return sq_throwerror(v, "failed to get x")
+      return sq_throwerror(v, "failed to get y")
     var duration = 0.0
     if SQ_FAILED(get(v, 5, duration)):
       return sq_throwerror(v, "failed to get duration")
@@ -338,15 +339,15 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
-      return sq_throwerror(v, "failed to get x")
+      return sq_throwerror(v, "failed to get y")
     var duration = 0.0
     if SQ_FAILED(get(v, 5, duration)):
       return sq_throwerror(v, "failed to get duration")
     var interpolation = 0.SQInteger
     if sq_gettop(v) >= 6 and SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
-    var destPos = vec2(x.float32, y.float32) + obj.node.pos
-    obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
+    var destPos = vec2(x.float32, y.float32)
+    obj.moveTo = newOffsetTo(duration, obj, destPos, interpolation.InterpolationMethod)
   0
 
 proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
