@@ -1,4 +1,4 @@
-import std/[json, parseutils, options, sequtils, streams, algorithm, sugar, strformat, logging, tables]
+import std/[json, parseutils, options, sequtils, streams, strformat, logging, tables]
 import glm
 import sqnim
 import ids
@@ -183,6 +183,10 @@ proc `id`*(self: Object): int =
 proc `room`*(self: Object): Room =
   self.r
 
+proc contains*(self: Object, pos: Vec2f): bool =
+  var p = pos - self.node.pos
+  self.hotspot.contains(vec2i(p))
+
 proc layer*(self: Room, layer: int): Layer =
   for l in self.layers:
     if l.zsort == layer:
@@ -212,6 +216,9 @@ proc `room=`*(self: Object, room: Room) =
     room.layer(0).node.addChild self.node
   self.r = room
 
+proc setRoom*(self: Object, room: Room) =
+  self.r = room
+
 proc lockFacing*(self: Object, left, right, front, back: Facing) =
   self.facingMap[FACE_LEFT] = left
   self.facingMap[FACE_RIGHT] = right
@@ -238,6 +245,14 @@ proc trig*(self: Object, name: string) =
       warn fmt"Trigger #{trigNum} not found in object #{self.id} ({self.name})"
   else:
     gEventMgr.trig(name.substr(1))
+
+proc flags*(self: Object): int =
+  if self.table.rawexists("flags"):
+    self.table.getf("flags", result)
+
+proc inInventory*(obj: Object): bool =
+  # TODO
+  false
 
 proc getFacing*(self: Object): Facing =
   if self.lockFacing:
@@ -353,6 +368,10 @@ proc getScreenSize*(self: Room): Vec2i =
 proc roomToScreen*(self: Room, pos: Vec2f): Vec2f =
   let screenSize = self.getScreenSize()
   vec2(1280f, 720f) * (pos - cameraPos()) / vec2(screenSize.x.float32, screenSize.y.float32)
+
+proc screenToRoom*(self: Room, pos: Vec2f): Vec2f =
+  let screenSize = vec2f(self.getScreenSize())
+  (pos * screenSize) / vec2(1280f, 720f) + cameraPos()
 
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   var obj = Object(temporary: true)

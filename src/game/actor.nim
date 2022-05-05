@@ -14,6 +14,15 @@ import objanim
 import motors/talking
 import motors/walkto
 
+proc getFacing(dir: Direction): Facing =
+  case dir:
+  of dRight: FACE_RIGHT
+  of dLeft:  FACE_LEFT
+  of dFront: FACE_FRONT
+  of dBack:  FACE_BACK
+  else: 
+      FACE_RIGHT
+
 proc newActor*(): Object =
   result = newObject(FACE_FRONT)
   result.table.setId newActorId()
@@ -34,8 +43,13 @@ proc setCostume*(self: Object, name, sheet: string) =
   self.texture = gResMgr.texture(self.spriteSheet.meta.image)
   self.play("stand")
 
-proc walk*(self: Object, dest: Vec2f; facing = none(Facing)) =
-  self.walkTo = newWalkTo(self, dest, facing)
+proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
+  ## Walks an actor to the `pos` or actor `obj` and then faces `dir`.
+  self.walkTo = newWalkTo(self, pos, facing)
+
+proc walk*(self: Object, obj: Object) =
+  ## Walks an actor to the `obj` and then faces it. 
+  self.walk(obj.node.pos + obj.usePos, some(getFacing(obj.useDir)))
 
 proc say(self: var TalkingState, texts: seq[string], obj: Object) =
   self.obj.talking = newTalking(self.obj, texts, self.color)

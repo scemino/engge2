@@ -12,6 +12,9 @@ proc newTextNode*(text: Text): TextNode =
   result.init()
   result.setSize(text.bounds)
 
+proc updateBounds*(self: TextNode) =
+  self.setSize(self.text.bounds)
+
 method updateColor(self: TextNode, color: Color) =
   self.nodeColor = rgbaf(color, self.nodeColor.a)
   self.text.color = self.nodeColor

@@ -58,6 +58,43 @@ script twinkleStar(obj, fadeRange1, fadeRange2, alphaRange1, alphaRange2) {
   }
 }
 
+script openGate() {
+  //inputOff()
+  Bridge.bridgeGate.gate_opening = YES
+  objectOffsetTo(Bridge.bridgeGate, -60, 0, 2.0, EASE_INOUT)
+  objectTouchable(Bridge.bridgeGate, NO)
+  objectOffsetTo(Bridge.bridgeGateBack, -60, 0, 2.0, EASE_INOUT)
+  objectTouchable(Bridge.bridgeGateBack, NO)
+  //playObjectSound(soundGateSlidingOpen, Bridge.bridgeGate)
+  Bridge.bridgeGate.gate_state = OPEN
+  breaktime(1)
+  walkboxHidden("gate", NO)
+  Bridge.bridgeGate.gate_opening = NO
+  inputOn()
+  breaktime(1)
+  objectTouchable(Bridge.bridgeGate, YES)
+ 
+  //Tutorial.completeHint(1)
+}
+
+script closeGate() {
+  if (Bridge.bridgeGate.gate_state == CLOSED) {
+  return	
+  }
+  Bridge.bridgeGate.gate_closing = YES
+  Bridge.bridgeGate.gate_state = CLOSED
+  walkboxHidden("gate", YES)
+  //playObjectSound(soundGateSlidingClosed, Bridge.bridgeGate)
+  objectOffsetTo(Bridge.bridgeGate, 0, 0, 2.0, EASE_INOUT)
+  objectTouchable(Bridge.bridgeGate, NO)
+  objectOffsetTo(Bridge.bridgeGateBack, 0, 0, 2.0, EASE_INOUT)
+  objectTouchable(Bridge.bridgeGateBack, NO)
+  breaktime(2.0)
+  Bridge.bridgeGate.gate_closing = NO
+  objectTouchable(Bridge.bridgeGate, YES)
+ 
+  }
+
 Opening <-
 {
  background = "Opening"
@@ -482,6 +519,7 @@ Bridge <-
     // pickupObject(borisPrototypeToy, boris)
     //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
+    selectActor(boris)
     //breaktime(3.0)
 
     sayLine(boris, "@40123", "@40124")
@@ -491,7 +529,8 @@ Bridge <-
     objectState(bridgeBottle, GONE)
     objectState(bridgeChainsaw, GONE)
     objectTouchable(bridgeGateBack, YES)
-    objectTouchable(bridgeGate, NO)
+    //objectTouchable(bridgeGate, NO)
+    objectTouchable(bridgeGate, YES)
     actorCostume(willie, "WilliePassedOutAnimation")
     actorRenderOffset(willie, 0, 45)
     actorUseWalkboxes(willie, NO)
@@ -506,11 +545,11 @@ Bridge <-
     
     // actorWalkTo(boris, Bridge.bridgeGateBack)
     // breakwhilewalking()
-    cameraAt(700,86)
-    // cameraAt(210,86)
+    // cameraAt(700,86)
+    cameraAt(210,86)
     roomFade(FADE_IN, 2)
     breaktime(6)
-    cameraPanTo(210, 86, 12, EASE_INOUT)
+    // cameraPanTo(210, 86, 12, EASE_INOUT)
     startthread(Bridge.trainPassby)
     breaktime(2)
     breaktime(12.0)
@@ -518,7 +557,6 @@ Bridge <-
     breakwhileanimating(willie)
     actorPlayAnimation(willie, "awake")
     breaktime(2)
-    selectActor(boris)
     actorWalkTo(boris, Bridge.bridgeGateBack)
     breakwhilewalking(boris)
     sayLine(boris, "@40124")
@@ -573,6 +611,41 @@ Bridge <-
     }
     objectOffset(Bridge.bridgeTrain, -100, 0)
  }
+
+ bridgeGate =
+ {
+ gate_state = CLOSED
+ gate_opening = NO
+ gate_closing = NO
+ useDist = 20
+ name = "gate"
+ defaultVerb = VERB_OPEN
+ verbOpen = function() 
+ {
+  if (gate_state == OPEN) {
+    sayLine(boris, "@25680")
+  } else {
+    startthread(openGate)
+    defaultVerb = VERB_CLOSE
+  }
+ }
+
+ verbClose = function() 
+ {
+  sayLine(boris, "@25681")
+ if (gate_state == CLOSED && gate_closing == NO) {
+ //noReach()
+ if (isBoris()) {
+ sayLine(boris, "@25681")
+ } else {
+ //sayLineAlreadyClosed(this)
+ }
+ } else {
+ startthread(closeGate)
+ defaultVerb = VERB_OPEN
+ }
+ }
+}
 }
 defineRoom(Bridge)
 

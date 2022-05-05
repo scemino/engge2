@@ -5,6 +5,13 @@ import ../sys/opengl
 import ../gfx/graphics
 import ../sys/input
 
+type
+  MouseButtonFlag* = enum
+    mbLeft    = 1,
+    mbMiddle  = 2,
+    mbRight   = 4
+  MouseButtonMask* = set[MouseButtonFlag]
+
 # global variables
 var w: WindowPtr
 var glContext: GlContextPtr
@@ -109,10 +116,21 @@ proc setMouseMoveCallback*(onMouseMove: proc(pos: Vec2f)) =
 proc setKeyCallback*(onKey: proc (key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey)) =
   appOnKey = onKey
 
-proc getMousePosition*(): Vec2f =
+proc mousePos*(): Vec2f =
   var xpos, ypos: cint
-  getPosition(w, xpos, ypos)
+  discard getMouseState(xpos, ypos)
   result = vec2(xpos.float32, ypos.float32)
+
+proc mouseBtns*(): MouseButtonMask =
+  var xpos, ypos: cint
+  let state = getMouseState(xpos, ypos)
+  result = {}
+  if (state and BUTTON_LMASK) != 0:
+    result.incl mbLeft
+  if (state and BUTTON_MMASK) != 0:
+    result.incl mbMiddle
+  if (state and BUTTON_RMASK) != 0:
+    result.incl mbRight
 
 proc appQuit*(quit = true) =
   close = quit
@@ -120,4 +138,4 @@ proc appQuit*(quit = true) =
 proc appGetWindowSize*(): Vec2i =
   var width, height: cint
   getSize(w, width, height)
-  vec2(width, height)
+  vec2(width.int32, height.int32)

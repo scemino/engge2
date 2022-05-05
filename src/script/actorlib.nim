@@ -33,15 +33,6 @@ proc getFacing(dir: SQInteger, facing: Facing): Facing =
     else: 
        FACE_RIGHT
 
-proc getFacing(dir: Direction): Facing =
-  case dir:
-  of dRight: FACE_RIGHT
-  of dLeft:  FACE_LEFT
-  of dFront: FACE_FRONT
-  of dBack:  FACE_BACK
-  else: 
-      FACE_RIGHT
-
 proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
   let d = obj.node.pos - actor.node.pos
   if d.x == 0:
@@ -390,7 +381,7 @@ proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if obj.isNil:
       return sq_throwerror(v, "failed to get actor or object")
     else:
-      actor.walk(obj.node.pos + obj.usePos, some(getFacing(obj.useDir)))
+      actor.walk(obj)
   elif nArgs == 4:
     var x, y: int
     if SQ_FAILED(get(v, 3, x)):

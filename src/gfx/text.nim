@@ -122,7 +122,10 @@ proc `align=`*(self: Text, align: TextAlignment) =
 proc `align`*(self: Text): TextAlignment =
   self.txtAlign
 
+proc update(self: Text)
+
 proc `bounds`*(self: Text): Vec2f =
+  self.update()
   self.bnds
 
 proc normalize(texture: Texture, v: Vec2i): Vec2f =
@@ -236,7 +239,7 @@ proc newText*(font: Font, text: string; align = taCenter; maxWidth = 0.0f; color
   result.update()
 
 proc draw*(self: Text; transf = mat4f(1.0)) =
-  if not self.font.isNil:
+  if not self.font.isNil and self.text.len > 0:
     self.update()
     self.texture.bindTexture()
     gfxDraw(self.vertices, transf)

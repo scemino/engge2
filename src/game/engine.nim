@@ -6,6 +6,8 @@ import thread
 import callback
 import ids
 import task
+import inputstate
+import verb
 import ../script/squtils
 import ../script/vm
 import ../game/motors/motor
@@ -20,7 +22,7 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
-import ../polyBool/polyBool
+import ../sys/app
 from std/times import getTime, toUnix, nanosecond
 
 type Engine* = ref object of RootObj
@@ -42,6 +44,8 @@ type Engine* = ref object of RootObj
   scene*: Scene
   screen*: Scene
   cameraPanTo*: Motor
+  inputState*: InputState
+  noun1*: Object
 
 var gEngine*: Engine
 
@@ -58,6 +62,8 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.scene = newScene()
   result.screen = newScene()
   result.seedWithTime()
+  result.inputState = newInputState()
+  result.screen.addChild result.inputState.node
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.rand = initRand(seed)
@@ -129,6 +135,8 @@ proc loadRoom*(name: string): Room =
         sq_pushstring(gVm.v, "name", -1)
         sq_pushstring(gVm.v, obj.name, -1)
         discard sq_newslot(gVm.v, -3, false)
+
+        obj.touchable = true
         
         # adds the object to the room table
         sq_pushobject(gVm.v, result.table)
@@ -136,10 +144,14 @@ proc loadRoom*(name: string): Room =
         sq_pushobject(gVm.v, obj.table)
         discard sq_newslot(gVm.v, -3, false)
         sq_pop(gVm.v, 1)
+        obj.setRoom(result)
       else:
         # assign an id
         obj.table.setId(newObjId())
         info fmt"Create object with existing table: {obj.name} #{obj.id}"
+        # TODO: read initTouchable
+        obj.touchable = true
+        obj.setRoom(result)
 
       layerNode.addChild obj.node
 
@@ -222,10 +234,132 @@ proc setRoom*(self: Engine, room: Room) =
     self.exitRoom(room)
     self.enterRoom(room)
 
-proc update(self: Engine) =
-  var elapsed = 1/60
-  self.time += elapsed
+proc findObjAt(self: Engine, pos: Vec2f): Object =
+  for layer in gEngine.room.layers:
+    for obj in layer.objects:
+      if obj.node.visible and obj.objType == otNone and obj.contains(pos):
+        return obj
+
+proc winToScreen(self: Engine, pos: Vec2f): Vec2f =
+  result = (pos / vec2f(appGetWindowSize())) * vec2(1280f, 720f)
+  result = vec2(result.x, 720f - result.y)
+
+proc verbNoWalkTo(verbId: VerbId, noun1: Object): bool =
+  if verbId == VERB_LOOKAT:
+    result = (noun1.flags and FAR_LOOK) != 0
+
+proc callVerb(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
+  let name = if actor.isNil: "currentActor" else: actor.name
+  let noun1name = if noun1.isNil: "null" else: noun1.name
+  let noun2name = if noun2.isNil: "null" else: noun2.name
+  let verbFuncName = verbName(verbId.VerbId)
+  info fmt"callVerb({name},{verbFuncName},{noun1name},{noun2name})"
+
+  # TODO: gEngine.selectedActor.stopWalking()
+  # test if object became untouchable
+  if not noun1.inInventory and not noun1.touchable: 
+    return false
+  if not noun2.isNil and not noun2.inInventory and not noun2.touchable: 
+    return false
+
+  # TODO: Do reach before calling verb so we can kill it if needed.
+
+  # TODO: finish this
+  call(noun1.table, verbFuncName)
+
+  gEngine.noun1 = nil
+
+import actor
+
+proc execSentence(actor: Object, verbId: int, noun1: Object; noun2: Object = nil): bool =
+  ## Called to execute a sentence and, if needed, start the actor walking.
+  ## If `actor` is `null` then the selectedActor is assumed.
+  let name = if actor.isNil: "currentActor" else: actor.name
+  let noun1name = if noun1.isNil: "null" else: noun1.name
+  let noun2name = if noun2.isNil: "null" else: noun2.name
+  let verbFuncName = verbName(verbId.VerbId)
+  info fmt"exec({name},{verbFuncName},{noun1name},{noun2name})"
+  var a = actor
+  if a.isNil: a = gEngine.currentActor
+  if verbId <= 0 and verbId > 13 or noun1.isNil:
+    return false
+  # TODO
+  #if (a?._verb_tid) stopthread(actor._verb_tid)
+
+  info fmt"noun1.inInventory: {noun1.inInventory} and noun1.touchable: {noun1.touchable} nowalk: {verbNoWalkTo(verbId.VerbId, noun1)}"
   
+  # test if object became untouchable
+  if not noun1.inInventory and not noun1.touchable: 
+    return false
+  if not noun2.isNil and not noun2.inInventory and not noun2.touchable: 
+    return false
+
+  if noun1.inInventory:
+    if noun2.isNil or noun2.inInventory:
+      discard callVerb(a, verbId.VerbId, noun1, noun2)
+      return true
+  
+  if verbNoWalkTo(verbId.VerbId, noun1):
+    if not noun1.inInventory: # TODO: test if verb.flags != VERB_INSTANT
+      # TODO: actor.actorTurnTo(noun1)
+      discard callVerb(a, verbId.VerbId, noun1, noun2)
+      return true
+
+  # TODO:
+  # actor.exec = newSentence(verb, noun1,noun2)
+  if not inInventory(noun1):
+    a.walk(noun1)
+  else:
+    a.walk(noun2)
+  # info fmt"execSentence -> noun1: {noun1.room}"
+
+proc cancelSentence(actor: Object) =
+  var actor = actor
+  if actor.isNil: 
+    actor = gEngine.actor
+  if not actor.isNil:
+    discard
+    # actor.exec = nil
+
+proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
+  # TODO: WIP
+  if not self.room.isNil:
+    let roomPos = self.room.screenToRoom(scrPos)
+    let obj = self.findObjAt(roomPos)
+
+    # button right: execute default verb
+    if mbRight in btns and not obj.isNil:
+      if obj.table.rawexists("defaultVerb"):
+        var defVerbId: int
+        obj.table.getf("defaultVerb", defVerbId)
+        let verbName = verbName(defVerbId.VerbId)
+        if obj.table.rawexists(verbName):
+          discard execSentence(nil, defVerbId, self.noun1)
+    else:
+      # Just clicking on the ground
+      cancelSentence(gEngine.actor)
+      gEngine.actor.walk(room_pos)
+
+  # TODO: call calbacks
+
+proc update(self: Engine) =
+  let elapsed = 1/60
+  self.time += elapsed
+
+  # update mouse pos
+  let scrPos = self.winToScreen(mousePos())
+  self.inputState.node.pos = scrPos
+  if not self.room.isNil:
+    let roomPos = self.room.screenToRoom(scrPos)
+    self.noun1 = self.findObjAt(roomPos)
+    var txt = if self.noun1.isNil: "" else: self.noun1.name
+    self.inputState.setText(txt)
+
+  # call clickedAt if any button down
+  let btns = mouseBtns()
+  if btns.len > 0:
+    self.clickedAt(scrPos, btns)
+
   # update threads
   for thread in self.threads.toSeq:
     if thread.update(elapsed):

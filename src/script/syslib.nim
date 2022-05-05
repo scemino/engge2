@@ -7,6 +7,7 @@ import ../game/thread
 import ../game/callback
 import ../game/engine
 import ../game/room
+import ../game/inputstate
 import ../game/breakwhilecond
 import ../util/utils
 
@@ -231,8 +232,50 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc inputController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  error("TODO: inputController: not implemented")
-  0
+  error "TODO: inputController: not implemented"
+
+proc inputHUD(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var on: bool
+  if SQ_FAILED(get(v, 2, on)):
+    return sq_throwerror(v, "failed to get on")
+  gEngine.inputState.inputHUD = on
+
+proc inputOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  gEngine.inputState.inputActive = false
+  gEngine.inputState.showCursor = false
+
+proc inputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  gEngine.inputState.inputActive = true
+  gEngine.inputState.showCursor = true
+
+proc inputSilentOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  gEngine.inputState.inputActive = false
+
+proc sysInputState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let numArgs = sq_gettop(v)
+  if numArgs == 1:
+    let state = cast[int](gEngine.inputState.getState())
+    push(v, state)
+    return 1
+  elif numArgs == 2:
+    var state: int
+    if SQ_FAILED(get(v, 2, state)):
+      return sq_throwerror(v, "failed to get state")
+    gEngine.inputState.setState(cast[InputStateFlag](state))
+    return 0
+  return sq_throwerror(v, "TODO: inputState: not implemented")
+
+proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var on: bool
+  if SQ_FAILED(get(v, 2, on)):
+    return sq_throwerror(v, "failed to get isActive")
+  gEngine.inputState.inputVerbsActive = on
+  1
+
+proc isInputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let isActive = gEngine.inputState.inputActive
+  push(v, isActive)
+  1
 
 proc logEvent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let numArgs = sq_gettop(v)
@@ -435,6 +478,13 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(inputController, "inputController")
+  v.regGblFun(inputHUD, "inputHUD")
+  v.regGblFun(inputOff, "inputOff")
+  v.regGblFun(inputOn, "inputOn")
+  v.regGblFun(inputSilentOff, "inputSilentOff")
+  v.regGblFun(sysInputState, "inputState")
+  v.regGblFun(inputVerbs, "inputVerbs")
+  v.regGblFun(isInputOn, "isInputOn")
   v.regGblFun(logEvent, "logEvent")
   v.regGblFun(logInfo, "logInfo")
   v.regGblFun(logWarning, "logWarning")

@@ -198,7 +198,7 @@ proc fadeOut*(self: AudioSystem, fadeOutTimeSec = 0.0) =
       self.fadeOut(sound, fadeOutTimeSec)
 
 proc playing*(self: AudioSystem, snd: SoundId): bool =
-  snd.chan.status() == asPlaying
+  not snd.isNil and snd.chan.status() == asPlaying
 
 proc playing*(self: AudioSystem, snd: SoundDefinition): bool =
   for sound in self.sounds:
