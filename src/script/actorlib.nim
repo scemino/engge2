@@ -22,16 +22,7 @@ proc getOppositeFacing(facing: Facing): Facing =
   of FACE_RIGHT:return FACE_LEFT
 
 proc getFacing(dir: SQInteger, facing: Facing): Facing =
-  if dir == 0x10:
-    return getOppositeFacing(facing)
-  else:
-    case dir:
-    of 1: FACE_RIGHT
-    of 2: FACE_LEFT
-    of 4: FACE_FRONT
-    of 8: FACE_BACK
-    else: 
-       FACE_RIGHT
+  if dir == 0x10: getOppositeFacing(facing) else: dir.Facing
 
 proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
   let d = obj.node.pos - actor.node.pos

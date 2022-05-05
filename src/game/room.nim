@@ -22,6 +22,7 @@ import trigger
 import resmanager
 import walkbox
 import graph
+import verb
 
 const 
   GONE = 4
@@ -45,11 +46,11 @@ type
     room: Room
     node*: Node
   Direction* = enum
-    dNone,
-    dFront,
-    dBack,
-    dLeft,
-    dRight
+    dNone   = 0
+    dRight  = 1 
+    dLeft   = 2
+    dFront  = 4
+    dBack   = 8
   ObjectType* = enum
     otNone,
     otProp,
@@ -96,6 +97,7 @@ type
     talkingState*: TalkingState
     talkColor*: Color
     talkOffset*: Vec2i
+    exec*: Sentence
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -117,9 +119,21 @@ type
   RoomParser = object
     input: Stream
     filename: string
+  Sentence* = ref object of RootObj
+    verb*: VerbId
+    noun1*, noun2*: Object
+
+proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence = 
+  Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
 proc newObject*(facing: Facing): Object =
   Object(facing: facing)
+
+proc facing*(dir: Direction): Facing =
+  dir.Facing
+
+proc getUsePos*(self: Object): Vec2f =
+  self.node.pos + self.usePos
 
 proc getScaling*(self: Scaling, yPos: float32): float32 =
   if self.values.len == 0:

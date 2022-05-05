@@ -149,8 +149,14 @@ proc loadRoom*(name: string): Room =
         # assign an id
         obj.table.setId(newObjId())
         info fmt"Create object with existing table: {obj.name} #{obj.id}"
-        # TODO: read initTouchable
-        obj.touchable = true
+        if obj.table.rawexists("initTouchable"):
+          obj.table.getf("initTouchable", obj.touchable)
+        else:
+          obj.touchable = true
+        if obj.table.rawexists("initState"):
+          var state: int
+          obj.table.getf("initState", state)
+          obj.setState(state)
         obj.setRoom(result)
 
       layerNode.addChild obj.node
@@ -248,7 +254,8 @@ proc verbNoWalkTo(verbId: VerbId, noun1: Object): bool =
   if verbId == VERB_LOOKAT:
     result = (noun1.flags and FAR_LOOK) != 0
 
-proc callVerb(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
+proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
+  # Called after the actor has walked to the object.
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
@@ -305,21 +312,18 @@ proc execSentence(actor: Object, verbId: int, noun1: Object; noun2: Object = nil
       discard callVerb(a, verbId.VerbId, noun1, noun2)
       return true
 
-  # TODO:
-  # actor.exec = newSentence(verb, noun1,noun2)
+  a.exec = newSentence(verbId.VerbId, noun1, noun2)
   if not inInventory(noun1):
     a.walk(noun1)
   else:
     a.walk(noun2)
-  # info fmt"execSentence -> noun1: {noun1.room}"
 
 proc cancelSentence(actor: Object) =
   var actor = actor
   if actor.isNil: 
     actor = gEngine.actor
   if not actor.isNil:
-    discard
-    # actor.exec = nil
+    actor.exec = nil
 
 proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
   # TODO: WIP

@@ -3,10 +3,16 @@ import std/strformat
 import std/options
 import glm
 import motor
+import ../engine
+import ../verb
 import ../room
 import ../../util/utils
 import ../../script/squtils
 import ../../scenegraph/node
+
+const
+  MIN_USE_DIST  = 5
+  MIN_TALK_DIST = 60
 
 type WalkTo = ref object of Motor
     obj: Object
@@ -21,16 +27,71 @@ proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   result.facing = facing
   obj.play("walk", true)
 
+proc min_talk_dist(self: Object): int =
+  MIN_TALK_DIST
+
+proc min_use_dist(self: Object): int =
+  if self.table.rawexists("useDist"):
+    self.table.getf("useDist", result)
+    info fmt"obj {self.name}: {result}"
+  else:
+    result = MIN_USE_DIST
+    info fmt"obj {self.name}: {result}"
+
+proc verbNotClose(id: VerbId): bool =
+  ## true of you don't have to be close to the object
+  id == VERB_LOOKAT
+
+proc cantReach(self: Object) =
+  if self.table.rawexists("verbCantReach"):
+    self.table.call("verbCantReach")
+
 proc actorArrived(self: WalkTo) =
-  # TODO: actor should have the correct facing
+  info "actorArrived"
   self.obj.play("stand")
+  # the faces to the specified direction (if any)
   if self.facing.isSome:
     info fmt"actor arrived with facing {self.facing.get}"
     self.obj.setFacing self.facing.get
-  else:
-    info fmt"actor arrived with no facing"
-  if rawExists(self.obj.table, "actorArrived"):
-    call(self.obj.table, "actorArrived")
+
+  # call `actorArrived` callback
+  if self.obj.table.rawExists("actorArrived"):
+    info "call actorArrived callback"
+    self.obj.table.call("actorArrived")
+  
+  # we need to execute a sentence when arrived ?
+  if not self.obj.exec.isNil:
+    info "actorArrived: exec sentence"
+    if not self.obj.exec.noun1.inInventory:
+      # Object became untouchable as we were walking there
+      if not self.obj.exec.noun1.touchable:
+        info "actorArrived: noun1 untouchable"
+        self.obj.exec = nil
+        return
+      # Did we get close enough?
+      let dist = distance(self.obj.node.pos, self.obj.exec.noun1.getUsePos)
+      let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun1.min_talk_dist else: self.obj.exec.noun1.min_use_dist
+      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} ?"
+      if not verbNotClose(self.obj.exec.verb) and dist > min_dist.float:
+        self.obj.cantReach()
+        return
+      self.obj.setFacing(self.obj.exec.noun1.useDir.facing)
+    if not self.obj.exec.noun2.isNil and not self.obj.exec.noun2.inInventory:
+      if not self.obj.exec.noun2.touchable:
+        # Object became untouchable as we were walking there.
+        info "actorArrived: noun2 untouchable"
+        self.obj.exec = nil
+        return
+      let dist = distance(self.obj.node.pos, self.obj.exec.noun2.getUsePos)
+      let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun2.min_talk_dist else: self.obj.exec.noun2.min_use_dist
+      info fmt"actorArrived: noun2 min_dist: {dist} > {min_dist} ?"
+      if dist > min_dist.float:
+        self.obj.cantReach()
+        return
+    
+    info fmt"actorArrived: callVerb"
+    discard callVerb(self.obj, self.obj.exec.verb, self.obj.exec.noun1, self.obj.exec.noun2)
+    self.obj.exec = nil
 
 method update(self: WalkTo, el: float) =
   var dest = self.path[0]
