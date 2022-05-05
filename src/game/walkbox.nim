@@ -96,7 +96,7 @@ proc getClosestPointOnEdge*(self: Walkbox, p3: Vec2f) : Vec2f =
   var vi2 = -1
   var minDist = 100000.0
 
-  for i in 0..self.polygon.len:
+  for i in 0..<self.polygon.len:
     let dist = distanceToSegment(p3, vec2(self.polygon[i]), vec2(self.polygon[(i + 1) mod self.polygon.len()]))
     if dist < minDist:
       minDist = dist
