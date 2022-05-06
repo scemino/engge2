@@ -12,6 +12,7 @@ import hud
 import ../script/squtils
 import ../script/vm
 import ../game/motors/motor
+import ../game/prefs
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
@@ -48,6 +49,7 @@ type Engine* = ref object of RootObj
   inputState*: InputState
   noun1*: Object
   hud*: Hud
+  prefs*: Preferences
 
 var gEngine*: Engine
 
@@ -66,6 +68,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.seedWithTime()
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
+  result.prefs.init()
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.rand = initRand(seed)

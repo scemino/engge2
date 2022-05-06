@@ -6,6 +6,7 @@ import squtils
 import vm
 import ../game/engine
 import ../game/actor
+import ../game/hud
 import ../util/utils
 import ../game/room
 import ../gfx/color
@@ -195,6 +196,15 @@ proc actorHideLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorShowLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actorShowHideLayer(v, true)
+
+proc actorSlotSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var slot: int
+  if SQ_FAILED(get(v, 2, slot)):
+    return sq_throwerror(v, "failed to get slot")
+  var selectable: bool
+  if SQ_FAILED(get(v, 3, selectable)):
+    return sq_throwerror(v, "failed to get selectable")
+  gEngine.hud.actorSlots[slot - 1].selectable = selectable
 
 proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
@@ -388,7 +398,7 @@ proc addSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 2, slot)):
     return sq_throwerror(v, "failed to get slot")
   var actor = actor(v, 3)
-  gEngine.hud.actorSlots[slot].actor = actor
+  gEngine.hud.actorSlots[slot - 1].actor = actor
 
 proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Creates a new actor from a table.
@@ -524,6 +534,51 @@ proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.setCurrentActor obj(v, 2)
   0
 
+proc verbUIColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actorSlot: int
+  if SQ_FAILED(get(v, 2, actorSlot)):
+    return sq_throwerror(v, "failed to get actorSlot")
+  var table: HSQOBJECT
+  if SQ_FAILED(get(v, 3, table)):
+    return sq_throwerror(v, "failed to get table")
+  if not sq_istable(table):
+    return sq_throwerror(v, "failed to get verb definitionTable")
+
+  # get mandatory colors
+  var
+    sentence = 0
+    verbNormal = 0
+    verbNormalTint = 0
+    verbHighlight = 0
+    verbHighlightTint = 0
+    inventoryFrame = 0
+    inventoryBackground = 0
+  table.getf("sentence", sentence)
+  table.getf("verbNormal", verbNormal)
+  table.getf("verbNormalTint", verbNormalTint)
+  table.getf("verbHighlight", verbHighlight)
+  table.getf("verbHighlightTint", verbHighlightTint)
+  table.getf("inventoryFrame", inventoryFrame)
+  table.getf("inventoryBackground", inventoryBackground)
+
+  # get optional colors
+  var
+    retroNormal = verbNormal
+    retroHighlight = verbNormalTint
+    dialogNormal = verbNormal
+    dialogHighlight = verbHighlight
+  table.getf("retroNormal", retroNormal)
+  table.getf("retroHighlight", retroHighlight)
+  table.getf("dialogNormal", dialogNormal)
+  table.getf("dialogHighlight", dialogHighlight)
+
+  gEngine.hud.actorSlots[actorSlot - 1].verbUiColors = 
+    VerbUiColors(sentence: rgb(sentence), verbNormal: rgb(verbNormal),
+    verbNormalTint: rgb(verbNormalTint), verbHighlight: rgb(verbHighlight), verbHighlightTint: rgb(verbHighlightTint),
+    inventoryFrame: rgb(inventoryFrame), inventoryBackground: rgb(inventoryBackground),
+    retroNormal: rgb(retroNormal), retroHighlight: rgb(retroHighlight),
+    dialogNormal: rgb(dialogNormal), dialogHighlight: rgb(dialogHighlight))
+
 proc register_actorlib*(v: HSQUIRRELVM) =
   ## Registers the game actor library
   ## 
@@ -542,6 +597,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorRenderOffset, "actorRenderOffset")
   v.regGblFun(actorRoom, "actorRoom")
   v.regGblFun(actorShowLayer, "actorShowLayer")
+  v.regGblFun(actorSlotSelectable, "actorSlotSelectable")
   v.regGblFun(actorTalkColors, "actorTalkColors")
   v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
@@ -558,3 +614,4 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(sayLine, "sayLine")
   v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")
+  v.regGblFun(verbUIColors, "verbUIColors")

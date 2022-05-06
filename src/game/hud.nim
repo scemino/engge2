@@ -10,12 +10,6 @@ type
     text*: string 
     key*: string
     flags*: int
-  ActorSlot* = object
-    verbs*: array[10, Verb]
-    selectable*: bool
-    actor*: Object
-  Hud* = object
-    actorSlots*: array[6, ActorSlot]
   VerbUiColors* = object
     sentence*: Color
     verbNormal*: Color
@@ -28,6 +22,13 @@ type
     inventoryBackground*: Color
     retroNormal*: Color
     retroHighlight*: Color
+  ActorSlot* = object
+    verbUiColors*: VerbUiColors
+    verbs*: array[10, Verb]
+    selectable*: bool
+    actor*: Object
+  Hud* = object
+    actorSlots*: array[6, ActorSlot]
   
 proc actorSlot*(self: Hud, actor: Object): ActorSlot =
   for slot in self.actorSlots:

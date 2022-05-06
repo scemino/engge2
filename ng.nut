@@ -31,6 +31,19 @@ bridgeMusicPool <- [ musicBridgeA, musicBridgeB, musicBridgeC musicBridgeD, musi
 
 soundBridgeTrain <- defineSound("BridgeTrain.ogg")				
 
+function defineVerbs(slot) {
+  setVerb(slot, 0, { verb = VERB_WALKTO, image = "walkto", func = "verbWalkTo", text = "@30011", key = getUserPref("keyWalkTo", "") })
+  setVerb(slot, 1, { verb = VERB_OPEN, image = "open",  func = "verbOpen", text = "@30012", key = getUserPref("keyOpen", "@30013") })
+  setVerb(slot, 2, { verb = VERB_CLOSE, image = "close",  func = "verbClose", text = "@30014", key = getUserPref("keyClose", "@30015") })
+  setVerb(slot, 3, { verb = VERB_GIVE, image = "give",  func = "verbGive", text = "@30016", key = getUserPref("keyGiveTo", "@30017") })
+  setVerb(slot, 4, { verb = VERB_PICKUP, image = "pickup",  func = "verbPickUp", text = "@30018", key = getUserPref("keyPickup", "@30019") })
+  setVerb(slot, 5, { verb = VERB_LOOKAT, image = "lookat",  func = "verbLookAt", text = "@30020", key = getUserPref("keyLookAt", "@30021") })
+  setVerb(slot, 6, { verb = VERB_TALKTO, image = "talkto",  func = "verbTalkTo", text = "@30022", key = getUserPref("keyTalkTo", "@30023") })
+  setVerb(slot, 7, { verb = VERB_PUSH, image = "push",  func = "verbPush", text = "@30024", key = getUserPref("keyPush", "@30025") })
+  setVerb(slot, 8, { verb = VERB_PULL, image = "pull",  func = "verbPull", text = "@30026", key = getUserPref("keyPull", "@30027") })
+  setVerb(slot, 9, { verb = VERB_USE, image = "use",  func = "verbUse", text = "@30028", key = getUserPref("keyUse", "@30029") })
+ }
+
 function hideAll() {
   foreach(obj in this) { if (isObject(obj)) { objectHidden(obj, YES) }}
 }
@@ -434,6 +447,13 @@ boris <- {
  }
 
 createActor(boris)
+addSelectableActor(6, boris)
+actorSlotSelectable(6, YES)
+defineVerbs(6)
+verbUIColors(6, {	nameid = "boris", sentence = 0xffffff, 
+ verbNormal = 0x3ea4b5, verbHighlight = 0x4fd0e6,
+ verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
+ inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
 actorVolume(boris, 0.7)
 // addSelectableActor(6, boris)
 // setActorDefaults(boris)

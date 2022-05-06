@@ -22,6 +22,7 @@
 * [ ] achievements
 * [ ] UI dialogs
 * [ ] shaders
+* [ ] preferences
 * [x] actor talking
 * [x] audio
 * [x] squirrel bindings
@@ -84,7 +85,7 @@
 - [x] selectActor
 - [ ] stopTalking
 - [ ] triggerActors
-- [ ] verbUIColors
+- [x] verbUIColors
 
 ## General
 

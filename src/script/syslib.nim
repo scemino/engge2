@@ -2,6 +2,7 @@ import std/[logging, strformat]
 import sqnim
 import vm
 import squtils
+import ../io/json
 import ../audio/audio
 import ../game/thread
 import ../game/callback
@@ -230,6 +231,32 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## }
   sq_pushfloat(v, gEngine.time * 1000.0)
   1
+
+proc push(v: HSQUIRRELVM, node: JsonNode): SQInteger =
+  case node.kind:
+  of JInt:
+    push(v, node.getInt())
+    result = 1
+  of JString:
+    push(v, node.getStr())
+    result = 1
+  of JFloat:
+    push(v, node.getFloat())
+    result = 1
+  else:
+    result = sq_throwerror(v, "This kind of node is not supported")
+
+proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var key: string
+  if SQ_FAILED(get(v, 2, key)):
+    result = sq_throwerror(v, "failed to get key")
+  elif gEngine.prefs.node.hasKey(key):
+    result = push(v, gEngine.prefs.node[key])
+  elif sq_gettop(v) == 3:
+    var obj: HSQOBJECT
+    discard sq_getstackobj(v, 3, obj)  
+    push(v, obj)
+    result = 1
 
 proc inputController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error "TODO: inputController: not implemented"
@@ -477,6 +504,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhiletalking, "breakwhiletalking")
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(gameTime, "gameTime")
+  v.regGblFun(getUserPref, "getUserPref")
   v.regGblFun(inputController, "inputController")
   v.regGblFun(inputHUD, "inputHUD")
   v.regGblFun(inputOff, "inputOff")
