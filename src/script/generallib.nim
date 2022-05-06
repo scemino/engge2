@@ -6,6 +6,8 @@ import sqnim
 import glm
 import squtils
 import vm
+import ../game/hud
+import ../game/verb
 import ../game/ids
 import ../game/motors/campanto
 import ../game/room
@@ -284,6 +286,37 @@ proc screenSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, screen)
   return 1;
 
+proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actorSlot: int
+  if SQ_FAILED(get(v, 2, actorSlot)):
+    return sq_throwerror(v, "failed to get actor slot")
+  var verbSlot: int
+  if SQ_FAILED(get(v, 3, verbSlot)):
+    return sq_throwerror(v, "failed to get verb slot")
+  var table: HSQOBJECT
+  if SQ_FAILED(get(v, 4, table)):
+    return sq_throwerror(v, "failed to get verb definitionTable")
+  if not sq_istable(table):
+    return sq_throwerror(v, "verb definitionTable is not a table")
+  
+  var id: int
+  var image: string
+  var text: string
+  var fun: string
+  var key: string
+  var flags: int
+  table.getf("verb", id)
+  table.getf("text", text)
+  if table.rawexists("image"):
+    table.getf("image", image)
+  if table.rawexists("func"):
+    table.getf("func", fun)
+  if table.rawexists("key"):
+    table.getf("key", key)
+  if table.rawexists("flags"):
+    table.getf("flags", flags)
+  gEngine.hud.actorSlots[actorSlot - 1].verbs[verbSlot] = Verb(id: id.VerbId, image: image, fun: fun, text: text, key: key, flags: flags)
+
 proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
   ## 
@@ -306,4 +339,5 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(randomOdds, "randomodds")
   v.regGblFun(randomseed, "randomseed")
   v.regGblFun(screenSize, "screenSize")
+  v.regGblFun(setVerb, "setVerb")
   

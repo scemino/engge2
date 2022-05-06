@@ -15,7 +15,7 @@
 * [ ] blink
 * [ ] input
 * [ ] input mapping
-* [ ] walkboxes
+* [x] walkboxes
 * [ ] dialogs
 * [ ] HUD
 * [ ] savegames
@@ -71,7 +71,7 @@
 - [ ] actorWalkForward
 - [x] actorWalkSpeed
 - [x] actorWalkTo
-- [ ] addSelectableActor
+- [x] addSelectableActor
 - [x] createActor
 - [ ] flashSelectableActor
 - [x] isActorOnScreen
@@ -130,7 +130,7 @@
 - [x] screenSize
 - [ ] setAmbientLight
 - [ ] setDebugger
-- [ ] setVerb
+- [x] setVerb
 - [ ] startDialog
 - [ ] stopSentence
 - [ ] strcount
@@ -186,13 +186,13 @@
 - [ ] getPrivatePref
 - [ ] getUserPref
 - [ ] include
-- [ ] inputHUD
-- [ ] inputOff
-- [ ] inputOn
-- [ ] inputSilentOff
-- [ ] inputState
+- [x] inputHUD
+- [x] inputOff
+- [x] inputOn
+- [x] inputSilentOff
+- [x] inputState
 - [x] inputController
-- [ ] isInputOn
+- [x] isInputOn
 - [x] logEvent
 - [x] logInfo
 - [x] logWarning

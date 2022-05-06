@@ -1,6 +1,5 @@
 import std/logging
 import std/strformat
-import std/options
 import glm
 import sqnim
 import squtils
@@ -384,6 +383,13 @@ proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "invalid number of arguments in actorWalkTo")
   0
 
+proc addSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var slot: int
+  if SQ_FAILED(get(v, 2, slot)):
+    return sq_throwerror(v, "failed to get slot")
+  var actor = actor(v, 3)
+  gEngine.hud.actorSlots[slot].actor = actor
+
 proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Creates a new actor from a table.
   ## 
@@ -543,6 +549,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(actorWalkTo, "actorWalkTo")
+  v.regGblFun(addSelectableActor, "addSelectableActor")
   v.regGblFun(createActor, "createActor")
   v.regGblFun(is_actor, "is_actor")
   v.regGblFun(isActorOnScreen, "isActorOnScreen")

@@ -8,6 +8,7 @@ import ids
 import task
 import inputstate
 import verb
+import hud
 import ../script/squtils
 import ../script/vm
 import ../game/motors/motor
@@ -46,6 +47,7 @@ type Engine* = ref object of RootObj
   cameraPanTo*: Motor
   inputState*: InputState
   noun1*: Object
+  hud*: Hud
 
 var gEngine*: Engine
 
@@ -259,7 +261,7 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
-  let verbFuncName = verbName(verbId.VerbId)
+  let verbFuncName = gEngine.hud.actorSlot(actor).verbs[verbId.int].fun
   info fmt"callVerb({name},{verbFuncName},{noun1name},{noun2name})"
 
   # TODO: gEngine.selectedActor.stopWalking()
@@ -284,8 +286,7 @@ proc execSentence(actor: Object, verbId: int, noun1: Object; noun2: Object = nil
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
-  let verbFuncName = verbName(verbId.VerbId)
-  info fmt"exec({name},{verbFuncName},{noun1name},{noun2name})"
+  info fmt"exec({name},{verbId.VerbId},{noun1name},{noun2name})"
   var a = actor
   if a.isNil: a = gEngine.currentActor
   if verbId <= 0 and verbId > 13 or noun1.isNil:
@@ -336,7 +337,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
       if obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
-        let verbName = verbName(defVerbId.VerbId)
+        let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[defVerbId.int].fun
         if obj.table.rawexists(verbName):
           discard execSentence(nil, defVerbId, self.noun1)
     else:
