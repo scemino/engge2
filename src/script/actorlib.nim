@@ -152,6 +152,38 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"Actor costume {name} {sheet}"
   actor.setCostume(name, sheet)
 
+proc actorDistanceTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var obj: Object
+  if sq_gettop(v) == 3:
+    obj = obj(v, 3)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object")
+  else:
+    obj = gEngine.actor
+  push(v, distance(actor.node.pos, obj.node.pos + obj.usePos).int)
+  1
+
+proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var obj: Object
+  if sq_gettop(v) == 4:
+    obj = obj(v, 3)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object")
+    var dist: int
+    if SQ_FAILED(get(v, 4, dist)):
+      return sq_throwerror(v, "failed to get distance")
+    push(v, distance(actor.node.pos, obj.node.pos + obj.usePos) < dist.float)
+    return 1
+  else:
+    # TODO:
+    return sq_throwerror(v, "not implemented")
+
 proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes the actor face a given direction.
   ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT.
@@ -615,6 +647,8 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorAt, "actorAt")
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
+  v.regGblFun(actorDistanceTo, "actorDistanceTo")
+  v.regGblFun(actorDistanceWithin, "actorDistanceWithin")
   v.regGblFun(actorFace, "actorFace")
   v.regGblFun(actorHidden, "actorHidden")
   v.regGblFun(actorHideLayer, "actorHideLayer")
