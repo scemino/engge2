@@ -26,6 +26,7 @@ import verb
 
 const 
   GONE = 4
+
 type
   Facing* = enum
     FACE_RIGHT = 1
@@ -98,6 +99,7 @@ type
     talkColor*: Color
     talkOffset*: Vec2i
     exec*: Sentence
+    animNames*: Table[string, string]
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -358,10 +360,6 @@ proc delObject*(self: Object) =
   if not self.isNil:
     self.layer.objects.del self.layer.objects.find(self)
     self.node.parent.removeChild self.node
-
-proc setHeadIndex*(self: Object, head: int) =
-  for i in 1..6:
-    self.showLayer(fmt"head{i}", i == head)
 
 # Layer
 proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =

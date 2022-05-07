@@ -42,6 +42,28 @@ proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.node.alpha = alpha
   0
 
+proc actorAnimationNames(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+
+  var table: HSQOBJECT
+  if SQ_FAILED(get(v, 3, table)):
+    return sq_throwerror(v, "failed to get table")
+  if not sq_istable(table):
+    return sq_throwerror(v, "failed to get animation table")
+
+  var
+    head: string
+    stand: string
+    walk: string
+    reach: string
+  table.getf("head", head)
+  table.getf("stand", stand)
+  table.getf("walk", walk)
+  table.getf("reach", reach)
+  actor.setAnimationNames(head, stand, walk, reach)
+  
 proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the specified actor to the room and x, y coordinates specified.
   ## Also makes the actor face to given direction (options are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT).
@@ -291,6 +313,12 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get y")
   actor.node.offset = vec2f(x.float32, y.float32)
   0
+
+proc actorStand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  actor.stand()
 
 proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Set the text color of the specified actor's text that appears when they speak. 
@@ -598,6 +626,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorRoom, "actorRoom")
   v.regGblFun(actorShowLayer, "actorShowLayer")
   v.regGblFun(actorSlotSelectable, "actorSlotSelectable")
+  v.regGblFun(actorStand, "actorStand")
   v.regGblFun(actorTalkColors, "actorTalkColors")
   v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
@@ -614,4 +643,5 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(sayLine, "sayLine")
   v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")
+  v.regGblFun(actorAnimationNames, "actorAnimationNames")
   v.regGblFun(verbUIColors, "verbUIColors")

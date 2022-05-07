@@ -38,7 +38,7 @@
 ## Actor
 
 - [x] actorAlpha
-- [ ] actorAnimationNames
+- [x] actorAnimationNames
 - [ ] actorAnimationFlags
 - [x] actorAt
 - [ ] actorBlinkRate
@@ -59,7 +59,7 @@
 - [x] actorRoom
 - [x] actorShowLayer
 - [x] actorSlotSelectable
-- [ ] actorStand
+- [x] actorStand
 - [ ] actorStopWalking
 - [x] actorTalkColors
 - [x] actorTalking

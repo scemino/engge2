@@ -25,7 +25,6 @@ proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   result.path = obj.room.calculatePath(obj.node.pos, dest)
   result.enabled = true
   result.facing = facing
-  obj.play("walk", true)
 
 proc min_talk_dist(self: Object): int =
   MIN_TALK_DIST

@@ -93,6 +93,8 @@ proc newTalking*(obj: Object, texts: seq[string], color: Color): Talking =
   result.texts = texts[1..^1]
   result.say(texts[0])
 
+import ../actor
+
 method update(self: Talking, el: float) =
   if gEngine.audio.playing(self.soundId):
     var letter = self.lip.letter(self.elapsed)

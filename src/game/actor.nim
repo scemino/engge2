@@ -1,5 +1,7 @@
 import std/json
 import std/options
+import std/tables
+import std/strformat
 import glm
 import sqnim
 import nimyggpack
@@ -11,8 +13,13 @@ import ../gfx/spritesheet
 import ../gfx/color
 import resmanager
 import objanim
-import motors/talking
 import motors/walkto
+
+const
+  StandAnimName = "stand"
+  HeadAnimName  = "head"
+  WalkAnimName  = "walk"
+  ReachAnimName = "reach"
 
 proc getFacing(dir: Direction): Facing =
   case dir:
@@ -22,6 +29,12 @@ proc getFacing(dir: Direction): Facing =
   of dBack:  FACE_BACK
   else: 
       FACE_RIGHT
+
+proc animName*(self: Object, key: string): string
+
+proc setHeadIndex*(self: Object, head: int) =
+  for i in 1..6:
+    self.showLayer(fmt"{self.animName(HeadAnimName)}{i}", i == head)
 
 proc newActor*(): Object =
   result = newObject(FACE_FRONT)
@@ -34,6 +47,25 @@ proc newActor*(): Object =
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
 
+proc animName(self: Object, key: string): string =
+  if self.animNames.contains(key):
+    result = self.animNames[key]
+  else:
+    result = key
+
+proc stand*(self: Object) =
+  self.play(self.animName(StandAnimName))
+
+proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
+  if head.len > 0:
+    self.animNames[HeadAnimName] = head
+  if stand.len > 0:
+    self.animNames[StandAnimName] = stand
+  if walk.len > 0:
+    self.animNames[WalkAnimName] = walk
+  if reach.len > 0:
+    self.animNames[ReachAnimName] = reach
+
 proc setCostume*(self: Object, name, sheet: string) =
   let stream = gGGPackMgr.loadStream(name & ".json")
   let json = newGGTableDecoder(stream).hash
@@ -41,15 +73,18 @@ proc setCostume*(self: Object, name, sheet: string) =
   var path = if sheet.len == 0: json["sheet"].str else: sheet 
   self.spriteSheet = gResMgr.spritesheet(path)
   self.texture = gResMgr.texture(self.spriteSheet.meta.image)
-  self.play("stand")
+  self.stand()
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
   ## Walks an actor to the `pos` or actor `obj` and then faces `dir`.
+  self.play(WalkAnimName, true)
   self.walkTo = newWalkTo(self, pos, facing)
 
 proc walk*(self: Object, obj: Object) =
   ## Walks an actor to the `obj` and then faces it. 
   self.walk(obj.node.pos + obj.usePos, some(getFacing(obj.useDir)))
+
+import motors/talking
 
 proc say(self: var TalkingState, texts: seq[string], obj: Object) =
   self.obj.talking = newTalking(self.obj, texts, self.color)
