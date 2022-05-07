@@ -58,7 +58,7 @@
 - [x] actorRenderOffset
 - [x] actorRoom
 - [x] actorShowLayer
-- [ ] actorSlotSelectable
+- [x] actorSlotSelectable
 - [ ] actorStand
 - [ ] actorStopWalking
 - [x] actorTalkColors

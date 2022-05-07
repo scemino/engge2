@@ -9,6 +9,7 @@ import task
 import inputstate
 import verb
 import hud
+import resmanager
 import ../script/squtils
 import ../script/vm
 import ../game/motors/motor
@@ -17,6 +18,7 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
+import ../gfx/recti
 import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
@@ -26,6 +28,10 @@ import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
 import ../sys/app
 from std/times import getTime, toUnix, nanosecond
+
+const
+  ScreenWidth = 1280 
+  ScreenHeight = 720
 
 type Engine* = ref object of RootObj
   rand*: Rand
@@ -414,6 +420,50 @@ proc cameraPos*(self: Engine): Vec2f =
   let screenSize = self.room.getScreenSize()
   cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
+proc drawHud*(self: Engine) =
+  if not self.actor.isNil:
+    let actorSlot = self.hud.actorSlot(self.actor)
+    let gameSheet = gResMgr.spritesheet("GameSheet")
+
+    # draw UI backing
+    var frame = gameSheet.frames["ui_backing"]
+    let texture = gResMgr.texture(gameSheet.meta.image)
+    let uiBackingColor = rgbaf(0f, 0f, 0f, 0.33f)
+    gfxDrawSprite(frame.frame / texture.size, texture, uiBackingColor)
+
+    # draw verbs
+    let verbSheet = gResMgr.spritesheet("VerbSheet")
+    var verbTexture = gResMgr.texture(verbSheet.meta.image)
+    for i in 1..<actorSlot.verbs.len:
+      let verb = actorSlot.verbs[i]
+      let verbFrame = verbSheet.frames[fmt"{verb.image}_en"]
+      var pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
+      gfxDrawSprite(pos, verbFrame.frame / verbTexture.size, verbTexture, actorSlot.verbUiColors.verbNormal)
+
+    # draw scroll up
+    frame = gameSheet.frames["scroll_up"]
+    var pos = vec2(ScreenWidth/2f, frame.sourceSize.y.float32)
+    gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.verbNormal)
+    
+    # draw scroll down
+    frame = gameSheet.frames["scroll_down"]
+    pos = vec2(ScreenWidth/2f, frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32)
+    gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.verbNormal)
+
+    # draw inventory background
+    let startOffsetX = ScreenWidth/2f + frame.sourceSize.x.float32 + 4
+    var offsetX = startOffsetX
+    frame = gameSheet.frames["inventory_background"]
+    for i in 1..4:
+      pos = vec2(offsetX, frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32 + 4f)
+      gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.inventoryBackground)
+      offsetX += frame.sourceSize.x.float32 + 4f
+    offsetX = startOffsetX
+    for i in 1..4:
+      pos = vec2(offsetX, 2*frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32 + 8f)
+      gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.inventoryBackground)
+      offsetX += frame.sourceSize.x.float32 + 4f
+
 proc render*(self: Engine) =
   self.update()
   
@@ -439,8 +489,9 @@ proc render*(self: Engine) =
     # gfxDrawLineLoop(vert)
 
   # draw screen
-  camera(1280, 720)
-  gEngine.screen.draw()
+  camera(ScreenWidth, ScreenHeight)
+  self.drawHud()
+  self.screen.draw()
 
   # draw fade
   let fade = if self.fade.enabled: self.fade.current() else: 0.0
