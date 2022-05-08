@@ -83,3 +83,6 @@ method assetExists*(self: GGPackFileManager, path: string): bool =
   for pack in self.ggpacks:
     if pack.entries.contains(entry):
       return true
+
+proc loadString*(self: GGPackManager, entry: string): string =
+  self.loadStream(entry).readAll

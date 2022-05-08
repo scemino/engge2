@@ -108,81 +108,84 @@ proc getObj(room: Room, name: string): Object =
           return obj
 
 proc loadRoom*(name: string): Room =
-  info "room background: " & name
-  let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
-  result = parseRoom(content)
-  getf(name, result.table)
-  result.table.setId(newRoomId())
-  for i in 0..<result.layers.len:
-    var layer = result.layers[i]
-    # create layer node
-    var frames: seq[SpriteSheetFrame]
-    for name in layer.names:
-      frames.add(result.spriteSheet.frames[name])
-    var layerNode = newParallaxNode(layer.parallax, result.texture, frames)
-    layerNode.zOrder = layer.zSort
-    layerNode.name = fmt"Layer {layer.zSort}"
-    layer.node = layerNode
-    result.scene.addChild layerNode
+  info "load room: " & name
+  if name == "Void":
+    result = Room(name: name)
+  else:
+    let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
+    result = parseRoom(content)
+    getf(name, result.table)
+    result.table.setId(newRoomId())
+    for i in 0..<result.layers.len:
+      var layer = result.layers[i]
+      # create layer node
+      var frames: seq[SpriteSheetFrame]
+      for name in layer.names:
+        frames.add(result.spriteSheet.frames[name])
+      var layerNode = newParallaxNode(layer.parallax, result.texture, frames)
+      layerNode.zOrder = layer.zSort
+      layerNode.name = fmt"Layer {layer.zSort}"
+      layer.node = layerNode
+      result.scene.addChild layerNode
 
-    for obj in layer.objects:
-      sq_resetobject(obj.table)
-      getf(gVm.v, result.table, obj.name, obj.table)
-      
-      # check if the object exists in Squirrel VM
-      if obj.table.objType == OT_NULL:
-        # this object does not exist, so create it
-        sq_newtable(gVm.v)
-        discard sq_getstackobj(gVm.v, -1, obj.table)
-        sq_addref(gVm.v, obj.table)
-        sq_pop(gVm.v, 1)
-
-        # assign an id
-        obj.table.setId(newObjId())
-        info fmt"Create object with new table: {obj.name} #{obj.id}"
-
-        # assign a name
-        sq_pushobject(gVm.v, obj.table)
-        sq_pushstring(gVm.v, "name", -1)
-        sq_pushstring(gVm.v, obj.name, -1)
-        discard sq_newslot(gVm.v, -3, false)
-
-        obj.touchable = true
+      for obj in layer.objects:
+        sq_resetobject(obj.table)
+        getf(gVm.v, result.table, obj.name, obj.table)
         
-        # adds the object to the room table
-        sq_pushobject(gVm.v, result.table)
-        sq_pushstring(gVm.v, obj.name, -1)
-        sq_pushobject(gVm.v, obj.table)
-        discard sq_newslot(gVm.v, -3, false)
-        sq_pop(gVm.v, 1)
-        obj.setRoom(result)
-      else:
-        # assign an id
-        obj.table.setId(newObjId())
-        info fmt"Create object with existing table: {obj.name} #{obj.id}"
-        if obj.table.rawexists("initTouchable"):
-          obj.table.getf("initTouchable", obj.touchable)
-        else:
+        # check if the object exists in Squirrel VM
+        if obj.table.objType == OT_NULL:
+          # this object does not exist, so create it
+          sq_newtable(gVm.v)
+          discard sq_getstackobj(gVm.v, -1, obj.table)
+          sq_addref(gVm.v, obj.table)
+          sq_pop(gVm.v, 1)
+
+          # assign an id
+          obj.table.setId(newObjId())
+          info fmt"Create object with new table: {obj.name} #{obj.id}"
+
+          # assign a name
+          sq_pushobject(gVm.v, obj.table)
+          sq_pushstring(gVm.v, "name", -1)
+          sq_pushstring(gVm.v, obj.name, -1)
+          discard sq_newslot(gVm.v, -3, false)
+
           obj.touchable = true
-        if obj.table.rawexists("initState"):
-          var state: int
-          obj.table.getf("initState", state)
-          obj.setState(state)
-        obj.setRoom(result)
+          
+          # adds the object to the room table
+          sq_pushobject(gVm.v, result.table)
+          sq_pushstring(gVm.v, obj.name, -1)
+          sq_pushobject(gVm.v, obj.table)
+          discard sq_newslot(gVm.v, -3, false)
+          sq_pop(gVm.v, 1)
+          obj.setRoom(result)
+        else:
+          # assign an id
+          obj.table.setId(newObjId())
+          info fmt"Create object with existing table: {obj.name} #{obj.id}"
+          if obj.table.rawexists("initTouchable"):
+            obj.table.getf("initTouchable", obj.touchable)
+          else:
+            obj.touchable = true
+          if obj.table.rawexists("initState"):
+            var state: int
+            obj.table.getf("initState", state)
+            obj.setState(state)
+          obj.setRoom(result)
 
-      layerNode.addChild obj.node
+        layerNode.addChild obj.node
 
-      if obj.anims.len > 0:
-        var ss = obj.getSpriteSheet()
-        var frame = ss.frames[obj.anims[0].frames[0]]
-        var spNode = newSpriteNode(obj.getTexture(), frame)
-        obj.node.addChild spNode
+        if obj.anims.len > 0:
+          var ss = obj.getSpriteSheet()
+          var frame = ss.frames[obj.anims[0].frames[0]]
+          var spNode = newSpriteNode(obj.getTexture(), frame)
+          obj.node.addChild spNode
 
-  # assign parent node
-  for layer in result.layers:
-    for obj in layer.objects:
-      if obj.parent != "":
-        result.getObj(obj.parent).node.addChild(obj.node)
+    # assign parent node
+    for layer in result.layers:
+      for obj in layer.objects:
+        if obj.parent != "":
+          result.getObj(obj.parent).node.addChild(obj.node)
 
 proc actorExit(self: Engine) =
   if not self.currentActor.isNil and not self.room.isNil:

@@ -1,5 +1,6 @@
 import std/[logging, os]
 import sys/[app, input]
+import sqnim
 import game/engine
 import script/vm
 import script/script
@@ -20,9 +21,22 @@ proc render() =
 proc runVm() =
   var vm = vm.newVM()
   discard newEngine(vm.v)
+
+  sq_pushroottable(vm.v)
+
+  sqstd_register_stringlib(vm.v)
+  sqstd_register_iolib(vm.v)
   register_gameconstants(vm.v)
   register_gamelib(vm.v)
-  vm.execNutFile("ng.nut")
+
+  vm.v.execNutEntry("Defines.nut")
+  if fileExists("ng.nut"):
+    info "Booting with ng.nut"
+    vm.v.execNutFile("ng.nut")
+  else:
+    info "Booting with embedded Boot.bnut"
+    vm.v.execBnutEntry("Boot.bnut")
+  sq_pop(vm.v, 1)
 
 proc main() =
   addHandler(newConsoleLogger())

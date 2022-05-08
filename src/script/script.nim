@@ -8,10 +8,29 @@ import objlib
 import actorlib
 import soundlib
 
-# private methods
+proc register_vars(v: HSQUIRRELVM) =
+  var value: SQInteger
+  case hostOS:
+  of "macosx":
+    value = 1
+  of "windows":
+    value = 2
+  of "linux":
+    value = 3
+  else:
+    # TODO:
+    value = 3
+  sq_pushstring(v, "PLATFORM", -1)
+  sq_pushinteger(v, value)
+  discard sq_newslot(v, -3, SQFalse)
+
+  sq_pushstring(v, "Void", -1)
+  sq_pushnull(v)
+  discard sq_newslot(v, -3, SQFalse)
 
 #public methods
 proc register_gamelib*(v: HSQUIRRELVM) =
+  v.register_vars()
   v.register_generallib()
   v.register_objlib()
   v.register_roomlib()

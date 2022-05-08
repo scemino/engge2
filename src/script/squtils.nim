@@ -5,11 +5,9 @@ import sqnim
 import vm
 
 proc regGblFun*(v: HSQUIRRELVM, f: SQFUNCTION, fname: cstring) =
-  sq_pushroottable(v)
   sq_pushstring(v,fname,-1)
   sq_newclosure(v,f,0) # create a new function
   discard sq_newslot(v,-3,SQFalse)
-  sq_pop(v,1) # pops the root table
 
 macro sqBind*(vm, body): untyped =
   var funcs: seq[string]

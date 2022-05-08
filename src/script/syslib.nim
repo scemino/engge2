@@ -258,6 +258,12 @@ proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, obj)
     result = 1
 
+proc sysInclude(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var filename: string
+  if SQ_FAILED(get(v, 2, filename)):
+    return sq_throwerror(v, "failed to get filename")
+  execNutEntry(v, filename)
+
 proc inputController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error "TODO: inputController: not implemented"
 
@@ -505,6 +511,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(getUserPref, "getUserPref")
+  v.regGblFun(sysInclude, "include")
   v.regGblFun(inputController, "inputController")
   v.regGblFun(inputHUD, "inputHUD")
   v.regGblFun(inputOff, "inputOff")

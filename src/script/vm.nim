@@ -1,6 +1,8 @@
-import std/[logging, strformat]
+import std/[logging, strformat, os]
 import sqnim
+import nimyggpack
 import glm
+import ../io/ggpackmanager
 import ../gfx/recti
 
 proc onError(v: HSQUIRRELVM, desc: SQString, source: SQString, line: SQInteger, column: SQInteger) {.cdecl.} =
@@ -14,7 +16,6 @@ var gVm*: VM
 proc newVM*(): VM =
   new(result)
   result.v = sq_open(1024)
-  sqstd_register_stringlib(result.v)
   sq_setprintfunc(result.v, printfunc, printfunc)
   sqstd_seterrorhandlers(result.v)
   sq_setcompilererrorhandler(result.v, onError)
@@ -86,24 +87,42 @@ proc regConsts*[T](v: HSQUIRRELVM, consts: seq[tuple[k: string, v: T]]) =
   for (k, val) in consts:
     v.regConst(k, val)
 
-proc execNut*(self: VM, name, code: string) =
-  sq_pushroottable(self.v)
-  if SQ_FAILED(sq_compilebuffer(self.v, code, code.len, name, SQTrue)):
+proc execNut*(v: HSQUIRRELVM, name, code: string) =
+  let top = sq_gettop(v)
+  if SQ_FAILED(sq_compilebuffer(v, code, code.len, name, SQTrue)):
     error "Error compiling " & name
-    sqstd_printcallstack(self.v)
+    sqstd_printcallstack(v)
     return
-  var obj: HSQOBJECT
-  discard sq_getstackobj(self.v, -1, obj)
-  sq_addref(self.v, obj)
-  sq_pop(self.v, 1)
-  sq_pushobject(self.v, obj)
-  sq_pushroottable(self.v)
-  if SQ_FAILED(sq_call(self.v, 1, SQFalse, SQTrue)):
+  sq_pushroottable(v)
+  if SQ_FAILED(sq_call(v, 1, SQFalse, SQTrue)):
     error "Error calling " & name
-    sqstd_printcallstack(self.v)
+    sqstd_printcallstack(v)
+    sq_pop(v, 1) # removes the closure
     return
-  sq_pop(self.v, 1)
+  sq_settop(v, top)
   
-proc execNutFile*(self: VM, path: string) =
+proc execNutFile*(v: HSQUIRRELVM, path: string) =
   let code = readFile(path)
-  self.execNut(path, code)
+  execNut(v, path, code)
+
+proc execBnutEntry*(v: HSQUIRRELVM, entry: string) =
+  let code = bnutDecode(gGGPackMgr.loadString(entry))
+  execNut(v, entry, code)
+
+proc replaceExt(entry: string, ext: string): string =
+  var (dir, name, _) = splitFile(entry)
+  dir & name & ext
+
+proc execNutEntry*(v: HSQUIRRELVM, entry: string) =
+  if gGGPackMgr.assetExists(entry):
+    info fmt"read existing '{entry}'"
+    let code = gGGPackMgr.loadString(entry)
+    execNut(v, entry, code)
+  else:
+    var newEntry = replaceExt(entry, ".bnut")
+    info fmt"read existing '{newEntry}'"
+    if gGGPackMgr.assetExists(newEntry):
+      execBnutEntry(v, newEntry)
+    else:
+      error fmt"'{entry}' and '{newEntry}' have not been found"
+

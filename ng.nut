@@ -2,7 +2,6 @@ print("rnd1: " + random(0, 180) + "\n")
 print("rnd2: " + random(100.0, 150.0) + "\n")
 print("chr(36): " + chr(36) + "\n")
 
-const talkColorBoris		= 0x3ea4b5
 const defaultTextOffset = 90
 
 soundTowerLight <- defineSound("TowerLight.wav")

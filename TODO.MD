@@ -44,8 +44,8 @@
 - [ ] actorBlinkRate
 - [x] actorColor
 - [x] actorCostume
-- [ ] actorDistanceTo
-- [ ] actorDistanceWithin
+- [x] actorDistanceTo
+- [x] actorDistanceWithin
 - [x] actorFace
 - [x] actorHidden
 - [x] actorHideLayer
@@ -186,7 +186,7 @@
 - [x] gameTime
 - [ ] getPrivatePref
 - [ ] getUserPref
-- [ ] include
+- [x] include
 - [x] inputHUD
 - [x] inputOff
 - [x] inputOn
