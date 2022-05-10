@@ -219,6 +219,10 @@ proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var soundDef = soundDef(v, 2)
     result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 
+proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "exCommand not implemented"
+  0
+
 proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns how long (in seconds) the game has been played for in total (not just this session).
   #
@@ -509,6 +513,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilesound, "breakwhilesound")
   v.regGblFun(breakwhiletalking, "breakwhiletalking")
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
+  v.regGblFun(exCommand, "exCommand")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(getUserPref, "getUserPref")
   v.regGblFun(sysInclude, "include")

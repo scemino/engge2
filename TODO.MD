@@ -41,7 +41,7 @@
 - [x] actorAnimationNames
 - [ ] actorAnimationFlags
 - [x] actorAt
-- [ ] actorBlinkRate
+- [x] actorBlinkRate
 - [x] actorColor
 - [x] actorCostume
 - [x] actorDistanceTo
@@ -91,7 +91,7 @@
 
 - [ ] activeVerb
 - [ ] adhocalytics
-- [ ] arrayShuffle
+- [x] arrayShuffle
 - [x] assetExists
 - [x] cameraAt
 - [ ] cameraBounds
@@ -141,8 +141,8 @@
 - [ ] strlast
 - [ ] strlines
 - [ ] strreplace
-- [ ] strsplit
-- [ ] translate
+- [x] strsplit
+- [x] translate
 
 ## Room
 
@@ -150,11 +150,11 @@
 - [ ] addTrigger
 - [ ] clampInWalkbox
 - [ ] createLight, lightBrightness, lightConeDirection, lightConeAngle, lightConeFalloff, lightCutOffRadius, lightHalfRadius, lightTurnOn, lightZRange
-- [ ] definePseudoRoom
+- [x] definePseudoRoom
 - [x] defineRoom
 - [ ] enableTrigger
 - [ ] enterRoomFromDoor
-- [ ] findRoom
+- [x] findRoom
 - [x] masterRoomArray
 - [x] removeCallback
 - [ ] removeTrigger
@@ -199,6 +199,7 @@
 - [x] logWarning
 - [x] microTime
 - [ ] moveCursorTo
+- [x] rawsafeget
 - [ ] setPrivatePref
 - [ ] setUserPref
 - [x] startglobalthread
@@ -230,7 +231,7 @@
 - [x] objectHidden
 - [x] objectHotspot
 - [ ] objectIcon
-- [ ] objectLit
+- [x] objectLit
 - [x] objectMoveTo
 - [x] objectOffset
 - [x] objectOffsetTo
@@ -255,12 +256,12 @@
 - [ ] objectUsePosY
 - [ ] objectValidUsePos
 - [ ] objectValidVerb
-- [ ] pickupObject
+- [x] pickupObject
 - [ ] pickupReplacementObject
 - [x] playObjectState
 - [ ] popInventory
 - [ ] removeInventory
-- [ ] setDefaultObject
+- [x] setDefaultObject
 - [ ] shakeObject
 - [ ] stopObjectMotors
 

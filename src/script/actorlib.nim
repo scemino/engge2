@@ -21,7 +21,9 @@ proc getOppositeFacing(facing: Facing): Facing =
   of FACE_LEFT:return FACE_RIGHT
   of FACE_RIGHT:return FACE_LEFT
 
-proc getFacing(dir: SQInteger, facing: Facing): Facing =
+proc getFacing(dir: int, facing: Facing): Facing =
+  if dir == 0: 
+    return facing
   if dir == 0x10: getOppositeFacing(facing) else: dir.Facing
 
 proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
@@ -91,10 +93,10 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var actor = actor(v, 2)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
-    var x, y: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 3, x)):
+    var x, y: int
+    if SQ_FAILED(get(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
-    if SQ_FAILED(sq_getinteger(v, 4, y)):
+    if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
     actor.node.pos = vec2f(x.float32, y.float32)
     0
@@ -105,20 +107,34 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var room = room(v, 3)
     if room.isNil:
       return sq_throwerror(v, "failed to get room")
-    var x, y: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 4, x)):
+    var x, y: int
+    if SQ_FAILED(get(v, 4, x)):
       return sq_throwerror(v, "failed to get x")
-    if SQ_FAILED(sq_getinteger(v, 5, y)):
+    if SQ_FAILED(get(v, 5, y)):
       return sq_throwerror(v, "failed to get y")
-    var dir = 0.SQInteger
-    if numArgs == 6 and SQ_FAILED(sq_getinteger(v, 6, dir)):
+    var dir = 0
+    if numArgs == 6 and SQ_FAILED(get(v, 6, dir)):
       return sq_throwerror(v, "failed to get direction")
+    info fmt"actorAt {actor.name}, pos = ({x},{y}), dir = {dir}"
     actor.node.pos = vec2f(x.float32, y.float32)
     actor.setFacing(getFacing(dir, actor.getFacing))
     actor.room = room
     0
   else:
     sq_throwerror(v, "invalid number of arguments")
+
+proc actorBlinkRate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var min: float
+  if SQ_FAILED(get(v, 3, min)):
+    return sq_throwerror(v, "failed to get min")
+  var max: float
+  if SQ_FAILED(get(v, 4, max)):
+    return sq_throwerror(v, "failed to get max")
+  actor.blinkRate(min..max)
+  0
 
 proc actorColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Adjusts the colour of the actor. 
@@ -252,13 +268,41 @@ proc actorShowLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actorShowHideLayer(v, true)
 
 proc actorSlotSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var slot: int
-  if SQ_FAILED(get(v, 2, slot)):
-    return sq_throwerror(v, "failed to get slot")
-  var selectable: bool
-  if SQ_FAILED(get(v, 3, selectable)):
-    return sq_throwerror(v, "failed to get selectable")
-  gEngine.hud.actorSlots[slot - 1].selectable = selectable
+  let nArgs = sq_gettop(v)
+  case nArgs:
+  of 2:
+    var selectable: int
+    if SQ_FAILED(get(v, 2, selectable)):
+      return sq_throwerror(v, "failed to get selectable")
+    case selectable:
+    of 0:
+      gEngine.hud.mode.excl asOn
+    of 1:
+      gEngine.hud.mode.incl asOn
+    of 2:
+      gEngine.hud.mode.incl asTemporaryUnselectable
+    of 3:
+      gEngine.hud.mode.excl asTemporaryUnselectable
+    else:
+      return sq_throwerror(v, "invalid selectable value")
+    return 0
+  of 3:
+    var selectable: bool
+    if SQ_FAILED(get(v, 3, selectable)):
+      return sq_throwerror(v, "failed to get selectable")
+    if sq_gettype(v, 2) == OT_INTEGER:
+      var slot: int
+      if SQ_FAILED(get(v, 2, slot)):
+        return sq_throwerror(v, "failed to get slot")
+      gEngine.hud.actorSlots[slot - 1].selectable = selectable
+    else:
+      var actor = actor(v, 2)
+      if actor.isNil:
+        return sq_throwerror(v, "failed to get actor")
+      gEngine.hud.actorSlot(actor).selectable = selectable
+    return 0
+  else:
+    return sq_throwerror(v, "invalid number of arguments")
 
 proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
@@ -645,6 +689,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   ## It adds all the actor functions in the given Squirrel virtual machine.
   v.regGblFun(actorAlpha, "actorAlpha")
   v.regGblFun(actorAt, "actorAt")
+  v.regGblFun(actorBlinkRate, "actorBlinkRate")
   v.regGblFun(actorColor, "actorColor")
   v.regGblFun(actorCostume, "actorCostume")
   v.regGblFun(actorDistanceTo, "actorDistanceTo")

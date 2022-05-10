@@ -234,6 +234,12 @@ proc getId*(o: HSQOBJECT): int =
   if o.rawexists("_id"):
     getf(gVm.v, o, "_id", result)
 
+proc setf*(o: HSQOBJECT, key: string, obj: HSQOBJECT) =
+  sq_pushobject(gVm.v, o)
+  sq_pushstring(gVm.v, key, -1)
+  push(gVm.v, obj)
+  discard sq_rawset(gVm.v, -3)
+
 proc setId*(o: HSQOBJECT, id: int) =
   sq_pushobject(gVm.v, o)
   sq_pushstring(gVm.v, "_id", -1)

@@ -6,6 +6,7 @@ import vm
 import ../game/engine
 import ../game/ids
 import ../game/room
+import ../game/actor
 import ../game/motors/alphato
 import ../game/motors/rotateto
 import ../game/motors/moveto
@@ -267,6 +268,19 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.hotspot = rect(left.int32, top.int32, (right-left).int32, (top-bottom).int32)
     result = 0
 
+proc objectLit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Specifies whether the object is affected by lighting elements.
+  ## Note: this is currently used for actor objects, but can also be used for room objects.
+  ## Lighting background flat art would be hard and probably look odd. 
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object or actor")
+  var lit = false
+  if SQ_FAILED(get(v, 3, lit)):
+    return sq_throwerror(v, "failed to get lit")
+  obj.lit = lit
+  0
+
 proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the object to the specified location over the time period specified.
   ## 
@@ -458,6 +472,8 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
   let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
   var state: SQInteger
   if SQ_FAILED(sq_getinteger(v, 3, state)):
     return sq_throwerror(v, "failed to get state")
@@ -466,7 +482,9 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets if an object is player touchable. 
-  let obj = obj(v, 2)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
   var touchable: SQInteger
   if SQ_FAILED(sq_getinteger(v, 3, touchable)):
     return sq_throwerror(v, "failed to get touchable")
@@ -480,11 +498,32 @@ proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## objectSort(censorBox, 0)   // Will be on top of everything.
-  let obj = obj(v, 2)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
   var zsort: int
   if SQ_FAILED(get(v, 3, zsort)):
     return sq_throwerror(v, "failed to get zsort")
   obj.node.zOrder = zsort
+  0
+
+proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Picks up an object and adds it to the selected actor's inventory.
+  ## The object that appears in the room is not the object you pick up, this is due to the code often needing to be very different when it's held in your inventory, plus inventory objects need icons. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## pickupObject(Dime)
+  var actor: Object
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  if sq_gettop(v) >= 3:
+    actor = actor(v, 3)
+    if actor.isNil:
+      return sq_throwerror(v, "failed to get actor")
+  if actor.isNil:
+    actor = gEngine.actor
+  actor.pickupObject(obj)
   0
 
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -510,6 +549,18 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get state")
   0
 
+proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Globally sets a default object.
+  ## When the player executes the sentence open painting and the painting object has no verbOpen function defined,
+  ## it will call the default object's verbOpen as a fallback, allowing for common failure phrase like "I can't open that.".
+  ## The default object can be changed at anytime, so different selectable characters can have different default responses. 
+  if gEngine.defaultObj.objType != OT_NULL:
+    discard sq_release(gVm.v, gEngine.defaultObj)
+  if SQ_FAILED(sq_getstackobj(v, 2, gEngine.defaultObj)):
+    return sq_throwerror(v, "failed to get default object")
+  sq_addref(gVm.v, gEngine.defaultObj)
+  0
+
 proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
   ## 
@@ -528,6 +579,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectHotspot, "objectHotspot")
+  v.regGblFun(objectLit, "objectLit")
   v.regGblFun(objectMoveTo, "objectMoveTo")
   v.regGblFun(objectOffset, "objectOffset")
   v.regGblFun(objectOffsetTo, "objectOffsetTo")
@@ -542,4 +594,6 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")
+  v.regGblFun(pickupObject, "pickupObject")
   v.regGblFun(playObjectState, "playObjectState")
+  v.regGblFun(setDefaultObject, "setDefaultObject")

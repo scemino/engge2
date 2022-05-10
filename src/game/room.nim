@@ -76,6 +76,7 @@ type
     animName: string
     walkTo*: Motor
     talking*: Motor
+    blink*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
@@ -100,6 +101,9 @@ type
     talkOffset*: Vec2i
     exec*: Sentence
     animNames*: Table[string, string]
+    lit*: bool
+    owner*: Object
+    inventory*: seq[Object]
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -226,7 +230,7 @@ proc `room=`*(self: Object, room: Room) =
     info fmt"Remove {self.name} from room {oldRoom.name}"
     oldRoom.layer(0).objects.del oldRoom.layer(0).objects.find(self)
     room.layer(0).node.removeChild self.node
-  if not room.isNil:
+  if not room.isNil and not room.layer(0).node.isNil:
     info fmt"Add {self.name} in room {room.name}"
     room.layer(0).objects.add self
     room.layer(0).node.addChild self.node
@@ -305,7 +309,8 @@ proc playCore(self: Object, state: string; loop = false): bool =
     let anim = self.anims[i]
     if anim.name == state:
       info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
-      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
+      if not self.node.parent.isNil:
+        self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
       return true
 
 proc play*(self: Object, state: string; loop = false) =
@@ -513,16 +518,17 @@ proc parseParallax(node: JsonNode): Vec2f =
 proc getNode(node: JsonNode, key: string): Option[JsonNode] =
   if node.hasKey(key): some(node[key]) else: none(JsonNode)
 
-proc parseRoom(self: var RoomParser): Room =
+proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   let jRoom = parseJson(self.input, self.filename)
   let name = jRoom["name"].getStr
   let sheet = jRoom["sheet"].getStr
 
   let roomSize = parseVec2i(jRoom["roomsize"].getStr)
   let height = if jRoom.hasKey "height": jRoom["height"].getInt() else: roomSize.y
-  let fullscreen = jRoom["fullscreen"].getInt
+  let fullscreen = if jRoom.hasKey "fullscreen": jRoom["fullscreen"].getInt else: 0
 
   new(result)
+  result.table = table
   result.name = name
   result.sheet = sheet
   result.height = height.int32
@@ -604,19 +610,19 @@ proc parseRoom(self: var RoomParser): Room =
   result.texture = gResMgr.texture(result.spriteSheet.meta.image)
   result.mergedPolygon = merge(result.walkboxes)
 
-proc parseRoom*(s: Stream, filename: string = ""): Room =
+proc parseRoom*(table: HSQOBJECT, s: Stream, filename: string = ""): Room =
   ## Parses from a stream `s` into a `Room`. `filename` is only needed
   ## for nice error messages.
   ## This closes the stream `s` after it's done.
   var p: RoomParser
   p.open(s, filename)
   try:
-    result = p.parseRoom()
+    result = p.parseRoom(table)
   finally:
     p.close()
 
-proc parseRoom*(buffer: string): Room =
-  result = parseRoom(newStringStream(buffer), "input")
+proc parseRoom*(table: HSQOBJECT, buffer: string): Room =
+  result = parseRoom(table, newStringStream(buffer), "input")
 
 proc objectParallaxLayer*(self: Room, obj: Object, zsort: int) =
   if obj.layer != self.layer(zsort):

@@ -14,6 +14,7 @@ import ../gfx/color
 import resmanager
 import objanim
 import motors/walkto
+import motors/blink
 
 const
   StandAnimName = "stand"
@@ -93,3 +94,18 @@ proc say*(self: Object, texts: seq[string], color: Color) =
   self.talkingState.obj = self
   self.talkingState.color = color
   self.talkingState.say(texts, self)
+
+proc blinkRate*(self: Object, slice: HSlice[float, float]) =
+  if slice.a == 0.0 and slice.b == 0.0:
+    self.blink = nil
+  else:
+    self.blink = newBlink(self, slice)
+
+proc pickupObject*(self: Object, obj: Object) =
+  obj.owner = self
+  self.inventory.add obj
+
+  call("onPickup", [obj.table, self.table])
+
+  if obj.table.rawexists("onPickUp"):
+    obj.table.call("onPickUp", [self.table])

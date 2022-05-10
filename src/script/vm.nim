@@ -88,6 +88,7 @@ proc regConsts*[T](v: HSQUIRRELVM, consts: seq[tuple[k: string, v: T]]) =
     v.regConst(k, val)
 
 proc execNut*(v: HSQUIRRELVM, name, code: string) =
+  info fmt"exec file {name}"
   let top = sq_gettop(v)
   if SQ_FAILED(sq_compilebuffer(v, code, code.len, name, SQTrue)):
     error "Error compiling " & name

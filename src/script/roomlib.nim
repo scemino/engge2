@@ -10,6 +10,7 @@ import ../game/room
 import ../util/tween
 import ../util/easing
 import ../gfx/color
+import ../script/vm
 
 proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## This command is used during the game's boot process. 
@@ -18,13 +19,59 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## `defineRoom` is typically called in the the DefineRooms.nut file which loads and defines every room in the game. 
   var table: HSQOBJECT
   sq_resetobject(table)
-  discard sq_getstackobj(v, 2, table)
+  if SQ_FAILED(sq_getstackobj(v, 2, table)):
+    return sq_throwerror(v, "failed to get room table")
   var name: string
   v.getf(table, "background", name)
-  var room = loadRoom(name)
+  var room = defineRoom(name, table)
   info fmt"define room: {name}"
   gEngine.rooms.add room
-  0
+  push(v, room.table)
+  1
+
+proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Creates a new room called name using the specified template. 
+  ## 
+  ## . code-block:: Squirrel
+  ## for (local room_id = 1; room_id <= HOTEL_ROOMS_PER_FLOOR; room_id++) {
+  ##     local room = definePseudoRoom("HotelRoomA"+((floor_id*100)+room_id), HotelRoomA)
+  ##     local door = floor["hotelHallDoor"+room_id]
+  ##     ...
+  ## }
+  var name: string
+  if SQ_FAILED(get(v, 2, name)):
+    return sq_throwerror(v, "failed to get name")
+  # if this is a pseudo room, we have to clone the table
+  # to have a different instance by room
+  if SQ_FAILED(sq_clone(v, 3)):
+    return sq_throwerror(v, "failed to clone room table")
+  var table: HSQOBJECT
+  sq_resetobject(table)
+  if SQ_FAILED(sq_getstackobj(v, -1, table)):
+    return sq_throwerror(v, "failed to get room table")
+  
+  var room = defineRoom(name, table)
+  info fmt"define room: {name}"
+  gEngine.rooms.add room
+  push(v, room.table)
+  1
+
+proc findRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the room table for the room specified by the string roomName.
+  ## Useful for returning specific pseudo rooms where the name is composed of text and a variable. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## local standardRoom = findRoom("HotelRoomA"+keycard.room_num)
+  var name: string
+  if SQ_FAILED(get(v, 2, name)):
+    return sq_throwerror(v, "failed to get name")
+  for room in gEngine.rooms:
+    if room.name == name:
+      push(v, room.table)
+      return 1
+  warn fmt"Room '{name}' not found"
+  sq_pushnull(v)
+  1
 
 proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the rooms that are in the game currently.
@@ -156,6 +203,8 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
   v.regGblFun(defineRoom, "defineRoom")
+  v.regGblFun(findRoom, "findRoom")
+  v.regGblFun(definePseudoRoom, "definePseudoRoom")
   v.regGblFun(masterRoomArray, "masterRoomArray")
   v.regGblFun(roomActors, "roomActors")
   v.regGblFun(roomFade, "roomFade")

@@ -33,29 +33,31 @@ const
   ScreenWidth = 1280 
   ScreenHeight = 720
 
-type Engine* = ref object of RootObj
-  rand*: Rand
-  randSeed: int64
-  spriteSheets: Table[string, SpriteSheet]
-  textures: Table[string, Texture]
-  v: HSQUIRRELVM
-  rooms*: seq[Room]
-  actors*: seq[Object]
-  actor*: Object
-  room*: Room
-  fade*: Tween[float]
-  callbacks*: seq[Callback]
-  tasks*: seq[Task]
-  threads*: seq[Thread]
-  time*: float # time in seconds
-  audio*: AudioSystem
-  scene*: Scene
-  screen*: Scene
-  cameraPanTo*: Motor
-  inputState*: InputState
-  noun1*: Object
-  hud*: Hud
-  prefs*: Preferences
+type
+  Engine* = ref object of RootObj
+    rand*: Rand
+    randSeed: int64
+    spriteSheets: Table[string, SpriteSheet]
+    textures: Table[string, Texture]
+    v: HSQUIRRELVM
+    rooms*: seq[Room]
+    actors*: seq[Object]
+    actor*: Object
+    room*: Room
+    fade*: Tween[float]
+    callbacks*: seq[Callback]
+    tasks*: seq[Task]
+    threads*: seq[Thread]
+    time*: float # time in seconds
+    audio*: AudioSystem
+    scene*: Scene
+    screen*: Scene
+    cameraPanTo*: Motor
+    inputState*: InputState
+    noun1*: Object
+    hud*: Hud
+    prefs*: Preferences
+    defaultObj*: HSQOBJECT
 
 var gEngine*: Engine
 
@@ -75,6 +77,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
   result.prefs.init()
+  sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.rand = initRand(seed)
@@ -107,15 +110,16 @@ proc getObj(room: Room, name: string): Object =
         if obj.name == name:
           return obj
 
-proc loadRoom*(name: string): Room =
+proc defineRoom*(name: string, table: HSQOBJECT): Room =
   info "load room: " & name
   if name == "Void":
-    result = Room(name: name)
+    result = Room(name: name, table: table)
   else:
-    let content = gGGPackMgr.loadStream(name & ".wimpy").readAll
-    result = parseRoom(content)
-    getf(name, result.table)
-    result.table.setId(newRoomId())
+    var background: string
+    table.getf("background", background)
+    result = Room(name: name, table: table)
+    let content = gGGPackMgr.loadStream(background & ".wimpy").readAll
+    result = parseRoom(table, content)
     for i in 0..<result.layers.len:
       var layer = result.layers[i]
       # create layer node
@@ -130,7 +134,7 @@ proc loadRoom*(name: string): Room =
 
       for obj in layer.objects:
         sq_resetobject(obj.table)
-        getf(gVm.v, result.table, obj.name, obj.table)
+        result.table.getf(obj.name, obj.table)
         
         # check if the object exists in Squirrel VM
         if obj.table.objType == OT_NULL:
@@ -142,7 +146,7 @@ proc loadRoom*(name: string): Room =
 
           # assign an id
           obj.table.setId(newObjId())
-          info fmt"Create object with new table: {obj.name} #{obj.id}"
+          # info fmt"Create object with new table: {obj.name} #{obj.id}"
 
           # assign a name
           sq_pushobject(gVm.v, obj.table)
@@ -171,21 +175,31 @@ proc loadRoom*(name: string): Room =
             var state: int
             obj.table.getf("initState", state)
             obj.setState(state)
+          # is it an inventory object
+          if obj.table.rawexists("icon"):
+            # adds it to the root table
+            info fmt"Add {obj.name} to inventory"
+            setf(rootTbl(gVm.v), obj.name, obj.table)
           obj.setRoom(result)
 
         layerNode.addChild obj.node
 
-        if obj.anims.len > 0:
+        if obj.anims.len > 0 and obj.anims[0].frames.len > 0:
           var ss = obj.getSpriteSheet()
-          var frame = ss.frames[obj.anims[0].frames[0]]
-          var spNode = newSpriteNode(obj.getTexture(), frame)
-          obj.node.addChild spNode
+          if obj.anims[0].frames[0] != "null":
+            var frame = ss.frames[obj.anims[0].frames[0]]
+            var spNode = newSpriteNode(obj.getTexture(), frame)
+            obj.node.addChild spNode
 
     # assign parent node
     for layer in result.layers:
       for obj in layer.objects:
         if obj.parent != "":
           result.getObj(obj.parent).node.addChild(obj.node)
+  
+  # declare the room in the root table
+  result.table.setId(newRoomId())
+  setf(rootTbl(gVm.v), name, result.table)
 
 proc actorExit(self: Engine) =
   if not self.currentActor.isNil and not self.room.isNil:

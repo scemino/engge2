@@ -3,6 +3,9 @@ import room
 import verb
 
 type
+  ActorSlotSelectableMode* = enum
+    asOn = 1
+    asTemporaryUnselectable = 2
   Verb* = object
     id*: VerbId
     image*: string
@@ -29,8 +32,9 @@ type
     actor*: Object
   Hud* = object
     actorSlots*: array[6, ActorSlot]
+    mode*: set[ActorSlotSelectableMode]
   
-proc actorSlot*(self: Hud, actor: Object): ActorSlot =
-  for slot in self.actorSlots:
+proc actorSlot*(self: var Hud, actor: Object): var ActorSlot =
+  for slot in self.actorSlots.mitems:
     if slot.actor == actor:
       return slot

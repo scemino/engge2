@@ -2,6 +2,8 @@ import std/random as rnd
 import std/logging
 import std/strformat
 import std/streams
+import std/strutils
+import std/parseutils
 import sqnim
 import glm
 import squtils
@@ -17,7 +19,31 @@ import ../gfx/graphics
 import ../util/easing
 import ../scenegraph/node
 import ../io/ggpackmanager
+import ../io/textdb
 
+proc getarray(v: HSQUIRRELVM, arr: var seq[HSQOBJECT]) =
+  sq_pushroottable(v)
+  sq_pushnull(v)
+  while SQ_SUCCEEDED(sq_next(v, -2)):
+    var obj: HSQOBJECT
+    discard get(v, -1, obj)
+    arr.add(obj)
+    sq_pop(v, 2)
+  sq_pop(v, 1)
+
+proc arrayShuffle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  if sq_gettype(v, 2) != OT_ARRAY:
+    return sq_throwerror(v, "An array is expected")
+  var arr: seq[HSQOBJECT]
+  getarray(v, arr)
+  shuffle(arr)
+  
+  sq_newarray(v, 0)
+  for obj in arr:
+    push(v, obj)
+    discard sq_arrayappend(v, -2)
+  1
+  
 proc assetExists(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns TRUE if the specified entry exists in the assets.
   var filename: string
@@ -163,8 +189,10 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var filename: string
   if SQ_FAILED(get(v, 2, filename)):
     return sq_throwerror(v, "failed to get filename")
+  info fmt"loadArray: {filename}"
+  let content = gGGPackMgr.loadStream(filename).readAll
   sq_newarray(v, 0)
-  for line in gGGPackMgr.loadStream(filename).lines():
+  for line in content.splitLines:
     sq_pushstring(v, line.cstring, -1)
     discard sq_arrayappend(v, -2)
   1
@@ -317,10 +345,36 @@ proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     table.getf("flags", flags)
   gEngine.hud.actorSlots[actorSlot - 1].verbs[verbSlot] = Verb(id: id.VerbId, image: image, fun: fun, text: text, key: key, flags: flags)
 
+proc strsplit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var text, delimiter: string
+  if SQ_FAILED(get(v, 2, text)):
+    return sq_throwerror(v, "Failed to get text")
+  if SQ_FAILED(get(v, 3, delimiter)):
+    return sq_throwerror(v, "Failed to get delimiter")
+  sq_newarray(v, 0)
+  for tok in text.split(delimiter):
+    push(v, tok)
+    discard sq_arrayappend(v, -2)
+  1
+
+proc translate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var text: string
+  if SQ_FAILED(get(v, 2, text)):
+    return sq_throwerror(v, "Failed to get text")
+  if text.len > 0 and text[0] == '@':
+    var id: int
+    discard parseInt(text, id, 1)
+    push(v, getText(id))
+    1
+  else:
+    push(v, text)
+    1
+
 proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
   ## 
   ## It adds all the general functions in the given Squirrel virtual machine.
+  v.regGblFun(arrayShuffle, "arrayShuffle")
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
   v.regGblFun(cameraInRoom, "cameraInRoom")
@@ -340,4 +394,6 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(randomseed, "randomseed")
   v.regGblFun(screenSize, "screenSize")
   v.regGblFun(setVerb, "setVerb")
+  v.regGblFun(strsplit, "strsplit")
+  v.regGblFun(translate, "translate")
   
