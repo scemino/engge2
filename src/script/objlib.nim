@@ -1,4 +1,5 @@
 import std/strformat, logging
+import std/strutils
 import sqnim
 import glm
 import squtils
@@ -114,6 +115,16 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, isObj)
   1
 
+proc jiggleInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var enabled: bool
+  if SQ_FAILED(get(v, 3, enabled)):
+    return sq_throwerror(v, "failed to get enabled")
+  warn "jiggleInventory not implemented"
+  0
+  
 proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Works exactly the same as playObjectState, but plays the animation as a continuous loop, playing the specified animation. 
   ## 
@@ -516,7 +527,11 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actor: Object
   var obj = obj(v, 2)
   if obj.isNil:
-    return sq_throwerror(v, "failed to get object")
+    var o: HSQOBJECT
+    discard sq_getstackobj(v, 2, o)
+    var name: string
+    o.getf("name", name)
+    return sq_throwerror(v, fmt"failed to get object {o.objType.toHex}, {name}".cstring)
   if sq_gettop(v) >= 3:
     actor = actor(v, 3)
     if actor.isNil:
@@ -570,6 +585,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(deleteObject, "deleteObject")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
+  v.regGblFun(jiggleInventory, "jiggleInventory")
   v.regGblFun(loopObjectState, "loopObjectState")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")

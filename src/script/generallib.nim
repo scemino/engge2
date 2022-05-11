@@ -14,33 +14,31 @@ import ../game/ids
 import ../game/motors/campanto
 import ../game/room
 import ../util/utils
+import ../util/easing
+import ../util/crc
 import ../game/engine
 import ../gfx/graphics
-import ../util/easing
 import ../scenegraph/node
 import ../io/ggpackmanager
 import ../io/textdb
+import ../sys/app
 
-proc getarray(v: HSQUIRRELVM, arr: var seq[HSQOBJECT]) =
-  sq_pushroottable(v)
-  sq_pushnull(v)
-  while SQ_SUCCEEDED(sq_next(v, -2)):
-    var obj: HSQOBJECT
-    discard get(v, -1, obj)
+proc getarray(obj: HSQOBJECT, arr: var seq[HSQOBJECT]) =
+  for o in obj.items:
     arr.add(obj)
-    sq_pop(v, 2)
-  sq_pop(v, 1)
 
 proc arrayShuffle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) != OT_ARRAY:
     return sq_throwerror(v, "An array is expected")
+  var obj: HSQOBJECT
+  discard sq_getstackobj(v, 2, obj)
   var arr: seq[HSQOBJECT]
-  getarray(v, arr)
+  obj.getarray(arr)
   shuffle(arr)
   
   sq_newarray(v, 0)
-  for obj in arr:
-    push(v, obj)
+  for o in arr:
+    push(v, o)
     discard sq_arrayappend(v, -2)
   1
   
@@ -159,6 +157,18 @@ proc cameraPos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.cameraPos())
   1
 
+proc cursorPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns x coordinates of the mouse in screen coordinates.
+  let scrPos = gEngine.winToScreen(mousePos())
+  push(v, scrPos.x)
+  1
+
+proc cursorPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns y coordinates of the mouse in screen coordinates.
+  let scrPos = gEngine.winToScreen(mousePos())
+  push(v, scrPos.y)
+  1
+
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Converts an integer to a char. 
   var value: int
@@ -196,6 +206,10 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_pushstring(v, line.cstring, -1)
     discard sq_arrayappend(v, -2)
   1
+
+proc markProgress(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn fmt"markProgress not implemented"
+  0
 
 proc ord(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Returns the internal int value of x
@@ -256,7 +270,7 @@ proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
         sq_pushobject(v, obj)
         return 1
       i += 1
-    sq_pop(v, 1) # pops the null iterator and array
+    sq_pop(v, 2) # pops the null iterator and array
     sq_pushobject(v, obj)
   else:
     let size = sq_gettop(v)
@@ -301,6 +315,10 @@ proc randomseed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   else:
     sq_throwerror(v, "invalid number of parameters for randomseed")
 
+proc refreshUI(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn fmt"refreshUI not implemented"
+  0
+
 proc screenSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the x and y dimensions of the current screen/window.
   ## 
@@ -326,7 +344,6 @@ proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get verb definitionTable")
   if not sq_istable(table):
     return sq_throwerror(v, "verb definitionTable is not a table")
-  
   var id: int
   var image: string
   var text: string
@@ -343,16 +360,85 @@ proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     table.getf("key", key)
   if table.rawexists("flags"):
     table.getf("flags", flags)
+  info fmt"setVerb {actorSlot}, {verbSlot}, {id}, {text}"
   gEngine.hud.actorSlots[actorSlot - 1].verbs[verbSlot] = Verb(id: id.VerbId, image: image, fun: fun, text: text, key: key, flags: flags)
 
+proc startDialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "startDialog not implemented"
+
+proc strcount(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Counts the occurrences of a substring sub in the string `str`.
+  var str, sub: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  if SQ_FAILED(get(v, 3, sub)):
+    return sq_throwerror(v, "Failed to get sub")
+  push(v, count(str, sub))
+  1
+
+proc strcrc(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Computes the CRC of a specified string `str`.
+  var str: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  push(v, crc32(str).tohex)
+  1
+
+proc strfind(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Searches for sub in s.
+  ## Searching is case-sensitive.
+  ## If sub is not in s, -1 is returned.
+  ## Otherwise the index is returned.
+  var str, sub: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  if SQ_FAILED(get(v, 3, sub)):
+    return sq_throwerror(v, "Failed to get sub")
+  push(v, find(str, sub))
+  1
+
+proc strfirst(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the first character of the given `string`.
+  var str: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  if str.len > 0:
+    push(v, str.substr(0, 1))
+  else:
+    sq_pushnull(v)
+  1
+
+proc strlines(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Splits the string `str` into its containing lines.
+  var str: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  for line in str.splitLines():
+    push(v, line)
+    discard sq_arrayappend(v, -2)
+  1
+
+proc strreplace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Replaces every occurrence of the string sub in s with the string by.
+  var str, sub, by: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  if SQ_FAILED(get(v, 3, sub)):
+    return sq_throwerror(v, "Failed to get sub")
+  if SQ_FAILED(get(v, 4, by)):
+    return sq_throwerror(v, "Failed to get by")
+  push(v, replace(str, sub, by))
+  1
+
 proc strsplit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var text, delimiter: string
-  if SQ_FAILED(get(v, 2, text)):
-    return sq_throwerror(v, "Failed to get text")
+  ## Splits the string `str` into substrings using a string separator.
+  var str, delimiter: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
   if SQ_FAILED(get(v, 3, delimiter)):
-    return sq_throwerror(v, "Failed to get delimiter")
+    return sq_throwerror(v,   "Failed to get delimiter")
   sq_newarray(v, 0)
-  for tok in text.split(delimiter):
+  for tok in str.split(delimiter):
     push(v, tok)
     discard sq_arrayappend(v, -2)
   1
@@ -380,20 +466,31 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(cameraPanTo, "cameraPanTo")
   v.regGblFun(cameraPos, "cameraPos")
+  v.regGblFun(cursorPosX, "cursorPosX")
+  v.regGblFun(cursorPosY, "cursorPosY")
   v.regGblFun(sqChr, "chr")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
   v.regGblFun(is_string, "is_string")
   v.regGblFun(is_table, "is_table")
   v.regGblFun(loadArray, "loadArray")
+  v.regGblFun(markProgress, "markProgress")
   v.regGblFun(ord, "ord")
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")
   v.regGblFun(randomOdds, "randomodds")
   v.regGblFun(randomseed, "randomseed")
+  v.regGblFun(refreshUI, "refreshUI")
   v.regGblFun(screenSize, "screenSize")
   v.regGblFun(setVerb, "setVerb")
+  v.regGblFun(startDialog, "startDialog")
+  v.regGblFun(strcrc, "strcrc")
+  v.regGblFun(strcount, "strcount")
+  v.regGblFun(strfind, "strfind")
+  v.regGblFun(strfirst, "strfirst")
+  v.regGblFun(strlines, "strlines")
+  v.regGblFun(strreplace, "strreplace")
   v.regGblFun(strsplit, "strsplit")
   v.regGblFun(translate, "translate")
   

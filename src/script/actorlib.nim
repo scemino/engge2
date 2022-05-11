@@ -299,7 +299,14 @@ proc actorSlotSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       var actor = actor(v, 2)
       if actor.isNil:
         return sq_throwerror(v, "failed to get actor")
-      gEngine.hud.actorSlot(actor).selectable = selectable
+      var key: string
+      actor.table.getf("_key", key)
+      info fmt"actorSlotSelectable({key}, {selectable})"
+      var slot = gEngine.hud.actorSlot(actor)
+      if slot.isNil:
+        warn fmt"slot for actor {key} not found"
+      else:
+        slot.selectable = selectable
     return 0
   else:
     return sq_throwerror(v, "invalid number of arguments")
@@ -435,6 +442,13 @@ proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getinteger(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
   actor.talkOffset = vec2(x.int32, y.int32)
+
+proc actorUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  warn "actorUsePos not implemented"
+  0
 
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the actor needs to abide by walkboxes or not.
@@ -709,6 +723,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorTalkColors, "actorTalkColors")
   v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
+  v.regGblFun(actorUsePos, "actorUsePos")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")

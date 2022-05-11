@@ -1,5 +1,4 @@
 import std/strformat
-import std/tables
 import std/logging
 import sqnim
 import squtils
@@ -22,7 +21,9 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getstackobj(v, 2, table)):
     return sq_throwerror(v, "failed to get room table")
   var name: string
-  v.getf(table, "background", name)
+  v.getf(table, "name", name)
+  if name.len == 0:
+    v.getf(table, "background", name)
   var room = defineRoom(name, table)
   info fmt"define room: {name}"
   gEngine.rooms.add room

@@ -25,16 +25,21 @@ type
     inventoryBackground*: Color
     retroNormal*: Color
     retroHighlight*: Color
-  ActorSlot* = object
+  ActorSlot* = ref object of RootObj
     verbUiColors*: VerbUiColors
-    verbs*: array[10, Verb]
+    verbs*: array[22, Verb]
     selectable*: bool
     actor*: Object
-  Hud* = object
+  Hud* = ref object of RootObj
     actorSlots*: array[6, ActorSlot]
     mode*: set[ActorSlotSelectableMode]
-  
-proc actorSlot*(self: var Hud, actor: Object): var ActorSlot =
+
+proc newHud*(): Hud =
+  new(result)
+  for i in 0..<result.actorSlots.len:
+    result.actorSlots[i] = ActorSlot()
+
+proc actorSlot*(self: Hud, actor: Object): ActorSlot =
   for slot in self.actorSlots.mitems:
     if slot.actor == actor:
       return slot

@@ -100,8 +100,8 @@
 - [x] cameraPanTo
 - [x] cameraPos
 - [x] chr
-- [ ] cursorPosX
-- [ ] cursorPosY
+- [x] cursorPosX
+- [x] cursorPosY
 - [ ] cutscene
 - [ ] cutsceneOverride
 - [ ] distance
@@ -134,13 +134,12 @@
 - [x] setVerb
 - [ ] startDialog
 - [ ] stopSentence
-- [ ] strcount
-- [ ] strcrc
-- [ ] strfind
-- [ ] strfirst
-- [ ] strlast
-- [ ] strlines
-- [ ] strreplace
+- [x] strcount
+- [x] strcrc
+- [x] strfind
+- [x] strfirst
+- [x] strlines
+- [x] strreplace
 - [x] strsplit
 - [x] translate
 

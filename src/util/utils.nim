@@ -59,6 +59,9 @@ proc actor*(v: HSQUIRRELVM, i: int): Object =
     result = actor(table)
 
 proc obj*(table: HSQOBJECT): Object =
+  for obj in gEngine.inventory:
+    if obj.table == table:
+      return obj
   for actor in gEngine.actors:
     if actor.table == table:
       return actor

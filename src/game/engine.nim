@@ -1,4 +1,4 @@
-import std/[random, streams, tables, sequtils, logging, strformat]
+import std/[random, streams, tables, sequtils, logging, strformat, strutils]
 import sqnim
 import glm
 import room
@@ -58,6 +58,7 @@ type
     hud*: Hud
     prefs*: Preferences
     defaultObj*: HSQOBJECT
+    inventory*: seq[Object]
 
 var gEngine*: Engine
 
@@ -73,6 +74,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.audio = newAudioSystem()
   result.scene = newScene()
   result.screen = newScene()
+  result.hud = newHud()
   result.seedWithTime()
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
@@ -117,9 +119,9 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
   else:
     var background: string
     table.getf("background", background)
-    result = Room(name: name, table: table)
     let content = gGGPackMgr.loadStream(background & ".wimpy").readAll
     result = parseRoom(table, content)
+    result.name = name
     for i in 0..<result.layers.len:
       var layer = result.layers[i]
       # create layer node
@@ -168,18 +170,15 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           obj.table.setId(newObjId())
           info fmt"Create object with existing table: {obj.name} #{obj.id}"
           if obj.table.rawexists("initTouchable"):
+            info fmt"initTouchable {obj.name}"
             obj.table.getf("initTouchable", obj.touchable)
           else:
             obj.touchable = true
           if obj.table.rawexists("initState"):
+            info fmt"initState {obj.name}"
             var state: int
             obj.table.getf("initState", state)
             obj.setState(state)
-          # is it an inventory object
-          if obj.table.rawexists("icon"):
-            # adds it to the root table
-            info fmt"Add {obj.name} to inventory"
-            setf(rootTbl(gVm.v), obj.name, obj.table)
           obj.setRoom(result)
 
         layerNode.addChild obj.node
@@ -197,6 +196,13 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
         if obj.parent != "":
           result.getObj(obj.parent).node.addChild(obj.node)
   
+  # Add inventory object to root table
+  for (k,v) in result.table.pairs:
+    if v.objType == OT_TABLE and v.rawexists("icon"):
+      info fmt"Add {k} to inventory"
+      setf(rootTbl(gVm.v), k, v)
+      gEngine.inventory.add Object(table: v)
+
   # declare the room in the root table
   result.table.setId(newRoomId())
   setf(rootTbl(gVm.v), name, result.table)
@@ -265,7 +271,10 @@ proc enterRoom(self: Engine, room: Room, door: Object = nil) =
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
     self.fade.enabled = false
-    self.exitRoom(room)
+    self.exitRoom(self.room)
+    if not room.isNil:
+      # sets the current room for scripts
+      rootTbl(gVm.v).setf("currentRoom", room.table)
     self.enterRoom(room)
 
 proc findObjAt(self: Engine, pos: Vec2f): Object =
@@ -274,7 +283,7 @@ proc findObjAt(self: Engine, pos: Vec2f): Object =
       if obj.node.visible and obj.objType == otNone and obj.contains(pos):
         return obj
 
-proc winToScreen(self: Engine, pos: Vec2f): Vec2f =
+proc winToScreen*(self: Engine, pos: Vec2f): Vec2f =
   result = (pos / vec2f(appGetWindowSize())) * vec2(1280f, 720f)
   result = vec2(result.x, 720f - result.y)
 

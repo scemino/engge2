@@ -230,7 +230,7 @@ proc `room=`*(self: Object, room: Room) =
     info fmt"Remove {self.name} from room {oldRoom.name}"
     oldRoom.layer(0).objects.del oldRoom.layer(0).objects.find(self)
     room.layer(0).node.removeChild self.node
-  if not room.isNil and not room.layer(0).node.isNil:
+  if not room.isNil and not room.layer(0).isNil and not room.layer(0).node.isNil:
     info fmt"Add {self.name} in room {room.name}"
     room.layer(0).objects.add self
     room.layer(0).node.addChild self.node

@@ -234,14 +234,35 @@ proc getId*(o: HSQOBJECT): int =
   if o.rawexists("_id"):
     getf(gVm.v, o, "_id", result)
 
-proc setf*(o: HSQOBJECT, key: string, obj: HSQOBJECT) =
+template setf*[T](o: HSQOBJECT, key: string, obj: T) =
+  let top = sq_gettop(gVm.v)
   sq_pushobject(gVm.v, o)
-  sq_pushstring(gVm.v, key, -1)
+  sq_pushstring(gVm.v, key.cstring, -1)
   push(gVm.v, obj)
   discard sq_rawset(gVm.v, -3)
+  sq_settop(gVm.v, top)
 
-proc setId*(o: HSQOBJECT, id: int) =
-  sq_pushobject(gVm.v, o)
-  sq_pushstring(gVm.v, "_id", -1)
-  sq_pushinteger(gVm.v, id)
-  discard sq_newslot(gVm.v, -3, false)
+proc setId*(o: HSQOBJECT, id: int) {.inline.} =
+  setf(o, "_id", id)
+
+iterator items*(obj: HSQOBJECT): HSQOBJECT =
+  sq_pushobject(gVm.v, obj)
+  sq_pushnull(gVm.v)
+  while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
+    var obj: HSQOBJECT
+    discard get(gVm.v, -1, obj)
+    yield obj
+    sq_pop(gVm.v, 2)
+  sq_pop(gVm.v, 2)
+
+iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
+  sq_pushobject(gVm.v, obj)
+  sq_pushnull(gVm.v)
+  while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
+    var key: string
+    var obj: HSQOBJECT
+    discard get(gVm.v, -1, obj)
+    discard get(gVm.v, -2, key)
+    yield (key, obj)
+    sq_pop(gVm.v, 2)
+  sq_pop(gVm.v, 2)
