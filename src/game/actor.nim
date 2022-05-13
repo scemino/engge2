@@ -72,8 +72,7 @@ proc setCostume*(self: Object, name, sheet: string) =
   let json = newGGTableDecoder(stream).hash
   self.anims = parseObjectAnimations(json["animations"])
   var path = if sheet.len == 0: json["sheet"].str else: sheet 
-  self.spriteSheet = gResMgr.spritesheet(path)
-  self.texture = gResMgr.texture(self.spriteSheet.meta.image)
+  self.sheet = path
   self.stand()
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =

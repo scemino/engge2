@@ -212,7 +212,7 @@
 - [x] createObject 
 - [x] createTextObject
 - [x] deleteObject
-- [ ] findObjectAt
+- [x] findObjectAt
 - [x] is_object
 - [ ] isInventoryOnScreen
 - [x] isObject
@@ -234,7 +234,7 @@
 - [x] objectMoveTo
 - [x] objectOffset
 - [x] objectOffsetTo
-- [ ] objectOwner
+- [x] objectOwner
 - [x] objectParallaxLayer
 - [ ] objectParent
 - [x] objectPosX

@@ -58,6 +58,16 @@ proc actor*(v: HSQUIRRELVM, i: int): Object =
   if SQ_SUCCEEDED(get(v, i, table)):
     result = actor(table)
 
+iterator objs*(): Object =
+  for obj in gEngine.inventory:
+    yield obj
+  for actor in gEngine.actors:
+    yield actor
+  for room in gEngine.rooms:
+    for layer in room.layers:
+      for o in layer.objects:
+        yield o
+
 proc obj*(table: HSQOBJECT): Object =
   for obj in gEngine.inventory:
     if obj.table == table:

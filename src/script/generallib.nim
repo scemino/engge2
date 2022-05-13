@@ -13,6 +13,7 @@ import ../game/verb
 import ../game/ids
 import ../game/motors/campanto
 import ../game/room
+import ../game/cutscene
 import ../util/utils
 import ../util/easing
 import ../util/crc
@@ -178,6 +179,54 @@ proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, s)
   1
 
+proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let nArgs = sq_gettop(v)
+
+  var env_obj: HSQOBJECT
+  sq_resetobject(env_obj)
+  if SQ_FAILED(sq_getstackobj(v, 1, env_obj)):
+    return sq_throwerror(v, "Couldn't get environment from stack")
+
+  # create thread and store it on the stack
+  discard sq_newthread(gVm.v, 1024)
+  var thread_obj: HSQOBJECT
+  sq_resetobject(thread_obj)
+  if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
+    return sq_throwerror(v, "failed to get coroutine thread from stack")
+
+  # get the closure
+  var closure: HSQOBJECT
+  sq_resetobject(closure)
+  if SQ_FAILED(sq_getstackobj(v, 2, closure)):
+    return sq_throwerror(v, "failed to get cutscene closure")
+
+  # get the cutscene override closure
+  var closureOverride: HSQOBJECT
+  sq_resetobject(closureOverride)
+  if nArgs == 3:
+    if SQ_FAILED(sq_getstackobj(v, 3, closureOverride)):
+      return sq_throwerror(v, "failed to get cutscene override closure")
+
+  let cutscene = newCutscene(v, threadObj, closure, closureOverride, env_obj)
+  gEngine.cutscene = cutscene
+
+  # call the closure in the thread
+  discard cutscene.update(0f)
+  0
+
+proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var name: string
+  if SQ_FAILED(get(v, 2, name)):
+    return sq_throwerror(v, "failed to get name")
+  var defaultValue: HSQOBJECT
+  sq_resetobject(defaultValue)
+  if sq_gettop(v) == 3:
+    if SQ_FAILED(get(v, 3, defaultValue)):
+      return sq_throwerror(v, "failed to get defaultValue")
+  warn "getPrivatePref not implemented"
+  push(v, defaultValue)
+  1
+
 proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   push(v, sq_gettype(v, 2) in types)
   1
@@ -209,6 +258,10 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc markProgress(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn fmt"markProgress not implemented"
+  0
+
+proc markStat(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn fmt"markStat not implemented"
   0
 
 proc ord(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -331,6 +384,10 @@ proc screenSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var screen = gEngine.room.getScreenSize()
   push(v, screen)
   return 1;
+
+proc setPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "setPrivatePref not implemented"
+  0
 
 proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actorSlot: int
@@ -466,15 +523,18 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(cameraPanTo, "cameraPanTo")
   v.regGblFun(cameraPos, "cameraPos")
+  v.regGblFun(sqChr, "chr")
   v.regGblFun(cursorPosX, "cursorPosX")
   v.regGblFun(cursorPosY, "cursorPosY")
-  v.regGblFun(sqChr, "chr")
+  v.regGblFun(cutscene, "cutscene")
+  v.regGblFun(getPrivatePref, "getPrivatePref")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
   v.regGblFun(is_string, "is_string")
   v.regGblFun(is_table, "is_table")
   v.regGblFun(loadArray, "loadArray")
   v.regGblFun(markProgress, "markProgress")
+  v.regGblFun(markStat, "markStat")
   v.regGblFun(ord, "ord")
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
@@ -483,6 +543,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(randomseed, "randomseed")
   v.regGblFun(refreshUI, "refreshUI")
   v.regGblFun(screenSize, "screenSize")
+  v.regGblFun(setPrivatePref, "setPrivatePref")
   v.regGblFun(setVerb, "setVerb")
   v.regGblFun(startDialog, "startDialog")
   v.regGblFun(strcrc, "strcrc")

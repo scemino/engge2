@@ -33,7 +33,7 @@ proc onTalkieId(self: Talking, id: int): int =
   var idObj: HSQOBJECT
   idObj.objType = OT_INTEGER
   idObj.value.nInteger = id
-  callFunc(result, self.obj.table, "onTalkieID", [idObj])
+  callFunc(self.obj.table, result, "onTalkieID", [idObj])
   if result == 0:
     result = id
 

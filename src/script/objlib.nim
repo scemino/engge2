@@ -33,7 +33,8 @@ proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   
   # get sheet parameter if any
   if numArgs == 3:
-    discard get(v, 2, sheet)
+    if SQ_FAILED(get(v, 2, sheet)):
+      return sq_throwerror(v, "failed to get sheet")
     framesIndex = 3
   
   # get frames parameter if any
@@ -90,6 +91,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Deletes object permanently from the game. 
   ## 
+  ## .. code-block:: Squirrel
   ## local drip = createObject("drip")
   ## local time = 1.5
   ## objectAt(drip, 432, 125)
@@ -99,6 +101,30 @@ proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## deleteObject(drip)
   var obj = obj(v, 2)
   obj.delObject()
+
+proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the object that is at the specified coordinates.
+  ## If there is no object at those coordinates, it returns NULL.
+  ## Used for determining what the player is clicking on now (e.g. for the phone). 
+  ## 
+  ## .. code-block:: Squirrel
+  ## local button = findObjectAt(x,y)
+  ## if (button == null)
+  ##     return NO
+  ## if (objectState(button) == OFF) {
+  ##     if (button == Phone.phoneReceiver) {    ... }
+  ## }
+  var x, y: int
+  if SQ_FAILED(get(v, 2, x)):
+    return sq_throwerror(v, "failed to get x")
+  if SQ_FAILED(get(v, 3, y)):
+    return sq_throwerror(v, "failed to get y")
+  var obj = gEngine.findObjAt(vec2(x.float32,y.float32))
+  if obj.isNil:
+    sq_pushnull(v)
+  else:
+    push(v, obj.table)
+  1
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
@@ -123,6 +149,23 @@ proc jiggleInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 3, enabled)):
     return sq_throwerror(v, "failed to get enabled")
   warn "jiggleInventory not implemented"
+  0
+
+proc jiggleObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Rotate the object around its origin back and forth by the specified amount of pixels.
+  ## See also:
+  ## - `shakeObject`
+  ## - `stopObjectMotors`
+  ## 
+  ## .. code-block:: Squirrel
+  ## jiggleObject(pigeonVan, 0.25)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var amount: float
+  if SQ_FAILED(get(v, 3, amount)):
+    return sq_throwerror(v, "failed to get amount")
+  warn "jiggleObject not implemented"
   0
   
 proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -339,7 +382,7 @@ proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if not obj.moveTo.isNil:
       obj.moveTo.enabled = false
-    obj.node.pos += vec2(x.float32, y.float32)
+    obj.node.offset = vec2(x.float32, y.float32)
   0
 
 proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -374,6 +417,22 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var destPos = vec2(x.float32, y.float32)
     obj.moveTo = newOffsetTo(duration, obj, destPos, interpolation.InterpolationMethod)
   0
+
+proc objectOwner(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the actor who owns the specified object/inventory item.
+  ## If there is no owner, returns false. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectOwner(dime) == currentActor
+  ## !objectOwner(countyMap1)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  if obj.owner.isNil:
+    sq_pushnull(v)
+  else:
+    sq_pushobject(v, obj.owner.table)
+  1
 
 proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the object's layer.
@@ -576,6 +635,16 @@ proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_addref(gVm.v, gEngine.defaultObj)
   0
 
+proc shakeObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var amount: float
+  if SQ_FAILED(get(v, 3, amount)):
+    return sq_throwerror(v, "failed to get amount")
+  warn "shakeObject not implemented"
+  0
+
 proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
   ## 
@@ -583,9 +652,11 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(createObject, "createObject")
   v.regGblFun(createTextObject, "createTextObject")
   v.regGblFun(deleteObject, "deleteObject")
+  v.regGblFun(findObjectAt, "findObjectAt")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
   v.regGblFun(jiggleInventory, "jiggleInventory")
+  v.regGblFun(jiggleObject, "jiggleObject")
   v.regGblFun(loopObjectState, "loopObjectState")
   v.regGblFun(objectAlpha, "objectAlpha")
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
@@ -597,6 +668,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectHotspot, "objectHotspot")
   v.regGblFun(objectLit, "objectLit")
   v.regGblFun(objectMoveTo, "objectMoveTo")
+  v.regGblFun(objectOwner, "objectOwner")
   v.regGblFun(objectOffset, "objectOffset")
   v.regGblFun(objectOffsetTo, "objectOffsetTo")
   v.regGblFun(objectParallaxLayer, "objectParallaxLayer")
@@ -613,3 +685,4 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(pickupObject, "pickupObject")
   v.regGblFun(playObjectState, "playObjectState")
   v.regGblFun(setDefaultObject, "setDefaultObject")
+  v.regGblFun(shakeObject, "shakeObject")

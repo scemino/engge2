@@ -6,6 +6,7 @@ import motor
 import ../room
 import ../objanim
 import ../../util/glmutil
+import ../resmanager
 
 type NodeAnim = ref object of Motor
   node: SpriteNode
@@ -46,7 +47,13 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     newNode = obj.node
 
   if frames.len > 0:
-    result.node = newSpriteNode(obj.getTexture(), frames[0])
+    var spNode: SpriteNode
+    let ss = obj.getSpriteSheet()
+    let frame = frames[0]
+    let texture = gResMgr.texture(ss.meta.image)
+    spNode = newSpriteNode(texture, frame)
+
+    result.node = spNode
     result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
     result.node.visible = not obj.hiddenLayers.contains(anim.name)

@@ -59,6 +59,7 @@ type
     prefs*: Preferences
     defaultObj*: HSQOBJECT
     inventory*: seq[Object]
+    cutscene*: Task
 
 var gEngine*: Engine
 
@@ -187,7 +188,9 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           var ss = obj.getSpriteSheet()
           if obj.anims[0].frames[0] != "null":
             var frame = ss.frames[obj.anims[0].frames[0]]
-            var spNode = newSpriteNode(obj.getTexture(), frame)
+            var ss = obj.getSpriteSheet()
+            var texture = gResMgr.texture(ss.meta.image)
+            var spNode = newSpriteNode(texture, frame)
             obj.node.addChild spNode
 
     # assign parent node
@@ -219,13 +222,13 @@ proc exitRoom(self: Engine, nextRoom: Room) =
     # call room exit function with the next room as a parameter if requested
     let nparams = paramCount(self.v, self.room.table, "exit")
     if nparams == 2:
-      call(self.v, self.room.table, "exit", [nextRoom.table])
+      call(self.room.table, "exit", [nextRoom.table])
     else:
-      call(self.v, self.room.table, "exit")
+      call(self.room.table, "exit")
 
     # delete all temporary objects
-    for layer in self.room.layers.toSeq:
-      for obj in layer.objects:
+    for layer in self.room.layers:
+      for obj in layer.objects.toSeq:
         if obj.temporary:
           obj.delObject()
 
@@ -277,7 +280,7 @@ proc setRoom*(self: Engine, room: Room) =
       rootTbl(gVm.v).setf("currentRoom", room.table)
     self.enterRoom(room)
 
-proc findObjAt(self: Engine, pos: Vec2f): Object =
+proc findObjAt*(self: Engine, pos: Vec2f): Object =
   for layer in gEngine.room.layers:
     for obj in layer.objects:
       if obj.node.visible and obj.objType == otNone and obj.contains(pos):
@@ -361,6 +364,13 @@ proc cancelSentence(actor: Object) =
   if not actor.isNil:
     actor.exec = nil
 
+proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
+  if self.room.table.rawexists("clickedAt"):
+    self.room.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
+    if not result:
+      if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
+        self.actor.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
+
 proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
   # TODO: WIP
   if not self.room.isNil:
@@ -368,17 +378,19 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
     let obj = self.findObjAt(roomPos)
 
     # button right: execute default verb
-    if mbRight in btns and not obj.isNil:
-      if obj.table.rawexists("defaultVerb"):
+    if mbRight in btns:
+      if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
         let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[defVerbId.int].fun
         if obj.table.rawexists(verbName):
           discard execSentence(nil, defVerbId, self.noun1)
     else:
-      # Just clicking on the ground
-      cancelSentence(gEngine.actor)
-      gEngine.actor.walk(room_pos)
+      if not self.clickedAtHandled(roomPos):
+        # Just clicking on the ground
+        cancelSentence(gEngine.actor)
+        if not gEngine.actor.isNil:
+          gEngine.actor.walk(room_pos)
 
   # TODO: call calbacks
 
@@ -399,6 +411,11 @@ proc update(self: Engine) =
   let btns = mouseBtns()
   if btns.len > 0:
     self.clickedAt(scrPos, btns)
+
+  # update cutscene
+  if not self.cutscene.isNil:
+    if self.cutscene.update(elapsed):
+      self.cutscene = nil
 
   # update threads
   for thread in self.threads.toSeq:

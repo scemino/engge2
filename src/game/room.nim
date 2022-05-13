@@ -80,8 +80,7 @@ type
     table*: HSQOBJECT
     touchable*: bool
     r: Room
-    spriteSheet*: SpriteSheet
-    texture*: Texture
+    sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
     facing: Facing
     lockFacing: bool
     facingMap: Table[Facing, Facing]
@@ -176,16 +175,13 @@ proc flip*(facing: Facing): Facing =
 
 # Object
 proc `getSpriteSheet`*(self: Object): SpriteSheet =
-  if self.spriteSheet.isNil:
+  if self.sheet.len == 0:
     self.r.spriteSheet
+  elif self.sheet == "raw":
+    # use raw texture, don't use spritesheet
+    nil
   else:
-    self.spriteSheet
-
-proc `getTexture`*(self: Object): Texture =
-  if self.texture.isNil:
-    self.r.texture
-  else:
-    self.texture
+    gResMgr.spritesheet(self.sheet)
 
 proc `name`*(self: Object): string =
   if self.n.len > 0:
@@ -310,7 +306,9 @@ proc playCore(self: Object, state: string; loop = false): bool =
     if anim.name == state:
       info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
       if not self.node.parent.isNil:
-        self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
+        discard
+        # TODO:
+        #self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
       return true
 
 proc play*(self: Object, state: string; loop = false) =
@@ -377,10 +375,10 @@ proc update*(self: Layer, elapsedSec: float) =
 # Room
 proc getScreenSize*(self: Room): Vec2i =
   case self.height:
-  of 128: vec2(320'i32, 180'i32)
-  of 172: vec2(428'i32, 240'i32)
-  of 256: vec2(640'i32, 360'i32)
-  else: vec2(self.roomSize.x, self.height)
+  of 128: result = vec2(320'i32, 180'i32)
+  of 172: result = vec2(428'i32, 240'i32)
+  of 256: result = vec2(640'i32, 360'i32)
+  else: result = vec2(self.roomSize.x, self.height)
 
 proc roomToScreen*(self: Room, pos: Vec2f): Vec2f =
   let screenSize = self.getScreenSize()
@@ -405,10 +403,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   obj.touchable = true
   obj.r = self
-  # load spritesheet if any
-  if sheet.len > 0:
-    obj.spriteSheet = gResMgr.spritesheet(sheet)
-    obj.texture = gResMgr.texture(obj.spriteSheet.meta.image)
+  obj.sheet = sheet
   
   # create anim if any
   if frames.len > 0:
@@ -425,8 +420,13 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   obj.layer = self.layer(0)
   if obj.anims.len > 0:
     var ss = obj.getSpriteSheet()
-    var frame = ss.frames[obj.anims[0].frames[0]]
-    var spNode = newSpriteNode(obj.getTexture(), frame)
+    var spNode: SpriteNode
+    if ss.isNil:
+      spNode = newSpriteNode(gResMgr.texture(obj.anims[0].frames[0]))
+    else:
+      let frame = ss.frames[obj.anims[0].frames[0]]
+      let texture = gResMgr.texture(ss.meta.image)
+      spNode = newSpriteNode(texture, frame)
     obj.node.addChild spNode
 
   # play state

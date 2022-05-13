@@ -141,7 +141,7 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     warn "thread not found: " & $id
     return 0
 
-  breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = thread(id).isNil)
+  breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not thread(id).isNil)
 
 proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.

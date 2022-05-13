@@ -181,20 +181,20 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
-proc callFunc*[T](v: HSQUIRRELVM, ret: var T, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
+template callFunc*[T](v: HSQUIRRELVM, res: var T, o: HSQOBJECT, name: string; args: openArray[untyped] = []) =
   sq_pushobject(v, o)
   sq_pushstring(v, name, -1)
   discard sq_get(v, -2)
 
   sq_pushobject(v, o)
   for arg in args:
-    sq_pushobject(v, arg)
+    push(v, arg)
   discard sq_call(v, 1 + args.len, SQTrue, SQTrue)
-  discard get(v, -1, ret)
+  discard get(v, -1, res)
   sq_pop(v, 1)
 
-proc callFunc*[T](ret: var T, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
-  callFunc(gVm.v, ret, o, name, args)
+template callFunc*[T](o: HSQOBJECT, res: var T, name: string; args: openArray[untyped] = []) =
+  gVm.v.callFunc(res, o, name, args)
 
 proc call*(o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
   call(gVm.v, o, name, args)

@@ -14,7 +14,7 @@ proc newCallback*(duration: float, name: string, args: seq[HSQOBJECT]): Callback
   result = Callback(id: newCallbackId(), name: name, args: args, duration: duration)
 
 proc call(self: Callback) =
-  gVm.v.call(gVm.v.rootTbl(), self.name, self.args)
+  call(self.name, self.args)
 
 proc update*(self: Callback, elapsed: float): bool =
   self.elapsed += elapsed
