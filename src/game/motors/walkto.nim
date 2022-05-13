@@ -6,7 +6,7 @@ import motor
 import ../engine
 import ../verb
 import ../room
-import ../../util/utils
+import ../../util/vecutils
 import ../../script/squtils
 import ../../scenegraph/node
 

@@ -123,3 +123,36 @@ proc getClosestPointOnEdge*(self: Walkbox, p3: Vec2f) : Vec2f =
   if u > 1:
     return vec2(x2, y2)
   return vec2(xu, yu)
+
+proc contains*(self: Walkbox, pos: Vec2f, toleranceOnOutside = true): bool =
+  ## Indicates whether or not the specified position is inside this walkbox.
+  var point = pos
+  const epsilon = 1.0f
+
+  # Must have 3 or more edges
+  if self.polygon.len < 3:
+    return false
+
+  var oldPoint = vec2f(self.polygon[^1])
+  var oldSqDist = distanceSquared(oldPoint, point)
+
+  for nPoint in self.polygon:
+    let newPoint = vec2(nPoint)
+    let newSqDist = distanceSquared(newPoint, point)
+
+    if oldSqDist + newSqDist + 2.0f * sqrt(oldSqDist * newSqDist) - distanceSquared(newPoint, oldPoint) < epsilon:
+      return toleranceOnOutside;
+
+    var left, right: Vec2f
+    if newPoint.x > oldPoint.x:
+      left = oldPoint
+      right = newPoint
+    else:
+      left = newPoint
+      right = oldPoint
+
+    if left.x < point.x and point.x <= right.x and (point.y - left.y) * (right.x - left.x) < (right.y - left.y) * (point.x - left.x):
+      result = not result
+
+    oldPoint = newPoint
+    oldSqDist = newSqDist

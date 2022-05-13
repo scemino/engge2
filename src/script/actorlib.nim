@@ -7,7 +7,9 @@ import vm
 import ../game/engine
 import ../game/actor
 import ../game/hud
+import ../game/walkbox
 import ../util/utils
+import ../util/vecutils
 import ../game/room
 import ../gfx/color
 import ../gfx/graphics
@@ -239,6 +241,59 @@ proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 3, hidden)):
     return sq_throwerror(v, "failed to get hidden")
   actor.node.visible = hidden == 0
+
+proc actorInTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns an array of all the actors that are currently within a specified trigger box.
+  ## 
+  ## . code-block:: Squirrel
+  ## local stepsArray = triggerActors(AStreet.bookStoreLampTrigger)
+  ## if (stepsArray.len()) {    // someone's on the steps
+  ## }
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var obj = obj(v, 3)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  let inside = obj.contains(actor.node.pos)
+  push(v, inside)
+  1
+
+proc actorInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns true if the specified actor is inside the specified walkbox from the wimpy file. 
+  ## 
+  ## . code-block:: Squirrel
+  ## sheriffsOfficeJailDoor =
+  ## {
+  ##     name = "jail door"
+  ##     actorInWalkbox(currentActor, "jail")
+  ##     verbOpen = function()
+  ##     {
+  ##         if (jail_door_state == OPEN) {
+  ##             sayLine("The door is already open.")
+  ##         } else {
+  ##             if (actorInWalkbox(currentActor, "jail")) {
+  ##                 sayLine("I can't open it from in here.")
+  ##                 return
+  ##             } else {
+  ##                startthread(openJailDoor)
+  ##             }
+  ##         }
+  ##     }
+  ## }
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var name: string
+  if SQ_FAILED(get(v, 3, name)):
+    return sq_throwerror(v, "failed to get name")
+  for walkbox in gEngine.room.walkboxes:
+    if walkbox.name == name:
+      if walkbox.contains(actor.node.pos):
+        push(v, true)
+        return 1
+  push(v, false)
+  1
 
 proc actorRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actor = actor(v, 2)
@@ -472,6 +527,61 @@ proc actorVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get volume")
   actor.volume = volume
 
+proc actorWalkForward(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Gets the specified actor to walk forward the distance specified.
+  ## 
+  ## . code-block:: Squirrel
+  ## script sheriffOpening2() {
+  ##     cutscene(@() {
+  ##         actorAt(sheriff, CityHall.spot1)
+  ##         actorWalkForward(currentActor, 50)
+  ##         ...
+  ##     }
+  ## }
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  var dist: int
+  if SQ_FAILED(get(v, 3, dist)):
+    return sq_throwerror(v, "failed to get dist")
+  var dir: Vec2i
+  case actor.getFacing():
+  of FACE_FRONT:
+    dir = vec2(0'i32, -dist.int32)
+  of FACE_BACK:
+    dir = vec2(0'i32, dist.int32)
+  of FACE_LEFT:
+    dir = vec2(-dist.int32, 0'i32)
+  of FACE_RIGHT:
+    dir = vec2(dist.int32, 0'i32)
+  actor.walk(actor.node.pos + vec2f(dir))
+  0
+
+proc actorWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns true if the specified actor is currently walking.
+  ## If no actor is specified, then returns true if the current player character is walking.
+  ## 
+  ## . code-block:: Squirrel
+  ## script _startWriting() {
+  ##    if (!actorWalking(this)) {
+  ##        if (notebookOpen == NO) {
+  ##            actorPlayAnimation(reyes, "start_writing", NO)
+  ##            breaktime(0.30)
+  ##        }
+  ##        ...
+  ##    }
+  ##}
+  let nArgs = sq_gettop(v)
+  var actor: Object
+  if nArgs == 1:
+    actor = gEngine.actor
+  elif nArgs == 2:
+    actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  push(v, actor.isWalking())
+  1
+
 proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the walk speed of an actor.
   ## 
@@ -619,6 +729,15 @@ proc isActorOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, isOnScreen)
   1
 
+proc isActorSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  let slot = gEngine.hud.actorSlot(actor)
+  let selectable = if slot.isNil: false else: slot.selectable
+  push(v, selectable)
+  1
+
 proc is_actor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, returns true otherwise returns false.
   var actor = actor(v, 2)
@@ -651,6 +770,23 @@ proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## The UI will change to reflect the new actor and their inventory. 
   gEngine.setCurrentActor obj(v, 2)
   0
+
+proc triggerActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns an array of all the actors that are currently within a specified trigger box.
+  ## 
+  ## . code-block:: Squirrel
+  ## local stepsArray = triggerActors(AStreet.bookStoreLampTrigger)
+  ## if (stepsArray.len()) {    // someone's on the steps
+  ## }
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  sq_newarray(v, 0)
+  for actor in gEngine.actors:
+    if obj.contains(actor.node.pos):
+      sq_pushobject(v, actor.table)
+      discard sq_arrayappend(v, -2)
+  1
 
 proc verbUIColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actorSlot: int
@@ -701,6 +837,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   ## Registers the game actor library
   ## 
   ## It adds all the actor functions in the given Squirrel virtual machine.
+  v.regGblFun(actorAnimationNames, "actorAnimationNames")
   v.regGblFun(actorAlpha, "actorAlpha")
   v.regGblFun(actorAt, "actorAt")
   v.regGblFun(actorBlinkRate, "actorBlinkRate")
@@ -711,6 +848,8 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorFace, "actorFace")
   v.regGblFun(actorHidden, "actorHidden")
   v.regGblFun(actorHideLayer, "actorHideLayer")
+  v.regGblFun(actorInTrigger, "actorInTrigger")
+  v.regGblFun(actorInWalkbox, "actorInWalkbox")
   v.regGblFun(actorLockFacing, "actorLockFacing")
   v.regGblFun(actorPlayAnimation, "actorPlayAnimation")
   v.regGblFun(actorPosX, "actorPosX")
@@ -726,16 +865,19 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorUsePos, "actorUsePos")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")
+  v.regGblFun(actorWalking, "actorWalking")
+  v.regGblFun(actorWalkForward, "actorWalkForward")
   v.regGblFun(actorWalkSpeed, "actorWalkSpeed")
   v.regGblFun(actorWalkTo, "actorWalkTo")
   v.regGblFun(addSelectableActor, "addSelectableActor")
   v.regGblFun(createActor, "createActor")
   v.regGblFun(is_actor, "is_actor")
   v.regGblFun(isActorOnScreen, "isActorOnScreen")
+  v.regGblFun(isActorSelectable, "isActorSelectable")
   v.regGblFun(mumbleLine, "mumbleLine")
   v.regGblFun(masterActorArray, "masterActorArray")
   v.regGblFun(sayLine, "sayLine")
   v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")
-  v.regGblFun(actorAnimationNames, "actorAnimationNames")
+  v.regGblFun(triggerActors, "triggerActors")
   v.regGblFun(verbUIColors, "verbUIColors")

@@ -49,8 +49,8 @@
 - [x] actorFace
 - [x] actorHidden
 - [x] actorHideLayer
-- [ ] actorInTrigger
-- [ ] actorInWalkbox
+- [x] actorInTrigger
+- [x] actorInWalkbox
 - [x] actorLockFacing
 - [x] actorPlayAnimation
 - [x] actorPosX
@@ -68,15 +68,15 @@
 - [ ] actorUsePos
 - [x] actorUseWalkboxes
 - [x] actorVolume
-- [ ] actorWalking
-- [ ] actorWalkForward
+- [x] actorWalking
+- [x] actorWalkForward
 - [x] actorWalkSpeed
 - [x] actorWalkTo
 - [x] addSelectableActor
 - [x] createActor
 - [ ] flashSelectableActor
 - [x] isActorOnScreen
-- [ ] isActorSelectable
+- [x] isActorSelectable
 - [x] is_actor
 - [x] masterActorArray
 - [x] mumbleLine
@@ -84,7 +84,7 @@
 - [ ] sayLineAt
 - [x] selectActor
 - [ ] stopTalking
-- [ ] triggerActors
+- [x] triggerActors
 - [x] verbUIColors
 
 ## General

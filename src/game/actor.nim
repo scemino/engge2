@@ -9,9 +9,7 @@ import room
 import ids
 import ../script/squtils
 import ../io/ggpackmanager
-import ../gfx/spritesheet
 import ../gfx/color
-import resmanager
 import objanim
 import motors/walkto
 import motors/blink
@@ -99,6 +97,9 @@ proc blinkRate*(self: Object, slice: HSlice[float, float]) =
     self.blink = nil
   else:
     self.blink = newBlink(self, slice)
+
+proc isWalking*(self: Object): bool =
+  self.walkTo.isNil or not self.walkTo.enabled
 
 proc pickupObject*(self: Object, obj: Object) =
   obj.owner = self
