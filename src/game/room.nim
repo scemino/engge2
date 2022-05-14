@@ -61,26 +61,26 @@ type
     obj*: Object
     color*: Color
   Object* = ref object of RootObj
-    n: string
-    usePos*: Vec2f
-    useDir*: Direction
-    hotspot*: Recti
-    objType*: ObjectType
-    anims*: seq[ObjectAnimation]
+    n: string                     ## name of the object
+    usePos*: Vec2f                ## use position
+    useDir*: Direction            ## use direction
+    hotspot*: Recti               ## hotspot
+    objType*: ObjectType          ## object type: prop, trigger, object, spot
+    sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
+    nodeAnim*: Motor
+    animLoop: bool
+    animName: string
+    anims*: seq[ObjectAnimation]  
     state: int
     alphaTo*: Motor
     rotateTo*: Motor
     moveTo*: Motor
-    nodeAnim*: Motor
-    animLoop: bool
-    animName: string
     walkTo*: Motor
     talking*: Motor
     blink*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
-    sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
     facing: Facing
     lockFacing: bool
     facingMap: Table[Facing, Facing]
@@ -103,6 +103,8 @@ type
     lit*: bool
     owner*: Object
     inventory*: seq[Object]
+    icons: seq[string]
+    iconFps: int
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -139,6 +141,14 @@ proc facing*(dir: Direction): Facing =
 
 proc getUsePos*(self: Object): Vec2f =
   self.node.pos + self.usePos
+
+proc setIcon*(self: Object, fps: int, icons: seq[string]) =
+  self.icons = icons
+  self.iconFps = fps
+  # TODO: finish set icon
+
+proc setIcon*(self: Object, icon: string) =
+  self.setIcon(0, @[icon])
 
 proc getScaling*(self: Scaling, yPos: float32): float32 =
   if self.values.len == 0:

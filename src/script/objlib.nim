@@ -8,10 +8,13 @@ import ../game/engine
 import ../game/ids
 import ../game/room
 import ../game/actor
+import ../game/verb
+import ../game/hud
 import ../game/motors/alphato
 import ../game/motors/rotateto
 import ../game/motors/moveto
 import ../game/motors/offsetto
+import ../game/motors/scaleto
 import ../util/utils
 import ../util/easing
 import ../gfx/color
@@ -322,6 +325,41 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.hotspot = rect(left.int32, top.int32, (right-left).int32, (top-bottom).int32)
     result = 0
 
+proc objectIcon(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Used for inventory object, it changes the object's icon to be the new one specified.
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectIcon(obj, "glowing_spell_book")
+  ## objectIcon(obj, "spell_book")
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  case sq_gettype(v, 3):
+  of OT_STRING:
+    var icon: string
+    if SQ_FAILED(get(v, 3, icon)):
+      return sq_throwerror(v, "failed to get icon")
+    obj.setIcon(icon)
+    return 0
+  of OT_ARRAY:
+    var icon: string
+    var icons: seq[string]
+    var fps: int
+    sq_push(v, 3)
+    sq_pushnull(v) # null iterator
+    if SQ_SUCCEEDED(sq_next(v, -2)):
+      discard get(v, -1, fps)
+      sq_pop(v, 2)
+    while SQ_SUCCEEDED(sq_next(v, -2)):
+      discard get(v, -1, icon)
+      icons.add(icon)
+      sq_pop(v, 2)
+    sq_pop(v, 2)  # pops the null iterator and object
+    obj.setIcon(fps, icons)
+    return 0
+  else:
+    return sq_throwerror(v, "invalid argument type")
+
 proc objectLit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the object is affected by lighting elements.
   ## Note: this is currently used for actor objects, but can also be used for room objects.
@@ -445,6 +483,17 @@ proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.room.objectParallaxLayer(obj, layer)
   0
 
+proc objectParent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get child")
+  var parent = obj(v, 3)
+  if parent.isNil:
+    return sq_throwerror(v, "failed to get parent")
+  obj.parent = parent.name
+  parent.node.addChild obj.node
+  0
+
 proc objectPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the x-coordinate of the given object or actor.
   var obj = obj(v, 2)
@@ -519,6 +568,21 @@ proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   obj.node.scale = vec2(scale.float32, scale.float32)
   0
 
+proc objectScaleTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var obj = obj(v, 2)
+  if not obj.isNil:
+    var scale = 0.0
+    if SQ_FAILED(get(v, 3, scale)):
+      return sq_throwerror(v, "failed to get scale")
+    var duration = 0.0
+    if SQ_FAILED(get(v, 4, duration)):
+      return sq_throwerror(v, "failed to get duration")
+    var interpolation = 0
+    if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
+      interpolation = 0
+    obj.rotateTo = newScaleTo(duration, obj.node, scale, interpolation.InterpolationMethod)
+  0
+
 proc objectScreenSpace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the object in the screen space.
   ## It means that its position is relative to the screen, not to the room.
@@ -576,6 +640,86 @@ proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get zsort")
   obj.node.zOrder = zsort
   0
+
+proc objectUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets the location an actor will stand at when interacting with this object.
+  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectUsePos(popcornObject, -13, 0, FACE_RIGHT)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var x, y, dir: int
+  if SQ_FAILED(get(v, 3, x)):
+    return sq_throwerror(v, "failed to get x")
+  if SQ_FAILED(get(v, 4, y)):
+    return sq_throwerror(v, "failed to get y")
+  if SQ_FAILED(get(v, 5, dir)):
+    return sq_throwerror(v, "failed to get direction")
+  obj.usePos = vec2f(x.float32, y.float32)
+  obj.useDir = dir.Direction
+  0
+
+proc objectUsePosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the x of the object's use position. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectUsePosX(dimeLoc)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  push(v, obj.usePos.x)
+  1
+
+proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the y of the object's use position. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## objectUsePosY(dimeLoc)
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  push(v, obj.usePos.y)
+  1
+
+proc objectValidUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns true if the object's use position has been set (ie is not 0,0). 
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  let pos = vec2i(obj.usePos)
+  push(v, pos != vec2i(0,0))
+  1
+
+proc objectValidVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns true if this object has a verb function for the specified verb.
+  ## Mostly used for testing when trying to check interactions.
+  ## Verb options are: VERB_WALKTO, VERB_LOOKAT, VERB_PICKUP, VERB_OPEN, VERB_CLOSE, VERB_PUSH, VERB_PULL, VERB_TALKTO.
+  ## Cannot use DEFAULT_VERB because that is not a real verb to the system. 
+  ## 
+  ## .. code-block:: Squirrel
+  ## if (objectValidVerb(obj, VERB_PICKUP)) {
+  ##    logAction("PickUp", obj)
+  ##    pushSentence(VERB_PICKUP, obj)
+  ##    tries = 0
+  ##}
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object or actor")
+  var verb: int
+  if SQ_FAILED(get(v, 3, verb)):
+    return sq_throwerror(v, "failed to get verb")
+  
+  let verbId = verb.VerbId
+  if not gEngine.actor.isNil:
+    for vb in gEngine.hud.actorSlot(gEngine.actor).verbs:
+      if vb.id == verbId:
+        if obj.table.rawexists(vb.fun):
+          push(v, true)
+          return 1
+  push(v, false)
+  1
 
 proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Picks up an object and adds it to the selected actor's inventory.
@@ -666,22 +810,30 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectHotspot, "objectHotspot")
+  v.regGblFun(objectIcon, "objectIcon")
   v.regGblFun(objectLit, "objectLit")
   v.regGblFun(objectMoveTo, "objectMoveTo")
   v.regGblFun(objectOwner, "objectOwner")
   v.regGblFun(objectOffset, "objectOffset")
   v.regGblFun(objectOffsetTo, "objectOffsetTo")
   v.regGblFun(objectParallaxLayer, "objectParallaxLayer")
+  v.regGblFun(objectParent, "objectParent")
   v.regGblFun(objectPosX, "objectPosX")
   v.regGblFun(objectPosY, "objectPosY")
   v.regGblFun(objectRoom, "objectRoom")
   v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
   v.regGblFun(objectScale, "objectScale")
+  v.regGblFun(objectScaleTo, "objectScaleTo")
   v.regGblFun(objectScreenSpace, "objectScreenSpace")
   v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")
+  v.regGblFun(objectUsePos, "objectUsePos")
+  v.regGblFun(objectUsePosX, "objectUsePosX")
+  v.regGblFun(objectUsePosY, "objectUsePosY")
+  v.regGblFun(objectValidUsePos, "objectValidUsePos")
+  v.regGblFun(objectValidVerb, "objectValidVerb")
   v.regGblFun(pickupObject, "pickupObject")
   v.regGblFun(playObjectState, "playObjectState")
   v.regGblFun(setDefaultObject, "setDefaultObject")

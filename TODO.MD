@@ -229,14 +229,14 @@
 - [x] objectFPS
 - [x] objectHidden
 - [x] objectHotspot
-- [ ] objectIcon
+- [x] objectIcon
 - [x] objectLit
 - [x] objectMoveTo
 - [x] objectOffset
 - [x] objectOffsetTo
 - [x] objectOwner
 - [x] objectParallaxLayer
-- [ ] objectParent
+- [x] objectParent
 - [x] objectPosX
 - [x] objectPosY
 - [ ] objectRenderOffset
@@ -244,17 +244,17 @@
 - [x] objectRotate
 - [x] objectRotateTo
 - [x] objectScale
-- [ ] objectScaleTo
+- [x] objectScaleTo
 - [x] objectScreenSpace
 - [ ] objectShader
 - [x] objectSort
 - [x] objectState
 - [x] objectTouchable
-- [ ] objectUsePos
-- [ ] objectUsePosX
-- [ ] objectUsePosY
-- [ ] objectValidUsePos
-- [ ] objectValidVerb
+- [x] objectUsePos
+- [x] objectUsePosX
+- [x] objectUsePosY
+- [x] objectValidUsePos
+- [x] objectValidVerb
 - [x] pickupObject
 - [ ] pickupReplacementObject
 - [x] playObjectState
