@@ -499,10 +499,22 @@ proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.talkOffset = vec2(x.int32, y.int32)
 
 proc actorUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var usePos: Vec2f
   var actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
-  warn "actorUsePos not implemented"
+  var obj = obj(v, 3)
+  if obj.isNil:
+    usePos = vec2(0f, 0f)
+  else:
+    usePos = obj.usePos
+  if sq_gettop(v) == 4:
+    var dir: int
+    if SQ_FAILED(get(v, 4, dir)):
+      return sq_throwerror(v, "failed to get direction")
+    else:
+      actor.useDir = dir.Direction
+  actor.usePos = usePos
   0
 
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =

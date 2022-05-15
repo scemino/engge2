@@ -65,7 +65,7 @@
 - [x] actorTalking
 - [x] actorTalkOffset
 - [ ] actorTurnTo
-- [ ] actorUsePos
+- [x] actorUsePos
 - [x] actorUseWalkboxes
 - [x] actorVolume
 - [x] actorWalking
