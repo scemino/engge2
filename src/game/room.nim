@@ -126,6 +126,7 @@ type
     numLights*: int                ## Number of lights
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
+    rotateTo*: Motor
   RoomParser = object
     input: Stream
     filename: string
@@ -676,6 +677,7 @@ proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
   self.pathFinder.calculatePath(frm, to)
 
 proc update*(self: Room, elapsedSec: float) = 
+  self.rotateTo.updateMotor(elapsedSec)
   for layer in self.layers.mitems:
     layer.update(elapsedSec)
 

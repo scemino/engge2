@@ -6,6 +6,7 @@ import squtils
 import ../util/utils
 import ../game/engine
 import ../game/overlayto
+import ../game/motors/rotateto
 import ../game/room
 import ../util/tween
 import ../util/easing
@@ -290,6 +291,23 @@ proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.tasks.add overlayTo
   0
 
+proc roomRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var room = room(v, 2)
+  if room.isNil:
+    return sq_throwerror(v, "failed to get room")
+  var rotation: float
+  if SQ_FAILED(get(v, 3, rotation)):
+    return sq_throwerror(v, "failed to get rotation")
+  room.rotateTo = newRotateTo(0.200f, room.scene, rotation, imLinear)
+  0
+
+proc roomSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var room = room(v, 2)
+  if room.isNil:
+    return sq_throwerror(v, "failed to get room")
+  push(v, room.roomSize)
+  1
+
 proc walkboxHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets walkbox to be hidden (YES) or not (NO).
   ## If the walkbox is hidden, the actors cannot walk to any point within that area anymore, nor to any walkbox that's connected to it on the other side from the actor.
@@ -323,6 +341,8 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(roomActors, "roomActors")
   v.regGblFun(roomFade, "roomFade")
   v.regGblFun(roomLayer, "roomLayer")
+  v.regGblFun(roomRotateTo, "roomRotateTo")
+  v.regGblFun(roomSize, "roomSize")
   v.regGblFun(roomOverlayColor, "roomOverlayColor")
   v.regGblFun(walkboxHidden, "walkboxHidden")
   

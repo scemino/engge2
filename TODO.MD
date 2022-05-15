@@ -170,8 +170,8 @@
 - [x] roomFade
 - [x] roomLayer
 - [x] roomOverlayColor
-- [ ] roomRotateTo
-- [ ] roomSize
+- [x] roomRotateTo
+- [x] roomSize
 - [x] walkboxHidden
 
 ## System

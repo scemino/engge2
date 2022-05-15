@@ -116,7 +116,7 @@ proc thread*(v: HSQUIRRELVM, i: int): Thread =
 
 proc light*(id: int): Light =
   if not gEngine.room.isNil:
-    for i in 0..<room.numLights:
+    for i in 0..<gEngine.room.numLights:
       if gEngine.room.lights[i].id == id:
         return gEngine.room.lights[i]
 
