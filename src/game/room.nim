@@ -106,6 +106,7 @@ type
     inventory*: seq[Object]
     icons: seq[string]
     iconFps: int
+    enter*, leave*: HSQOBJECT
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -122,11 +123,13 @@ type
     overlay*: Color               ## Color of the overlay
     scene*: Scene                 ## This is the scene representing the hierarchy of a room
     entering: bool                ## indicates whether or not an actor is entering this room
-    lights*: array[50, Light]      ## Lights of the room
-    numLights*: int                ## Number of lights
+    lights*: array[50, Light]     ## Lights of the room
+    numLights*: int               ## Number of lights
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
     rotateTo*: Motor
+    triggers*: seq[Object]        ## Triggers currently enabled in the room
+    trigger*: Object               ## Trigger where the current actor is
   RoomParser = object
     input: Stream
     filename: string

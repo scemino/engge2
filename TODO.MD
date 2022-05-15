@@ -146,7 +146,7 @@
 ## Room
 
 - [x] addCallback
-- [ ] addTrigger
+- [x] addTrigger
 - [ ] clampInWalkbox
 - [x] createLight
 - [x] lightBrightness
@@ -159,12 +159,12 @@
 - [x] lightZRange
 - [x] definePseudoRoom
 - [x] defineRoom
-- [ ] enableTrigger
-- [ ] enterRoomFromDoor
+- [x] enableTrigger
+- [x] enterRoomFromDoor
 - [x] findRoom
 - [x] masterRoomArray
 - [x] removeCallback
-- [ ] removeTrigger
+- [x] removeTrigger
 - [x] roomActors
 - [ ] roomEffect
 - [x] roomFade

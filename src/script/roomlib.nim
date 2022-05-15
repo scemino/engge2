@@ -13,6 +13,20 @@ import ../util/easing
 import ../gfx/color
 import ../script/vm
 
+proc addTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let nArgs = sq_gettop(v)
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  sq_resetobject(obj.enter)
+  sq_resetobject(obj.leave)
+  if SQ_FAILED(get(v, 3, obj.enter)):
+    return sq_throwerror(v, "failed to get enter")
+  if nArgs == 4:
+    if SQ_FAILED(get(v, 4, obj.leave)):
+      return sq_throwerror(v, "failed to get leave")
+  0
+
 proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var color: int
   if SQ_FAILED(get(v, 2, color)):
@@ -26,6 +40,26 @@ proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = gEngine.room.createLight(rgba(color), vec2(x.int32, y.int32))
   push(v, light.id)
   1
+
+proc enableTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var enabled: bool
+  if SQ_FAILED(get(v, 3, enabled)):
+    return sq_throwerror(v, "failed to get enabled")
+  if enabled:
+    gEngine.room.triggers.add obj
+  else:
+    gEngine.room.triggers.del gEngine.room.triggers.find obj
+  0
+
+proc enterRoomFromDoor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  gEngine.enterRoom(obj.room, obj)
+  return 0
 
 proc lightBrightness(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
@@ -196,6 +230,24 @@ proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard sq_arrayappend(v, -2)
   1
 
+proc removeTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  if sq_gettype(v, 2) == OT_CLOSURE:
+    var closure: HSQOBJECT
+    sq_resetobject(closure)
+    if SQ_FAILED(get(v, 3, closure)):
+      return sq_throwerror(v, "failed to get closure")
+    for i in 0..<gEngine.room.triggers.len:
+      let trigger = gEngine.room.triggers[i]
+      if trigger.enter == closure or trigger.leave == closure:
+        gEngine.room.triggers.del i
+        return 0
+  else:
+    let obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object")
+    gEngine.room.triggers.del gEngine.room.triggers.find(obj)
+    return 0
+
 proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the actors in the specified room.
   ## 
@@ -325,9 +377,11 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
+  v.regGblFun(addTrigger, "addTrigger")
   v.regGblFun(createLight, "createLight")
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(definePseudoRoom, "definePseudoRoom")
+  v.regGblFun(enableTrigger, "enableTrigger")
   v.regGblFun(findRoom, "findRoom")
   v.regGblFun(lightBrightness, "lightBrightness")
   v.regGblFun(lightConeAngle, "lightConeAngle")
@@ -338,6 +392,7 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(lightTurnOn, "lightTurnOn")
   v.regGblFun(lightZRange, "lightZRange")
   v.regGblFun(masterRoomArray, "masterRoomArray")
+  v.regGblFun(removeTrigger, "removeTrigger")
   v.regGblFun(roomActors, "roomActors")
   v.regGblFun(roomFade, "roomFade")
   v.regGblFun(roomLayer, "roomLayer")

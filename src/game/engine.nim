@@ -217,6 +217,8 @@ proc actorExit(self: Engine) =
 
 proc exitRoom(self: Engine, nextRoom: Room) =
   if not self.room.isNil:
+    self.room.triggers.setLen 0
+
     self.actorExit()
 
     # call room exit function with the next room as a parameter if requested
@@ -251,7 +253,7 @@ proc actorEnter(self: Engine) =
       if rawExists(self.room.table, "actorEnter"):
         call(self.v, self.room.table, "actorEnter", [self.currentActor.table])
 
-proc enterRoom(self: Engine, room: Room, door: Object = nil) =
+proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
   self.room = room
@@ -397,6 +399,34 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
 
   # TODO: call calbacks
 
+proc callTrigger(self: Engine, trigger: HSQOBJECT) =
+  if trigger.objType != OT_NULL:
+    var nParams, nfreevars: int
+    sq_pushobject(gVm.v, trigger)
+    discard sq_getclosureinfo(gVm.v, -1, nParams, nfreevars)
+    if nParams == 2:
+      sq_pushobject(gVm.v, trigger)
+      sq_pushobject(gVm.v, self.room.trigger.table)
+      sq_pushobject(gVm.v, self.actor.table)
+    elif nParams == 1:
+      sq_pushobject(gVm.v, trigger)
+      sq_pushobject(gVm.v, self.room.trigger.table)
+    if SQ_FAILED(sq_call(gVm.v, nParams, SQFalse, SQTrue)):
+      error fmt"failed to call room {self.room.name} trigger"
+
+proc updateTriggers(self: Engine) =
+  if not self.actor.isNil:
+    if not self.room.trigger.isNil:
+      if not self.room.trigger.contains(self.actor.node.pos):
+        self.callTrigger(self.room.trigger.leave)
+        self.room.trigger = nil
+    else:
+      for trigger in self.room.triggers:
+        if trigger.contains(self.actor.node.pos):
+          self.room.trigger = trigger
+          self.callTrigger(self.room.trigger.enter)
+          return
+
 proc update(self: Engine) =
   let elapsed = 1/60
   self.time += elapsed
@@ -450,6 +480,8 @@ proc update(self: Engine) =
   # update actors
   for actor in self.actors.mitems:
     actor.update(elapsed)
+
+  self.updateTriggers()
 
 proc clampPos(self: Engine, at: Vec2f): Vec2f =
   var screenSize = self.room.getScreenSize()
