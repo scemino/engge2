@@ -23,6 +23,7 @@ import resmanager
 import walkbox
 import graph
 import verb
+import light
 
 const 
   GONE = 4
@@ -121,6 +122,8 @@ type
     overlay*: Color               ## Color of the overlay
     scene*: Scene                 ## This is the scene representing the hierarchy of a room
     entering: bool                ## indicates whether or not an actor is entering this room
+    lights*: array[50, Light]      ## Lights of the room
+    numLights*: int                ## Number of lights
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
   RoomParser = object
@@ -149,6 +152,17 @@ proc setIcon*(self: Object, fps: int, icons: seq[string]) =
 
 proc setIcon*(self: Object, icon: string) =
   self.setIcon(0, @[icon])
+
+proc getIcon*(self: Object): string =
+  if self.icons.len > 0:
+    result = self.icons[0]
+  else:
+    if self.table.objType == OT_NULL:
+      warn "object table is null"
+    else:
+      self.table.getf("icon", result)
+      self.icons.add result
+      info fmt"object icon is {result}"
 
 proc getScaling*(self: Scaling, yPos: float32): float32 =
   if self.values.len == 0:
@@ -664,3 +678,10 @@ proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
 proc update*(self: Room, elapsedSec: float) = 
   for layer in self.layers.mitems:
     layer.update(elapsedSec)
+
+proc createLight*(self: Room, color: Color, pos: Vec2i): Light = 
+  var light = self.lights[self.numLights]
+  self.numLights += 1
+  light.color = color
+  light.pos = pos
+  return light

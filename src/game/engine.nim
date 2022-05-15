@@ -1,4 +1,4 @@
-import std/[random, streams, tables, sequtils, logging, strformat, strutils]
+import std/[random, streams, tables, sequtils, logging, strformat]
 import sqnim
 import glm
 import room
@@ -239,6 +239,9 @@ proc exitRoom(self: Engine, nextRoom: Room) =
     for thread in self.threads:
       if not thread.global:
         thread.stop()
+    
+    # stop all lights
+    self.room.numLights = 0
 
 proc actorEnter(self: Engine) =
   if not self.currentActor.isNil:
@@ -470,7 +473,7 @@ proc drawHud*(self: Engine) =
 
     # draw UI backing
     var frame = gameSheet.frames["ui_backing"]
-    let texture = gResMgr.texture(gameSheet.meta.image)
+    var texture = gResMgr.texture(gameSheet.meta.image)
     let uiBackingColor = rgbaf(0f, 0f, 0f, 0.33f)
     gfxDrawSprite(frame.frame / texture.size, texture, uiBackingColor)
 
@@ -479,9 +482,10 @@ proc drawHud*(self: Engine) =
     var verbTexture = gResMgr.texture(verbSheet.meta.image)
     for i in 1..<actorSlot.verbs.len:
       let verb = actorSlot.verbs[i]
-      let verbFrame = verbSheet.frames[fmt"{verb.image}_en"]
-      var pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
-      gfxDrawSprite(pos, verbFrame.frame / verbTexture.size, verbTexture, actorSlot.verbUiColors.verbNormal)
+      if verb.image.len > 0:
+        let verbFrame = verbSheet.frames[fmt"{verb.image}_en"]
+        var pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
+        gfxDrawSprite(pos, verbFrame.frame / verbTexture.size, verbTexture, actorSlot.verbUiColors.verbNormal)
 
     # draw scroll up
     frame = gameSheet.frames["scroll_up"]
@@ -494,17 +498,39 @@ proc drawHud*(self: Engine) =
     gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.verbNormal)
 
     # draw inventory background
-    let startOffsetX = ScreenWidth/2f + frame.sourceSize.x.float32 + 4
+    let startOffsetX = ScreenWidth/2f + frame.sourceSize.x.float32 + 4f
     var offsetX = startOffsetX
     frame = gameSheet.frames["inventory_background"]
+    # draw first inventory row
     for i in 1..4:
-      pos = vec2(offsetX, frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32 + 4f)
-      gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.inventoryBackground)
+      var node = newSpriteNode(texture, frame)
+      node.color = actorSlot.verbUiColors.inventoryBackground
+      node.pos = vec2f(offsetX, 8f)
+      node.setAnchorNorm(vec2(0f, 1f))
+      node.draw()
       offsetX += frame.sourceSize.x.float32 + 4f
     offsetX = startOffsetX
+    # draw second inventory row
     for i in 1..4:
-      pos = vec2(offsetX, 2*frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32 + 8f)
-      gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.inventoryBackground)
+      var node = newSpriteNode(texture, frame)
+      node.color = actorSlot.verbUiColors.inventoryBackground
+      node.pos = vec2f(offsetX, 4f)
+      node.setAnchorNorm(vec2(0f, 0f))
+      node.draw()
+      offsetX += frame.sourceSize.x.float32 + 4f
+    
+    # draw inventory objects
+    offsetX = startOffsetX + frame.sourceSize.x.float32 / 2f
+    let itemsSheet = gResMgr.spritesheet("InventoryItems")
+    texture = gResMgr.texture(itemsSheet.meta.image)
+    for i in 0..<self.actor.inventory.len:
+      let icon = self.actor.inventory[i].getIcon()
+      let frame2 = itemsSheet.frames[icon]
+      var node = newSpriteNode(texture, frame2)
+      node.pos = vec2f(offsetX, 0f)
+      node.setAnchorNorm(vec2(0.5f, 1f))
+      node.scale = vec2(4f, 4f)
+      node.draw()
       offsetX += frame.sourceSize.x.float32 + 4f
 
 proc render*(self: Engine) =

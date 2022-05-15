@@ -1,5 +1,6 @@
 import std/strformat
 import std/logging
+import glm
 import sqnim
 import squtils
 import ../util/utils
@@ -10,6 +11,109 @@ import ../util/tween
 import ../util/easing
 import ../gfx/color
 import ../script/vm
+
+proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var color: int
+  if SQ_FAILED(get(v, 2, color)):
+    return sq_throwerror(v, "failed to get color")
+  var x: int
+  if SQ_FAILED(get(v, 3, x)):
+    return sq_throwerror(v, "failed to get x")
+  var y: int
+  if SQ_FAILED(get(v, 4, y)):
+    return sq_throwerror(v, "failed to get y")
+  let light = gEngine.room.createLight(rgba(color), vec2(x.int32, y.int32))
+  push(v, light.id)
+  1
+
+proc lightBrightness(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var brightness: float
+  if SQ_FAILED(get(v, 3, brightness)):
+    return sq_throwerror(v, "failed to get brightness")
+
+  light.brightness = brightness
+  0
+
+proc lightConeDirection(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var direction: float
+  if SQ_FAILED(get(v, 3, direction)):
+    return sq_throwerror(v, "failed to get direction")
+
+  light.coneDirection = direction
+  0
+
+proc lightConeAngle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var angle: float
+  if SQ_FAILED(get(v, 3, angle)):
+    return sq_throwerror(v, "failed to get angle")
+
+  light.coneAngle = angle
+  0
+
+proc lightConeFalloff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var falloff: float
+  if SQ_FAILED(get(v, 3, falloff)):
+    return sq_throwerror(v, "failed to get falloff")
+
+  light.coneFalloff = falloff
+  0
+
+proc lightCutOffRadius(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var cutOffRadius: float
+  if SQ_FAILED(get(v, 3, cutOffRadius)):
+    return sq_throwerror(v, "failed to get cutOffRadius")
+
+  light.cutOffRadius = cutOffRadius
+  0
+
+proc lightHalfRadius(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var halfRadius: float
+  if SQ_FAILED(get(v, 3, halfRadius)):
+    return sq_throwerror(v, "failed to get halfRadius")
+
+  light.halfRadius = halfRadius
+  0
+
+proc lightTurnOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var on: bool
+  if SQ_FAILED(get(v, 3, on)):
+    return sq_throwerror(v, "failed to get on")
+
+  light.on = on
+  0
+
+proc lightZRange(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let light = light(v, 2)
+  if light.isNil:
+    return sq_throwerror(v, "failed to get light")
+  var nearY, farY: int
+  if SQ_FAILED(get(v, 3, nearY)):
+    return sq_throwerror(v, "failed to get nearY")
+  if SQ_FAILED(get(v, 4, farY)):
+    return sq_throwerror(v, "failed to get farY")
+  warn "lightZRange not implemented"
+  0
 
 proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## This command is used during the game's boot process. 
@@ -203,9 +307,18 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
+  v.regGblFun(createLight, "createLight")
   v.regGblFun(defineRoom, "defineRoom")
-  v.regGblFun(findRoom, "findRoom")
   v.regGblFun(definePseudoRoom, "definePseudoRoom")
+  v.regGblFun(findRoom, "findRoom")
+  v.regGblFun(lightBrightness, "lightBrightness")
+  v.regGblFun(lightConeAngle, "lightConeAngle")
+  v.regGblFun(lightConeDirection, "lightConeDirection")
+  v.regGblFun(lightConeFalloff, "lightConeFalloff")
+  v.regGblFun(lightCutOffRadius, "lightCutOffRadius")
+  v.regGblFun(lightHalfRadius, "lightHalfRadius")
+  v.regGblFun(lightTurnOn, "lightTurnOn")
+  v.regGblFun(lightZRange, "lightZRange")
   v.regGblFun(masterRoomArray, "masterRoomArray")
   v.regGblFun(roomActors, "roomActors")
   v.regGblFun(roomFade, "roomFade")

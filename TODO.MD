@@ -148,7 +148,15 @@
 - [x] addCallback
 - [ ] addTrigger
 - [ ] clampInWalkbox
-- [ ] createLight, lightBrightness, lightConeDirection, lightConeAngle, lightConeFalloff, lightCutOffRadius, lightHalfRadius, lightTurnOn, lightZRange
+- [x] createLight
+- [x] lightBrightness
+- [x] lightConeAngle
+- [x] lightConeDirection
+- [x] lightConeFalloff
+- [x] lightCutOffRadius
+- [x] lightHalfRadius
+- [x] lightTurnOn
+- [x] lightZRange
 - [x] definePseudoRoom
 - [x] defineRoom
 - [ ] enableTrigger

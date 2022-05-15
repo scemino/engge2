@@ -2,6 +2,7 @@ import std/sequtils
 import sqnim
 import ../game/engine
 import ../game/room
+import ../game/light
 import ../game/thread
 import ../script/squtils
 import ../util/easing
@@ -112,6 +113,17 @@ proc thread*(v: HSQUIRRELVM, i: int): Thread =
   var id: int
   if SQ_SUCCEEDED(get(v, i, id)):
     result = thread(id)
+
+proc light*(id: int): Light =
+  if not gEngine.room.isNil:
+    for i in 0..<room.numLights:
+      if gEngine.room.lights[i].id == id:
+        return gEngine.room.lights[i]
+
+proc light*(v: HSQUIRRELVM, i: int): Light =
+  var id: int
+  if SQ_SUCCEEDED(get(v, i, id)):
+    result = light(id)
 
 proc easing*(easing: int): easing_func =
   case easing and 7:

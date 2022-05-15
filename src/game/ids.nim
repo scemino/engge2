@@ -24,6 +24,7 @@ var
   gSoundId = START_SOUNDID
   gThreadId = START_THREAD_ID
   gCallbackId = START_CALLBACKID
+  gLightId = START_LIGHTID
 
 proc isBetween(id: int, startId, endId: int): bool {.inline.} =
   id >= startId and id < endId
@@ -42,6 +43,9 @@ proc isObject*(id: int): bool =
 
 proc isSound*(id: int): bool =
   isBetween(id, START_SOUNDID, END_SOUNDID)
+
+proc isLight*(id: int): bool =
+  isBetween(id, START_LIGHTID, END_LIGHTID)
 
 proc newRoomId*(): int =
   result = gRoomId
@@ -70,3 +74,7 @@ proc newThreadId*(): int =
 proc newCallbackId*(): int =
   result = gCallbackId
   gCallbackId += 1
+
+proc newLightId*(): int =
+  result = gLightId
+  gLightId += 1
