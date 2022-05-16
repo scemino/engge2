@@ -1,5 +1,5 @@
 type Task* = ref object of RootObj
   name*: string
 
-method update*(self: Task, elapsed: float): bool {.base.} =
+method update*(self: Task, elapsed: float): bool {.base, locks: "unknown".} =
   discard

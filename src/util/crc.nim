@@ -1,5 +1,3 @@
-import strutils
-
 func createCrcTable(): array[0..255, uint32] =
   for i in 0.uint32..255.uint32:
     var rem = i
@@ -18,4 +16,5 @@ func crc32*(input: string): uint32 =
   result = not result
 
 when isMainModule:
+  import strutils
   doAssert crc32("The quick brown fox jumps over the lazy dog.").toHex == "519025E9"

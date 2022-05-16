@@ -2,7 +2,6 @@ import glm
 import motor
 import ../../util/tween
 import ../../util/easing
-import ../../util/utils
 import ../../util/vecutils
 import ../../game/engine
 import ../../game/room

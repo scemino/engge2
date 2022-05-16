@@ -17,15 +17,15 @@ proc newGGPackFileSystemManager*(root: string, directories: varargs[string]): GG
   
 var gGGPackMgr*: GGPackManager
 
-method loadStream*(self: GGPackManager, path: string): Stream {.base.} =
+method loadStream*(self: GGPackManager, path: string): Stream {.base, locks: "unknown".} =
   # override this base method
   raise newException(CatchableError, "Method without implementation override")
 
-method listFiles*(self: GGPackManager): seq[string] {.base.} =
+method listFiles*(self: GGPackManager): seq[string] {.base, locks: "unknown".} =
   # override this base method
   raise newException(CatchableError, "Method without implementation override")
 
-method assetExists*(self: GGPackManager, entry: string): bool {.base.} =
+method assetExists*(self: GGPackManager, entry: string): bool {.base, locks: "unknown".} =
   # override this base method
   raise newException(CatchableError, "Method without implementation override")
 

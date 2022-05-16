@@ -52,7 +52,7 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var arg: HSQOBJECT
     sq_resetobject(arg)
     if SQ_FAILED(sq_getstackobj(v, i, arg)):
-      return sq_throwerror(v, "failed to get argument " & $i)
+      return sq_throwerror(v, fmt"failed to get argument {i}".cstring)
     args.add(arg)
 
   let callback = newCallback(duration, methodName, args)
