@@ -1,6 +1,6 @@
 # TODO
 
-* [ ] dear imgui
+* [x] dear imgui
 * [x] actor costume
 * [x] actor animations
 * [x] actor walking

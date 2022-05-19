@@ -1,0 +1,40 @@
+name: C/C++ CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Download Submodules
+      run: |
+        git submodule update --init --recursive
+
+    - name: Generate CMake Project
+      run: |
+        mkdir bld
+        cd bld
+        cmake -D CIMGUI_TEST=1 ..
+
+    - name: Make and Test
+      env:
+        GITHUB_OS: ${{ matrix.os }}
+      shell: bash
+      working-directory: bld
+      run: |
+        if [ "$GITHUB_OS" == "windows-latest" ]; then
+          export PATH=$MSBUILD_PATH:$PATH
+          "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" cimgui.sln
+        else
+          make
+        fi
+        if [ "$GITHUB_OS" == "windows-latest" ]; then
+          ./Debug/cimgui_test.exe
+        else
+          ./cimgui_test
+        fi

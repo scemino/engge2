@@ -1,9 +1,13 @@
 import glm
 import sdl2
 import sdl2/mixer
-import ../sys/opengl
 import ../gfx/graphics
 import ../sys/input
+import ../libs/opengl
+import ../libs/imgui/impl_sdl2
+import ../libs/imgui/impl_opengl
+# don't know why I need to include this, this is the only place where I can use igXXX methods
+include debug
 
 type
   MouseButtonFlag* = enum
@@ -15,6 +19,7 @@ type
 # global variables
 var w: WindowPtr
 var glContext: GlContextPtr
+var gContext: ptr ImGuiContext
 var close = false
 var appOnDrop: proc (paths: seq[string])
 var appOnKey: proc (key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey)
@@ -49,6 +54,12 @@ proc init*(title = "", size = vec2(1280, 720)) =
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+  gContext = igCreateContext()
+  discard igSdl2InitForOpenGL(w)
+  discard igOpenGL3Init()
+
+  igStyleColorsDark()
+
   gfxInit()
 
   var wi, he: cint
@@ -61,19 +72,19 @@ proc toInputKey(key: cint): InputKey =
 proc toInputModifierKey(modifier: Keymod): InputModifierKey =
   case modifier:
   of KMOD_LSHIFT, KMOD_RSHIFT:
-    Shift
+    InputModifierKey.Shift
   of KMOD_LCTRL, KMOD_RCTRL:
-    Control
+    InputModifierKey.Control
   of KMOD_LALT, KMOD_RALT:
-    Alt
+    InputModifierKey.Alt
   of KMOD_LGUI, KMOD_RGUI:
-    Super
+    InputModifierKey.Super
   of KMOD_CAPS:
-    CapsLock
+    InputModifierKey.CapsLock
   of KMOD_NUM:
-    NumLock
+    InputModifierKey.NumLock
   else:
-    None
+    InputModifierKey.None
 
 proc run*(render: proc()) =
   var e: Event
@@ -95,10 +106,24 @@ proc run*(render: proc()) =
           appOnMouseMove(vec2f(mouse.x.float32, mouse.y.float32))
       else: discard
 
+      discard igSdl2ProcessEvent(e)
+
     # render scene
+    igOpenGL3NewFrame()
+    igSdl2NewFrame()
+    igNewFrame()
+
+    imguiRender()
     render()
 
+    igRender()
+    igOpenGL3RenderDrawData(igGetDrawData())
+
     glSwapWindow(w)
+
+  igOpenGL3Shutdown()
+  igSdl2Shutdown()
+  igDestroyContext(gContext)
 
   w.destroyWindow()
   mixer.closeAudio()

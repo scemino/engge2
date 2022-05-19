@@ -1,4 +1,4 @@
-import ../sys/opengl
+import ../libs/opengl
 import glm
 import shader
 import glutils

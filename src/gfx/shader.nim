@@ -1,4 +1,4 @@
-import ../sys/opengl
+import ../libs/opengl
 import std/[logging, strutils, strformat]
 import glm
 import glutils

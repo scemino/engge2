@@ -1,7 +1,7 @@
 import std/strformat
 import glm
 import image
-import ../sys/opengl
+import ../libs/opengl
 
 type Texture* = ref object of RootObj
   id*: GLuint
