@@ -9,6 +9,8 @@ import io/textdb
 import game/eventmanager
 import game/gameeventmanager
 import game/resmanager
+import sys/debugtool
+import sys/tools
 
 proc onKey(key: InputKey, scancode: int32, action: InputAction,
     mods: InputModifierKey) =
@@ -41,15 +43,21 @@ proc runVm() =
   sq_pop(vm.v, 1)
 
 proc main() =
+  # create loggers
   addHandler(newConsoleLogger())
   addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlError))
   addHandler(newRollingFileLogger("ng.log"))
   info("# Welcome to ngnim")
+  addDebugTool(newThreadTool())
+  addDebugTool(newSoundTool())
 
+  # init app
   app.init(title = "engge II")
   app.setKeyCallback(onKey)
 
+  # check if we have game assets
   if fileExists("ThimbleweedPark.ggpack1"):
+    # then start game
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
     gResMgr = newResManager()
     gEventMgr = newGameEventManager()

@@ -17,10 +17,10 @@ type
     vkMusic,
     vkSound,
     vkTalk,
-  AudioChannel = ref object of RootObj
+  AudioChannel* = ref object of RootObj
     id*: cint
-    numLoops: int
-    vol: float
+    numLoops*: int
+    vol*: float
     panning: float
     buffer*: SoundBuffer
   SoundBuffer = ref object of RootObj
@@ -31,15 +31,15 @@ type
     scTalk
   SoundDefinition* = ref object of RootObj
     id*: int            # identifier for this sound
-    name: string        # name of the sound to load
+    name*: string        # name of the sound to load
     buffer: SoundBuffer # buffer containing the sound data
     loaded: bool        # indicates whether or not the sound buffer has been loaded
   SoundId* = ref object of RootObj
     id*: int
     entityId: int
-    sndDef: SoundDefinition
-    cat: SoundCategory
-    chan: AudioChannel
+    sndDef*: SoundDefinition
+    cat*: SoundCategory
+    chan*: AudioChannel
   AudioSystem* = ref object of RootObj
     chans*: array[32, AudioChannel]
     soundDefs*: seq[SoundDefinition]
@@ -85,7 +85,7 @@ proc load(self: SoundDefinition) =
 proc newAudioChannel(channel: Natural): AudioChannel =
   AudioChannel(id: channel.cint, vol: 1.0f)
 
-proc status(self: AudioChannel): AudioStatus =
+proc status*(self: AudioChannel): AudioStatus =
   if mixer.paused(self.id) == 1:
     checkError()
     asPaused

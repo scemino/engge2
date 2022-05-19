@@ -1,6 +1,6 @@
 import ../libs/imgui
+import debugtool
 
 proc imguiRender*() =
-  if igBegin("Debug"):
-    igText("Hellow world")
-  igEnd()
+  for tool in debugTools():
+    tool.render()
