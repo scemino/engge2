@@ -15,7 +15,7 @@ type
     ## If you request a resource, the first time it will be loaded, then it will be in cache.
     ## TODO: I should implement reference counting to free the resource when not used anymore.
     fonts: Table[string, Font]                ## fonts cache
-    textures: Table[string, Texture]          ## textures cache
+    textures*: Table[string, Texture]          ## textures cache
     spritesheets: Table[string, SpriteSheet]  ## SpriteSheets cache
 
 proc newResManager*(): ResManager =

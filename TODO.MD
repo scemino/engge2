@@ -1,6 +1,17 @@
 # TODO
 
-* [x] dear imgui
+* [x] debug tools (dear imgui)
+  * [ ] actors
+  * [ ] camera
+  * [ ] console
+  * [ ] general
+  * [ ] objects
+  * [ ] preferences
+  * [ ] room
+  * [x] textures
+  * [ ] vm
+  * [x] threads
+  * [x] sounds
 * [x] actor costume
 * [x] actor animations
 * [x] actor walking

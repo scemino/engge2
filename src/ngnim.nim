@@ -50,6 +50,7 @@ proc main() =
   info("# Welcome to ngnim")
   addDebugTool(newThreadTool())
   addDebugTool(newSoundTool())
+  addDebugTool(newTextureTool())
 
   # init app
   app.init(title = "engge II")
