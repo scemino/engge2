@@ -51,6 +51,7 @@ proc main() =
   addDebugTool(newThreadTool())
   addDebugTool(newSoundTool())
   addDebugTool(newTextureTool())
+  addDebugTool(newActorTool())
 
   # init app
   app.init(title = "engge II")

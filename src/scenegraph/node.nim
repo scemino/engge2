@@ -29,7 +29,7 @@ method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White
 proc getZSort*(self: Node): int =
   if self.zOrderFunc.isNil: self.zOrder else: self.zOrderFunc()
 
-proc getScale(self: Node): Vec2f =
+proc getScale*(self: Node): Vec2f =
   if self.scaleFunc.isNil:
     self.scale
   else: 

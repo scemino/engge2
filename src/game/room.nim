@@ -89,7 +89,7 @@ type
     parent*: string
     node*: Node
     sayNode*: Node
-    fps*: float
+    fps*: float32
     layer: Layer
     temporary*: bool
     useWalkboxes*: bool
@@ -104,7 +104,7 @@ type
     lit*: bool
     owner*: Object
     inventory*: seq[Object]
-    icons: seq[string]
+    icons*: seq[string]
     iconFps: int
     enter*, leave*: HSQOBJECT
   Room* = ref object of RootObj

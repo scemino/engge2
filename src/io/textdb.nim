@@ -37,6 +37,13 @@ proc initTextDb*() =
 proc getText*(id: int): string =
   gTextDb.getText(id)
 
+proc getText*(text: string): string =
+  if text[0] == '@':
+    var id: int
+    discard parseInt(text, id, 1)
+    return getText(id)
+  return text
+
 when isMainModule:
   var content = "text_id	en\n90000	en\n98000	English\n"
   var ss = newStringStream(content)
