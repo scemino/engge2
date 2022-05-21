@@ -1,5 +1,6 @@
 import std/strutils
 import std/strformat
+import ../../script/vm
 import ../../libs/imgui
 
 type Console* = ref object of RootObj
@@ -46,6 +47,7 @@ proc execCommand(self: Console, cmdline: string) =
       self.addLog(fmt"{i:03}: {self.history[i]}")
   else:
     self.addLog(cmdline)
+    gVm.v.execNut("ng", cmdLine)
 
   # On commad input, we scroll to bottom even if AutoScroll==false
   self.scrollToBottom = true

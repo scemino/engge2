@@ -1,6 +1,5 @@
 import std/logging
 import std/streams
-import std/strformat
 import std/tables
 import sdl2
 import sdl2/mixer
@@ -110,11 +109,11 @@ proc play*(self: AudioChannel; loopTimes = 0; fadeInTimeMs = 0.0) =
     of asStopped:
       self.numLoops = loopTimes
       if fadeInTimeMs == 0:
-        info "playChannel"
+        # info "playChannel"
         discard mixer.playChannel(self.id, self.buffer.chunk, loopTimes.cint)
         checkError()
       else:
-        info "fadeInChannel"
+        # info "fadeInChannel"
         discard mixer.fadeInChannel(self.id, self.buffer.chunk, loopTimes.cint, fadeInTimeMs.cint)
         checkError()
     of asPlaying:
@@ -180,7 +179,7 @@ proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopT
       chan.play(loopTimes, fadeInTimeMs)
       var sound = newSoundId(chan, sndDef, cat)
       self.sounds[chan.id] = sound
-      info fmt"[{chan.id}] loop {loopTimes} {cat} {sndDef.name}"
+      # info fmt"[{chan.id}] loop {loopTimes} {cat} {sndDef.name}"
       return sound
   error "cannot play sound no more channel available"
 
@@ -232,5 +231,5 @@ proc update*(self: AudioSystem) =
     if not soundId.isNil:
       soundId.update(self)
       if soundId.chan.status() == asStopped:
-        info fmt"Sound stopped: ch{soundId.chan.id} #{soundId.id} {soundId.sndDef.name}"
+        # info fmt"Sound stopped: ch{soundId.chan.id} #{soundId.id} {soundId.sndDef.name}"
         self.sounds[soundId.chan.id] = nil

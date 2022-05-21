@@ -38,8 +38,8 @@ proc runVm() =
   else:
     info "Booting with embedded Boot.bnut"
     vm.v.execBnutEntry("Boot.bnut")
-    vm.v.execNut("ng", "cameraInRoom(StartScreen)");
-    # vm.v.execNut("ng", "start(true)");
+    vm.v.execNut("ng", "cameraInRoom(StartScreen)")
+    # vm.v.execNut("ng", "start(true)")
   sq_pop(vm.v, 1)
 
 proc main() =
