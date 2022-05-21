@@ -2,7 +2,9 @@ import tools/threadtool
 import tools/soundtool
 import tools/texturetool
 import tools/actortool
+import tools/consoletool
 export threadtool
 export soundtool
 export texturetool
 export actortool
+export consoletool

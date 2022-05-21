@@ -15,10 +15,10 @@ type Console* = ref object of RootObj
 proc newConsole*(): Console =
   Console(historyPos: -1, commands: @["HELP", "HISTORY", "CLEAR"], autoScroll: true)
 
-proc clearLog(self: Console) =
+proc clearLog*(self: Console) =
   self.items.setLen 0
 
-proc addLog(self: Console, msg: string) =
+proc addLog*(self: Console, msg: string) =
   self.items.add(msg)
 
 proc execCommand(self: Console, cmdline: string) =
