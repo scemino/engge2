@@ -498,6 +498,24 @@ proc actorTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushbool(v, isTalking)
   1
 
+proc actorTurnTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Turn to the pos, dir, object or actor over 2 frames.
+  let actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  if sq_gettype(v, 3) == OT_INTEGER:
+    var facing = 0
+    if SQ_FAILED(get(v, 3, facing)):
+      return sq_throwerror(v, "failed to get facing")
+    actor.turn(facing.Facing)
+  else:
+    let obj = obj(v, 3)
+    if not obj.isNil:
+      return sq_throwerror(v, "failed to get object to face to")
+    let facing = getFacingToFaceTo(actor, obj)
+    actor.turn(facing.Facing)
+  return 0
+
 proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies the offset that will be applied to the actor's speech text that appears on screen.
   var actor = actor(v, 2)
@@ -887,6 +905,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorTalkColors, "actorTalkColors")
   v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
+  v.regGblFun(actorTurnTo, "actorTurnTo")
   v.regGblFun(actorUsePos, "actorUsePos")
   v.regGblFun(actorUseWalkboxes, "actorUseWalkboxes")
   v.regGblFun(actorVolume, "actorVolume")

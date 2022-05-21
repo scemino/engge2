@@ -105,6 +105,11 @@ proc stopWalking*(self: Object) =
   if not self.walkTo.isNil:
     self.walkTo.enabled = false
 
+import motors/turnto
+
+proc turn*(self: Object, facing: Facing) =
+  self.turnTo = newTurnTo(self, facing)
+
 proc pickupObject*(self: Object, obj: Object) =
   obj.owner = self
   self.inventory.add obj

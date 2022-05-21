@@ -79,6 +79,7 @@ type
     walkTo*: Motor
     talking*: Motor
     blink*: Motor
+    turnTo*: Motor
     table*: HSQOBJECT
     touchable*: bool
     r: Room
@@ -280,7 +281,7 @@ proc resetLockFacing*(self: Object) =
   self.facingMap[FACE_BACK] = FACE_BACK
 
 proc trig*(self: Object, name: string) =
-  debug fmt"Trigger object #{self.id} ({self.name}) sound '{name}'"
+  # debug fmt"Trigger object #{self.id} ({self.name}) sound '{name}'"
   var trigNum: int
   if parseInt(name, trigNum, 1) != 0:
     if self.triggers.contains(trigNum):
@@ -322,7 +323,7 @@ proc setFacing*(self: Object, facing: Facing) =
   if self.facing != facing:
     info fmt"set facing: {facing}"
     self.facing = facing
-    if not self.nodeAnim.isNil and self.nodeAnim.enabled:
+    if not self.nodeAnim.isNil:
       self.play(self.animName, self.animLoop)
 
 import ../game/motors/nodeanim
@@ -387,6 +388,7 @@ proc update*(self: Object, elapsedSec: float) =
   self.walkTo.updateMotor(elapsedSec)
   self.talking.updateMotor(elapsedSec)
   self.blink.updateMotor(elapsedSec)
+  self.turnTo.updateMotor(elapsedSec)
 
 proc delObject*(self: Object) =
   if not self.isNil:
