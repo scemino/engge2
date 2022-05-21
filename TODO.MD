@@ -3,7 +3,7 @@
 * [x] debug tools (dear imgui)
   * [ ] actors
   * [ ] camera
-  * [ ] console
+  * [x] console
   * [ ] general
   * [ ] objects
   * [ ] preferences
@@ -23,7 +23,7 @@
   * [x] walk facing
   * [x] final facing
 * [x] lips
-* [ ] blink
+* [x] blink
 * [ ] input
 * [ ] input mapping
 * [x] walkboxes

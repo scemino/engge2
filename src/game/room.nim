@@ -82,7 +82,7 @@ type
     table*: HSQOBJECT
     touchable*: bool
     r: Room
-    facing: Facing
+    facing*: Facing
     lockFacing: bool
     facingMap: Table[Facing, Facing]
     walkSpeed*: Vec2f
@@ -94,7 +94,7 @@ type
     temporary*: bool
     useWalkboxes*: bool
     triggers*: Table[int, Trigger]
-    volume*: float
+    volume*: float32
     hiddenLayers*: seq[string]
     talkingState*: TalkingState
     talkColor*: Color
@@ -336,7 +336,7 @@ proc playCore(self: Object, state: string; loop = false): bool =
       if not self.node.parent.isNil:
         discard
         # TODO:
-        #self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
+        self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
       return true
 
 proc play*(self: Object, state: string; loop = false) =
@@ -386,6 +386,7 @@ proc update*(self: Object, elapsedSec: float) =
   self.nodeAnim.updateMotor(elapsedSec)
   self.walkTo.updateMotor(elapsedSec)
   self.talking.updateMotor(elapsedSec)
+  self.blink.updateMotor(elapsedSec)
 
 proc delObject*(self: Object) =
   if not self.isNil:
