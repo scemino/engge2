@@ -101,6 +101,10 @@ proc blinkRate*(self: Object, slice: HSlice[float, float]) =
 proc isWalking*(self: Object): bool =
   self.walkTo.isNil or not self.walkTo.enabled
 
+proc stopWalking*(self: Object) =
+  if not self.walkTo.isNil:
+    self.walkTo.enabled = false
+
 proc pickupObject*(self: Object, obj: Object) =
   obj.owner = self
   self.inventory.add obj

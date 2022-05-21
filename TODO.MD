@@ -71,7 +71,7 @@
 - [x] actorShowLayer
 - [x] actorSlotSelectable
 - [x] actorStand
-- [ ] actorStopWalking
+- [x] actorStopWalking
 - [x] actorTalkColors
 - [x] actorTalking
 - [x] actorTalkOffset

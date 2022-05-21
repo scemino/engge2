@@ -431,7 +431,7 @@ proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettop(v) >= 4 and SQ_FAILED(get(v, 4, loop)):
     return sq_throwerror(v, "failed to get loop")
   info fmt"Play anim {actor.name} {animation} loop={loop}"
-  # TODO: actor.stopWalking()
+  actor.stopWalking()
   actor.play(animation, loop != 0)
   0
 
@@ -456,6 +456,18 @@ proc actorStand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
+  actor.stand()
+
+proc actorStopWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Makes the specified actor stop moving immediately.
+  ## 
+  ## . code-block:: Squirrel
+  ## actorStopWalking(currentActor)
+  ## actorStopWalking(postalworker)
+  var actor = actor(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  actor.stopWalking()
   actor.stand()
 
 proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -871,6 +883,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorShowLayer, "actorShowLayer")
   v.regGblFun(actorSlotSelectable, "actorSlotSelectable")
   v.regGblFun(actorStand, "actorStand")
+  v.regGblFun(actorStopWalking, "actorStopWalking")
   v.regGblFun(actorTalkColors, "actorTalkColors")
   v.regGblFun(actorTalking, "actorTalking")
   v.regGblFun(actorTalkOffset, "actorTalkOffset")
