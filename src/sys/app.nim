@@ -150,12 +150,14 @@ proc mouseBtns*(): MouseButtonMask =
   var xpos, ypos: cint
   let state = getMouseState(xpos, ypos)
   result = {}
-  if (state and BUTTON_LMASK) != 0:
-    result.incl mbLeft
-  if (state and BUTTON_MMASK) != 0:
-    result.incl mbMiddle
-  if (state and BUTTON_RMASK) != 0:
-    result.incl mbRight
+  let io = igGetIO()
+  if not io.wantCaptureMouse:
+    if (state and BUTTON_LMASK) != 0:
+      result.incl mbLeft
+    if (state and BUTTON_MMASK) != 0:
+      result.incl mbMiddle
+    if (state and BUTTON_RMASK) != 0:
+      result.incl mbRight
 
 proc appQuit*(quit = true) =
   close = quit
