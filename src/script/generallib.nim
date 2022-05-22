@@ -283,6 +283,35 @@ proc ord(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_pushinteger(v, 0)
   1
 
+proc pushSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Executes a verb sentence as though the player had inputted/constructed it themselves.
+  ## You can push several sentences one after the other.
+  ## They will execute in reverse order (it's a stack).
+  let nArgs = sq_gettop(v)
+  var id: int
+  if SQ_FAILED(get(v, 2, id)):
+    return sq_throwerror(v, "Failed to get verb id")
+
+  if id == VERB_DIALOG:
+    var choice: int
+    if SQ_FAILED(get(v, 3, choice)):
+      return sq_throwerror(v, "Failed to get choice")
+    # TODO choose(choice)
+    warn "pushSentence with VERB_DIALOG not implemented"
+    return 0
+
+  var obj1, obj2: Object
+  if nArgs >= 3:
+    obj1 = obj(v, 3);
+    if obj1.isNil:
+      return sq_throwerror(v, "Failed to get obj1")
+  if nArgs == 4:
+    obj2 = obj(v, 4);
+    if obj2.isNil:
+      return sq_throwerror(v, "Failed to get obj2")
+  discard execSentence(nil, id, obj1, obj2)
+  0
+
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns a random number from from to to inclusively.
   ## The number is a pseudo-random number and the game will produce the same sequence of numbers unless primed using randomSeed(seed).
@@ -545,6 +574,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(markProgress, "markProgress")
   v.regGblFun(markStat, "markStat")
   v.regGblFun(ord, "ord")
+  v.regGblFun(pushSentence, "pushSentence")
   v.regGblFun(random, "random")
   v.regGblFun(randomFrom, "randomfrom")
   v.regGblFun(randomOdds, "randomOdds")

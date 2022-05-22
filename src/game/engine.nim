@@ -323,15 +323,14 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
 
 import actor
 
-proc execSentence(actor: Object, verbId: int, noun1: Object; noun2: Object = nil): bool =
+proc execSentence*(actor: Object, verbId: int, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.
   ## If `actor` is `null` then the selectedActor is assumed.
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
   info fmt"exec({name},{verbId.VerbId},{noun1name},{noun2name})"
-  var a = actor
-  if a.isNil: a = gEngine.currentActor
+  var actor = if actor.isNil: gEngine.currentActor else: actor
   if verbId <= 0 and verbId > 13 or noun1.isNil:
     return false
   # TODO
@@ -347,20 +346,20 @@ proc execSentence(actor: Object, verbId: int, noun1: Object; noun2: Object = nil
 
   if noun1.inInventory:
     if noun2.isNil or noun2.inInventory:
-      discard callVerb(a, verbId.VerbId, noun1, noun2)
+      discard callVerb(actor, verbId.VerbId, noun1, noun2)
       return true
   
   if verbNoWalkTo(verbId.VerbId, noun1):
     if not noun1.inInventory: # TODO: test if verb.flags != VERB_INSTANT
-      # TODO: actor.actorTurnTo(noun1)
-      discard callVerb(a, verbId.VerbId, noun1, noun2)
+      actor.turn(noun1)
+      discard callVerb(actor, verbId.VerbId, noun1, noun2)
       return true
 
-  a.exec = newSentence(verbId.VerbId, noun1, noun2)
+  actor.exec = newSentence(verbId.VerbId, noun1, noun2)
   if not inInventory(noun1):
-    a.walk(noun1)
+    actor.walk(noun1)
   else:
-    a.walk(noun2)
+    actor.walk(noun2)
 
 proc cancelSentence(actor: Object) =
   var actor = actor

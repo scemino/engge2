@@ -10,6 +10,6 @@ const
   VERB_PULL = 8
   VERB_GIVE = 9
   VERB_USE = 10
-  VERB_DIALOG = 13
+  VERB_DIALOG* = 13
 type
   VerbId* = int

@@ -118,7 +118,18 @@ proc stopTalking*() =
 
 import motors/turnto
 
+proc getFacingToFaceTo*(actor: Object, obj: Object): Facing =
+  let d = obj.node.pos - actor.node.pos
+  if d.x == 0:
+    result = if d.y > 0: FACE_FRONT else: FACE_BACK
+  else:
+    result = if d.x > 0: FACE_RIGHT else: FACE_LEFT
+
 proc turn*(self: Object, facing: Facing) =
+  self.turnTo = newTurnTo(self, facing)
+
+proc turn*(self: Object, obj: Object) =
+  let facing = self.getFacingToFaceTo(obj)
   self.turnTo = newTurnTo(self, facing)
 
 proc pickupObject*(self: Object, obj: Object) =

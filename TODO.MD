@@ -132,7 +132,7 @@
 - [ ] markProgress
 - [ ] markStat
 - [x] ord
-- [ ] pushSentence
+- [x] pushSentence
 - [x] random
 - [x] randomfrom
 - [x] randomOdds

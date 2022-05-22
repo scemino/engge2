@@ -29,13 +29,6 @@ proc getFacing(dir: int, facing: Facing): Facing =
     return facing
   if dir == 0x10: getOppositeFacing(facing) else: dir.Facing
 
-proc getFacingToFaceTo(actor: Object, obj: Object): Facing =
-  let d = obj.node.pos - actor.node.pos
-  if d.x == 0:
-    result = if d.y > 0: FACE_FRONT else: FACE_BACK
-  else:
-    result = if d.x > 0: FACE_RIGHT else: FACE_LEFT
-
 proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the transparency for an actor's image in [0.0..1.0]
   var actor = obj(v, 2)
@@ -520,8 +513,7 @@ proc actorTurnTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let obj = obj(v, 3)
     if not obj.isNil:
       return sq_throwerror(v, "failed to get object to face to")
-    let facing = getFacingToFaceTo(actor, obj)
-    actor.turn(facing.Facing)
+    actor.turn(obj)
   return 0
 
 proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
