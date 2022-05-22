@@ -122,7 +122,7 @@
 - [ ] in_array
 - [ ] incutscene
 - [ ] indialog
-- [ ] inputVerbs
+- [x] inputVerbs
 - [x] is_array
 - [x] is_function
 - [x] is_string

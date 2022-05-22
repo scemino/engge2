@@ -228,6 +228,13 @@ proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, defaultValue)
   1
 
+proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var on: bool
+  if SQ_FAILED(get(v, 2, on)):
+    return sq_throwerror(v, "failed to get isActive")
+  gEngine.inputState.inputVerbsActive = on
+  1
+
 proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   push(v, sq_gettype(v, 2) in types)
   1
@@ -529,6 +536,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(cursorPosY, "cursorPosY")
   v.regGblFun(cutscene, "cutscene")
   v.regGblFun(getPrivatePref, "getPrivatePref")
+  v.regGblFun(inputVerbs, "inputVerbs")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
   v.regGblFun(is_string, "is_string")

@@ -433,6 +433,7 @@ proc update(self: Engine) =
 
   # update mouse pos
   let scrPos = self.winToScreen(mousePos())
+  self.inputState.node.visible = self.inputState.showCursor
   self.inputState.node.pos = scrPos
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
@@ -499,7 +500,7 @@ proc cameraPos*(self: Engine): Vec2f =
   cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
 proc drawHud*(self: Engine) =
-  if not self.actor.isNil:
+  if not self.actor.isNil and self.inputState.inputHUD:
     let actorSlot = self.hud.actorSlot(self.actor)
     let gameSheet = gResMgr.spritesheet("GameSheet")
 
@@ -575,19 +576,6 @@ proc render*(self: Engine) =
     camera(camSize.x.float32, camSize.y.float32)
     
   self.scene.draw()
-  # if not self.room.isNil:
-    # for wb in self.room.walkboxes:
-    #   var vert: seq[Vertex]
-    #   let color = if wb.visible: Green else: Red
-    #   for pt in wb.polygon:
-    #     vert.add newVertex(pt.x.float32, pt.y.float32, color)
-    #   gfxDrawLineLoop(vert)
-  
-    # var vert: seq[Vertex]
-    # for walkbox in self.room.mergedPolygon:
-    #   for pt in walkbox.polygon:
-    #     vert.add newVertex(pt.x.float32, pt.y.float32, Orange)
-    # gfxDrawLineLoop(vert)
 
   # draw screen
   camera(ScreenWidth, ScreenHeight)

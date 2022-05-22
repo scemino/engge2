@@ -463,6 +463,7 @@ actorVolume(boris, 0.7)
 //  verbNormalTint = 0x4ebbb5, verbHighlightTint = 0x96ece0, 
 //  inventoryFrame = 0x009fdb, inventoryBackground = 0x002432 })
 borisCostume()
+actorBlinkRate(boris, 2.0,5.0)
 
 willie <- { 
   _key = "willie"
