@@ -23,8 +23,8 @@ proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   new(result)
   result.obj = obj
   result.path = obj.room.calculatePath(obj.node.pos, dest)
-  result.enabled = true
   result.facing = facing
+  result.init()
 
 proc min_talk_dist(self: Object): int =
   MIN_TALK_DIST
@@ -101,7 +101,7 @@ method update(self: WalkTo, el: float) =
   if d < 1.0:
     self.path.delete 0
     if self.path.len == 0:
-      self.enabled = false
+      self.disable()
       self.actorArrived()
   else:
     if delta.x > 0.0:

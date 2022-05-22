@@ -13,9 +13,10 @@ proc newOffsetTo*(duration: float, obj: Object, pos: Vec2f, im: InterpolationMet
   new(result)
   result.obj = obj
   result.tween = newTween[Vec2f](obj.node.offset, pos, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: OffsetTo, el: float) =
   self.tween.update(el)
   self.obj.node.offset = self.tween.current()
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

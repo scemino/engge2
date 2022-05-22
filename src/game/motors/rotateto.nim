@@ -12,9 +12,10 @@ proc newRotateTo*(duration: float, node: Node, to: float, im: InterpolationMetho
   assert not node.isNil
   result.node = node
   result.tween = newTween[float](node.rotation, to, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: RotateTo, el: float) =
   self.tween.update(el)
   self.node.rotation = self.tween.current()
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

@@ -39,7 +39,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
   result.frames = frames
   result.frameDuration = 1.0 / newFps
   result.loop = loop or anim.loop
-  result.enabled = true
+  result.init()
 
   var newNode = node
   if node.isNil:
@@ -82,7 +82,7 @@ method update(self: NodeAnim, el: float) =
         self.index = 0
         self.trigSound()
       else:
-        self.enabled = false
+        self.disable()
     self.node.setFrame(self.frames[self.index])
     if self.anim.offsets.len > 0:
       self.node.pos = vec2f(self.anim.offsets[self.index])
@@ -90,7 +90,8 @@ method update(self: NodeAnim, el: float) =
     var enabled = false
     for layer in self.layers:
       layer.update(el)
-      enabled = enabled or layer.enabled
-    self.enabled = enabled
+      enabled = enabled or layer.enabled()
+    if not enabled:
+      self.disable()
   else:
-    self.enabled = false
+    self.disable()

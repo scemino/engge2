@@ -6,11 +6,13 @@ import glm
 import sqnim
 import nimyggpack
 import room
+import engine
 import ids
 import ../script/squtils
 import ../io/ggpackmanager
 import ../gfx/color
 import objanim
+import motors/motor
 import motors/walkto
 import motors/blink
 
@@ -99,11 +101,20 @@ proc blinkRate*(self: Object, slice: HSlice[float, float]) =
     self.blink = newBlink(self, slice)
 
 proc isWalking*(self: Object): bool =
-  self.walkTo.isNil or not self.walkTo.enabled
+  self.walkTo.isNil or not self.walkTo.enabled()
 
 proc stopWalking*(self: Object) =
   if not self.walkTo.isNil:
-    self.walkTo.enabled = false
+    self.walkTo.disable()
+
+proc stopTalking*(self: Object) =
+  if not self.talking.isNil:
+    self.talking.disable()
+    self.setHeadIndex(1)
+
+proc stopTalking*() =
+  for actor in gEngine.actors:
+    actor.stopTalking()
 
 import motors/turnto
 

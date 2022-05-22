@@ -13,9 +13,10 @@ proc newMoveTo*(duration: float, obj: Object, pos: Vec2f, im: InterpolationMetho
   new(result)
   result.obj = obj
   result.tween = newTween[Vec2f](obj.node.pos, pos, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: MoveTo, el: float) =
   self.tween.update(el)
   self.obj.node.pos = self.tween.current()
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

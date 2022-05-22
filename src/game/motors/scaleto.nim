@@ -13,9 +13,10 @@ proc newScaleTo*(duration: float, node: Node, to: float, im: InterpolationMethod
   assert not node.isNil
   result.node = node
   result.tween = newTween[float](node.scale.x, to, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: ScaleTo, el: float) =
   self.tween.update(el)
   self.node.scale = vec2(self.tween.current().float32, self.tween.current().float32)
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

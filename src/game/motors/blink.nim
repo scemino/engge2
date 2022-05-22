@@ -18,8 +18,8 @@ proc newBlink*(obj: Object, slice: HSlice[float, float]): Blink =
   result.obj = obj
   result.slice = slice
   result.state = Closed
-  result.enabled = true
   result.duration = gEngine.rand.rand(slice)
+  result.init()
   obj.showLayer("blink", false)
 
 method update(self: Blink, el: float) =

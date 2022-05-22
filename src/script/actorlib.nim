@@ -15,6 +15,7 @@ import ../gfx/color
 import ../gfx/graphics
 import ../gfx/recti
 import ../scenegraph/node
+import ../game/motors/motor
 
 proc getOppositeFacing(facing: Facing): Facing =
   case facing:
@@ -691,13 +692,7 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushobject(v, actor.table)
   1
 
-proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Causes an actor to say a line of dialog and play the appropriate talking animations.
-  ## In the first example, the actor ray will say the line.
-  ## In the second, the selected actor will say the line.
-  ## In the third example, the first line is displayed, then the second one.
-  ## See also:
-  ## - `mumbleLine method`
+proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
   var obj: Object
   var index: int
   if sq_gettype(v, 2) == OT_TABLE:
@@ -717,6 +712,16 @@ proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   info fmt"sayline: {texts}"
   obj.say(texts, obj.talkColor)
   0
+
+proc sayLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Causes an actor to say a line of dialog and play the appropriate talking animations.
+  ## In the first example, the actor ray will say the line.
+  ## In the second, the selected actor will say the line.
+  ## In the third example, the first line is displayed, then the second one.
+  ## See also:
+  ## - `mumbleLine method`
+  stopTalking()
+  sayOrMumbleLine(v)
 
 proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Say a line of dialog and play the appropriate talking animations.
@@ -802,8 +807,24 @@ proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Cannot be interrupted by normal sayLines.
   ## See also:
   ## - `sayLine method`. 
-  # TODO: gEngine.stopTalking()
-  sayLine(v)
+  sayOrMumbleLine(v)
+
+proc stopTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Stops all the current sayLines or mumbleLines that the actor is currently saying or are queued to be said.
+  ## Passing ALL will stop anyone who is talking to stop.
+  ## If no parameter is passed, it will stop the currentActor talking. 
+  let nArgs = sq_gettop(v)
+  if nArgs == 2:
+    if sq_gettype(v, 2) == OT_INTEGER:
+        stopTalking()
+    else:
+      let actor = obj(v, 2);
+      if actor.isNil:
+        return sq_throwerror(v, "failed to get actor/object")
+      actor.stopTalking()
+  elif nArgs == 1:
+    gEngine.actor.stopTalking()
+  return 0
 
 proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Causes the actor to become the selected actor.
@@ -923,5 +944,6 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(sayLine, "sayLine")
   v.regGblFun(sayLineAt, "sayLineAt")
   v.regGblFun(selectActor, "selectActor")
+  v.regGblFun(stopTalking, "stopTalking")
   v.regGblFun(triggerActors, "triggerActors")
   v.regGblFun(verbUIColors, "verbUIColors")

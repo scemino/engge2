@@ -1,6 +1,15 @@
 type 
   Motor* = ref object of RootObj
-    enabled*: bool
+    isEnabled: bool
+
+method init*(self: Motor) =
+  self.isEnabled = true
+
+method disable*(self: Motor) {.base.} =
+  self.isEnabled = false
+
+method enabled*(self: Motor): bool =
+  self.isEnabled
 
 method update*(self: Motor, el: float) {.base, locks: "unknown".} =
   # override this base method

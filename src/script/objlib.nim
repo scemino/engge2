@@ -10,6 +10,7 @@ import ../game/room
 import ../game/actor
 import ../game/verb
 import ../game/hud
+import ../game/motors/motor
 import ../game/motors/alphato
 import ../game/motors/rotateto
 import ../game/motors/moveto
@@ -219,7 +220,7 @@ proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
       return sq_throwerror(v, "failed to get alpha")
     if not obj.alphaTo.isNil:
-      obj.alphaTo.enabled = false
+      obj.alphaTo.disable()
     obj.node.alpha = alpha
   0
 
@@ -419,7 +420,7 @@ proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get x")
     if not obj.moveTo.isNil:
-      obj.moveTo.enabled = false
+      obj.moveTo.disable()
     obj.node.offset = vec2(x.float32, y.float32)
   0
 
@@ -530,7 +531,7 @@ proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getfloat(v, 3, rotation)):
       return sq_throwerror(v, "failed to get rotation")
     if not obj.rotateTo.isNil:
-      obj.rotateTo.enabled = false
+      obj.rotateTo.disable()
     obj.node.rotation = rotation
   0
 

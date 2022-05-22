@@ -88,12 +88,18 @@ proc newTalking*(obj: Object, texts: seq[string], color: Color): Talking =
   ## Creates a talking animation for a specified object.
   new(result)
   result.obj = obj
-  result.enabled = true
   result.color = color
   result.texts = texts[1..^1]
   result.say(texts[0])
+  result.init()
 
 import ../actor
+
+method disable(self: Talking) =
+  procCall self.Motor.disable()
+  self.texts.setLen 0
+  self.obj.setHeadIndex(1)
+  self.node.remove()
 
 method update(self: Talking, el: float) =
   if gEngine.audio.playing(self.soundId):
@@ -101,12 +107,10 @@ method update(self: Talking, el: float) =
     self.elapsed += el
     self.obj.setHeadIndex(letterToIndex[letter])
   else:
-    self.obj.setHeadIndex(1)
-    self.node.remove()
     if self.texts.len > 0:
       self.elapsed = 0
       self.say(self.texts[0])
       self.texts.del 0
     else:
-      self.enabled = false
+      self.disable()
   

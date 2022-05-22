@@ -57,7 +57,8 @@ proc getAnims(src, dst: Facing): seq[Facing] =
       return @[]
 
 proc newTurnTo*(actor: Object, dstFacing: Facing): TurnTo =
-  result = TurnTo(actor: actor, facings: getAnims(actor.facing, dstFacing), enabled: true)
+  result = TurnTo(actor: actor, facings: getAnims(actor.facing, dstFacing))
+  result.init()
   info fmt"Actor {actor.name} turn to {result.facings}"
 
 method update(self: TurnTo, el: float) =
@@ -65,7 +66,7 @@ method update(self: TurnTo, el: float) =
   if self.elapsed > frameDuration:
     self.elapsed -= frameDuration
     if self.index >= self.facings.len:
-      self.enabled = false
+      self.disable()
     else:
       self.actor.setFacing(self.facings[self.index])
     self.index += 1

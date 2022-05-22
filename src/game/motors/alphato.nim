@@ -12,9 +12,10 @@ proc newAlphaTo*(duration: float, obj: Object, to: float, im: InterpolationMetho
   new(result)
   result.obj = obj
   result.tween = newTween[float](obj.node.alpha, to, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: AlphaTo, el: float) =
   self.tween.update(el)
   self.obj.node.alpha = self.tween.current()
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

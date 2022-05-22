@@ -94,7 +94,7 @@
 - [x] sayLine
 - [ ] sayLineAt
 - [x] selectActor
-- [ ] stopTalking
+- [x] stopTalking
 - [x] triggerActors
 - [x] verbUIColors
 

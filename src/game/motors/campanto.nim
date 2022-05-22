@@ -16,9 +16,10 @@ proc newCameraPanTo*(duration: float, to: Vec2f, im: InterpolationMethod): Camer
   var screenSize = gEngine.room.getScreenSize()
   result.roomSize = gEngine.room.roomSize
   result.tween = newTween[Vec2f](cameraPos(), to - vec2(screenSize.x.float32, screenSize.y.float32)/2.0f, duration, im)
-  result.enabled = true
+  result.init()
 
 method update(self: CameraPanTo, el: float) =
   self.tween.update(el)
   gEngine.cameraAt(self.tween.current())
-  self.enabled = self.tween.running()
+  if not self.tween.running():
+    self.disable()

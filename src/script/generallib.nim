@@ -11,6 +11,7 @@ import vm
 import ../game/hud
 import ../game/verb
 import ../game/ids
+import ../game/motors/motor
 import ../game/motors/campanto
 import ../game/room
 import ../game/cutscene
@@ -76,7 +77,7 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   if not gEngine.cameraPanTo.isNil:
-    gEngine.cameraPanTo.enabled = false
+    gEngine.cameraPanTo.disable()
   var screenSize = gEngine.room.getScreenSize()
   var at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
   gEngine.cameraAt(at)

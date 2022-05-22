@@ -11,6 +11,7 @@ import ../game/room
 import ../game/inputstate
 import ../game/breakwhilecond
 import ../util/utils
+import ../game/motors/motor
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
