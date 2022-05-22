@@ -71,6 +71,7 @@ type
     nodeAnim*: Motor
     animLoop: bool
     animName: string
+    animFlags*: int
     anims*: seq[ObjectAnimation]  
     state: int
     alphaTo*: Motor
@@ -333,6 +334,7 @@ proc playCore(self: Object, state: string; loop = false): bool =
   for i in 0..<self.anims.len:
     let anim = self.anims[i]
     if anim.name == state:
+      self.animFlags = anim.flags
       info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
       if not self.node.parent.isNil:
         discard

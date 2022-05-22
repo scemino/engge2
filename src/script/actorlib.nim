@@ -47,6 +47,13 @@ proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.node.alpha = alpha
   0
 
+proc actorAnimationFlags(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var actor = obj(v, 2)
+  if actor.isNil:
+    return sq_throwerror(v, "failed to get actor")
+  push(v, actor.animFlags)
+  1
+
 proc actorAnimationNames(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var actor = actor(v, 2)
   if actor.isNil:
@@ -900,6 +907,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   ## Registers the game actor library
   ## 
   ## It adds all the actor functions in the given Squirrel virtual machine.
+  v.regGblFun(actorAnimationFlags, "actorAnimationFlags")
   v.regGblFun(actorAnimationNames, "actorAnimationNames")
   v.regGblFun(actorAlpha, "actorAlpha")
   v.regGblFun(actorAt, "actorAt")

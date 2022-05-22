@@ -50,7 +50,7 @@
 
 - [x] actorAlpha
 - [x] actorAnimationNames
-- [ ] actorAnimationFlags
+- [x] actorAnimationFlags
 - [x] actorAt
 - [x] actorBlinkRate
 - [x] actorColor
