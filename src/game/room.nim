@@ -24,6 +24,7 @@ import walkbox
 import graph
 import verb
 import light
+import screen
 
 const 
   GONE = 4
@@ -106,6 +107,7 @@ type
     lit*: bool
     owner*: Object
     inventory*: seq[Object]
+    inventoryOffset*: int
     icons*: seq[string]
     iconFps: int
     enter*, leave*: HSQOBJECT
@@ -415,11 +417,11 @@ proc getScreenSize*(self: Room): Vec2i =
 
 proc roomToScreen*(self: Room, pos: Vec2f): Vec2f =
   let screenSize = self.getScreenSize()
-  vec2(1280f, 720f) * (pos - cameraPos()) / vec2(screenSize.x.float32, screenSize.y.float32)
+  vec2(ScreenWidth, ScreenHeight) * (pos - cameraPos()) / vec2(screenSize.x.float32, screenSize.y.float32)
 
 proc screenToRoom*(self: Room, pos: Vec2f): Vec2f =
   let screenSize = vec2f(self.getScreenSize())
-  (pos * screenSize) / vec2(1280f, 720f) + cameraPos()
+  (pos * screenSize) / vec2(ScreenWidth, ScreenHeight) + cameraPos()
 
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   var obj = Object(temporary: true)

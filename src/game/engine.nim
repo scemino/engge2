@@ -7,8 +7,8 @@ import callback
 import ids
 import task
 import inputstate
+import screen
 import verb
-import hud
 import resmanager
 import ../script/squtils
 import ../script/vm
@@ -18,7 +18,6 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
-import ../gfx/recti
 import ../io/ggpackmanager
 import ../util/tween
 import ../audio/audio
@@ -26,12 +25,9 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
+import ../scenegraph/hud
 import ../sys/app
 from std/times import getTime, toUnix, nanosecond
-
-const
-  ScreenWidth = 1280 
-  ScreenHeight = 720
 
 type
   Engine* = ref object of RootObj
@@ -76,6 +72,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.scene = newScene()
   result.screen = newScene()
   result.hud = newHud()
+  result.screen.addChild result.hud
   result.seedWithTime()
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
@@ -97,6 +94,7 @@ proc follow(self: Engine, actor: Object) =
 
 proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
   self.actor = actor
+  self.hud.actor = actor
   # TODO:
   # call("onActorSelected", [actor.table, userSelected])
   # let room = if actor.isNil: nil else: actor.room
@@ -498,73 +496,6 @@ proc cameraPos*(self: Engine): Vec2f =
   let screenSize = self.room.getScreenSize()
   cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
-proc drawHud*(self: Engine) =
-  if not self.actor.isNil and self.inputState.inputHUD:
-    let actorSlot = self.hud.actorSlot(self.actor)
-    let gameSheet = gResMgr.spritesheet("GameSheet")
-
-    # draw UI backing
-    var frame = gameSheet.frames["ui_backing"]
-    var texture = gResMgr.texture(gameSheet.meta.image)
-    let uiBackingColor = rgbaf(0f, 0f, 0f, 0.33f)
-    gfxDrawSprite(frame.frame / texture.size, texture, uiBackingColor)
-
-    # draw verbs
-    let verbSheet = gResMgr.spritesheet("VerbSheet")
-    var verbTexture = gResMgr.texture(verbSheet.meta.image)
-    for i in 1..<actorSlot.verbs.len:
-      let verb = actorSlot.verbs[i]
-      if verb.image.len > 0:
-        let verbFrame = verbSheet.frames[fmt"{verb.image}_en"]
-        var pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
-        gfxDrawSprite(pos, verbFrame.frame / verbTexture.size, verbTexture, actorSlot.verbUiColors.verbNormal)
-
-    # draw scroll up
-    frame = gameSheet.frames["scroll_up"]
-    var pos = vec2(ScreenWidth/2f, frame.sourceSize.y.float32)
-    gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.verbNormal)
-    
-    # draw scroll down
-    frame = gameSheet.frames["scroll_down"]
-    pos = vec2(ScreenWidth/2f, frame.sourceSize.y.float32 - frame.spriteSourceSize.y.float32 - frame.spriteSourceSize.h.float32)
-    gfxDrawSprite(pos, frame.frame / texture.size, texture, actorSlot.verbUiColors.verbNormal)
-
-    # draw inventory background
-    let startOffsetX = ScreenWidth/2f + frame.sourceSize.x.float32 + 4f
-    var offsetX = startOffsetX
-    frame = gameSheet.frames["inventory_background"]
-    # draw first inventory row
-    for i in 1..4:
-      var node = newSpriteNode(texture, frame)
-      node.color = actorSlot.verbUiColors.inventoryBackground
-      node.pos = vec2f(offsetX, 8f)
-      node.setAnchorNorm(vec2(0f, 1f))
-      node.draw()
-      offsetX += frame.sourceSize.x.float32 + 4f
-    offsetX = startOffsetX
-    # draw second inventory row
-    for i in 1..4:
-      var node = newSpriteNode(texture, frame)
-      node.color = actorSlot.verbUiColors.inventoryBackground
-      node.pos = vec2f(offsetX, 4f)
-      node.setAnchorNorm(vec2(0f, 0f))
-      node.draw()
-      offsetX += frame.sourceSize.x.float32 + 4f
-    
-    # draw inventory objects
-    offsetX = startOffsetX + frame.sourceSize.x.float32 / 2f
-    let itemsSheet = gResMgr.spritesheet("InventoryItems")
-    texture = gResMgr.texture(itemsSheet.meta.image)
-    for i in 0..<self.actor.inventory.len:
-      let icon = self.actor.inventory[i].getIcon()
-      let frame2 = itemsSheet.frames[icon]
-      var node = newSpriteNode(texture, frame2)
-      node.pos = vec2f(offsetX, 0f)
-      node.setAnchorNorm(vec2(0.5f, 1f))
-      node.scale = vec2(4f, 4f)
-      node.draw()
-      offsetX += frame.sourceSize.x.float32 + 4f
-
 proc render*(self: Engine) =
   self.update()
   
@@ -578,7 +509,6 @@ proc render*(self: Engine) =
 
   # draw screen
   camera(ScreenWidth, ScreenHeight)
-  self.drawHud()
   self.screen.draw()
 
   # draw fade

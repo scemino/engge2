@@ -101,7 +101,6 @@ method addChild*(self: Node, child: Node) {.base.} =
   if not child.parent.isNil:
     child.pos -= self.absolutePosition()
     child.parent.children.del child.parent.children.find(child)
-  child.nodeColor = self.nodeColor
   self.children.add(child)
   child.parent = self
 

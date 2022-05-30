@@ -6,7 +6,7 @@ import squtils
 import vm
 import ../game/engine
 import ../game/actor
-import ../game/hud
+import ../scenegraph/hud
 import ../game/walkbox
 import ../util/utils
 import ../util/vecutils

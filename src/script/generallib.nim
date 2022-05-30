@@ -8,7 +8,6 @@ import sqnim
 import glm
 import squtils
 import vm
-import ../game/hud
 import ../game/verb
 import ../game/ids
 import ../game/motors/motor
@@ -21,6 +20,7 @@ import ../util/crc
 import ../game/engine
 import ../gfx/graphics
 import ../scenegraph/node
+import ../scenegraph/hud
 import ../io/ggpackmanager
 import ../io/textdb
 import ../sys/app

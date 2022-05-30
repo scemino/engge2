@@ -9,7 +9,7 @@ import ../game/ids
 import ../game/room
 import ../game/actor
 import ../game/verb
-import ../game/hud
+import ../scenegraph/hud
 import ../game/motors/motor
 import ../game/motors/alphato
 import ../game/motors/rotateto

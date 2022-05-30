@@ -1,10 +1,7 @@
 import glm
-import std/strformat
-import std/tables
 import ../debugtool
 import ../../game/engine
 import ../../game/room
-import ../../gfx/texture
 import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb
@@ -22,12 +19,16 @@ var
 
 proc showProperties() =
   if not gActor.isNil and gShowProperties:
+    let actorRoom = if gActor.room.isNil: "Void" else: gActor.room.name
     igBegin("Actor properties", addr gShowProperties)
     igCheckbox("Use Walkboxes", addr gActor.useWalkboxes)
-    igText("Room: %s", gActor.room.name)
+    igText("Room: %s", actorRoom)
     igText("Facing: %s", $gActor.facing)
     igText("Z-Order: %d", gActor.node.getZSort())
-    igText("Scale: %.3f", gActor.node.getScale().x)
+    if gActor.room.isNil:
+      igText("Scale: N/A")
+    else:
+      igText("Scale: %.3f", gActor.node.getScale().x)
     igColorEdit4("Color", gActor.node.nodeColor.arr)
     igColorEdit4("Talk color", gActor.talkColor.arr)
     igDragInt2("Talk offset", gActor.talkOffset.arr)
