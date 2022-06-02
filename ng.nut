@@ -529,14 +529,64 @@ Bridge <-
   playSound(soundBridgeTrain)
  }
 
+ borisNote =
+ {
+ icon = "safe_combination_note"
+ }
+
+ borisWallet =
+ {
+ icon = "boris_wallet"
+ }
+
+ borisHotelKeycard =
+ {
+ icon = "key_card_mauve"
+ }
+
+ borisPrototypeToy =
+ {
+ icon = "prototype_toy_orange"
+ }
+
+ chinchilla =
+ {
+ icon = "plush_chinchilla"
+ }
+
+ letterToMMucasFlem =
+ {
+ icon = "letter_to_mucasflem"
+ }
+
+ letterToMMucasFlemNoStamps =
+ {
+ icon = "white_envelope_printed"
+ }
+
+ graphicsBASIC =
+ {
+ icon = "graphics_basic"
+ }
+
+ trophy =
+ {
+ icon = "infinity_math_trophy"
+ }
+
  show = function() {
   return startglobalthread(@() {
     actorAt(boris, Bridge.borisStartSpot)
     actorFace(boris, FACE_RIGHT)
-    // pickupObject(borisNote, boris)
-    // pickupObject(borisWallet, boris)
-    // pickupObject(borisHotelKeycard, boris)
-    // pickupObject(borisPrototypeToy, boris)
+    pickupObject(borisNote, boris)
+    pickupObject(borisWallet, boris)
+    pickupObject(borisHotelKeycard, boris)
+    pickupObject(borisPrototypeToy, boris)
+    pickupObject(chinchilla, boris)
+    pickupObject(letterToMMucasFlem, boris)
+    pickupObject(letterToMMucasFlemNoStamps, boris)
+    pickupObject(graphicsBASIC, boris)
+    pickupObject(trophy, boris)
     //startMusic(musicBridgeA, bridgeMusicPool)
     cameraInRoom(Bridge)
     selectActor(boris)

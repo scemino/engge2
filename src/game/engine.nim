@@ -11,6 +11,7 @@ import screen
 import verb
 import resmanager
 import ../script/squtils
+import ../script/flags
 import ../script/vm
 import ../game/motors/motor
 import ../game/prefs
@@ -18,7 +19,9 @@ import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/color
+import ../gfx/recti
 import ../io/ggpackmanager
+import ../io/textdb
 import ../util/tween
 import ../audio/audio
 import ../scenegraph/node
@@ -379,22 +382,28 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.findObjAt(roomPos)
 
-    # button right: execute default verb
-    if mbRight in btns:
+    if mbLeft in btns:
+      # button left: execute selected verb
+      if not obj.isNil:
+        let verbId = gEngine.hud.verb.id
+        let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[verbId.int].fun
+        if obj.table.rawexists(verbName):
+          discard execSentence(nil, verbId, self.noun1)
+      elif not self.clickedAtHandled(roomPos):
+        # Just clicking on the ground
+        cancelSentence(gEngine.actor)
+        if not gEngine.actor.isNil:
+          gEngine.actor.walk(room_pos)
+    elif mbRight in btns:
+      # button right: execute default verb
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
         let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[defVerbId.int].fun
         if obj.table.rawexists(verbName):
           discard execSentence(nil, defVerbId, self.noun1)
-    else:
-      if not self.clickedAtHandled(roomPos):
-        # Just clicking on the ground
-        cancelSentence(gEngine.actor)
-        if not gEngine.actor.isNil:
-          gEngine.actor.walk(room_pos)
 
-  # TODO: call calbacks
+  # TODO: call callbacks
 
 proc callTrigger(self: Engine, trigger: HSQOBJECT) =
   if trigger.objType != OT_NULL:
@@ -424,6 +433,33 @@ proc updateTriggers(self: Engine) =
           self.callTrigger(self.room.trigger.enter)
           return
 
+proc update*(self: Node, elapsed: float) =
+  if self.buttons.len > 0:
+    let scrPos = gEngine.winToScreen(mousePos())
+    for btn in self.buttons:
+      # mouse inside button ?
+      if self.getRect().contains(scrPos):
+        # enter button ?
+        if not btn.inside:
+          btn.inside = true
+          btn.callback(self, Enter, scrPos, btn.tag)
+        elif not btn.down and mbLeft in mouseBtns():
+          btn.down = true
+          btn.callback(self, Down, scrPos, btn.tag)
+        elif btn.down and not (mbLeft in mouseBtns()):
+          btn.down = false
+          btn.callback(self, Up, scrPos, btn.tag)
+      else:
+        if btn.inside:
+          btn.inside = false
+          btn.callback(self, Leave, scrPos, btn.tag)
+
+  if not self.shakeMotor.isNil and self.shakeMotor.enabled():
+    self.shakeMotor.update(elapsed)
+
+  for node in self.children:
+    node.update(elapsed)
+    
 proc update(self: Engine) =
   let elapsed = 1/60
   self.time += elapsed
@@ -435,7 +471,11 @@ proc update(self: Engine) =
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
     self.noun1 = self.findObjAt(roomPos)
-    var txt = if self.noun1.isNil: "" else: self.noun1.name
+    # give can be used only on inventory and talkto to talkable objects (actors)
+    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.hasFlag(TALKABLE)): "" else: self.noun1.name
+    # add verb if not walk to or if noun1 is present
+    if self.hud.verb.id > 1 or txt.len > 0:
+      txt = if txt.len > 0: fmt"{getText(self.hud.verb.text)} {txt}" else: getText(self.hud.verb.text)
     self.inputState.setText(txt)
 
   # call clickedAt if any button down
@@ -447,6 +487,12 @@ proc update(self: Engine) =
   if not self.cutscene.isNil:
     if self.cutscene.update(elapsed):
       self.cutscene = nil
+
+  # update nodes
+  if not self.scene.isNil:
+    self.scene.update(elapsed)
+  if not self.screen.isNil:
+    self.screen.update(elapsed)
 
   # update threads
   for thread in self.threads.toSeq:

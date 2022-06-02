@@ -29,6 +29,10 @@
 * [x] walkboxes
 * [ ] dialogs
 * [ ] HUD
+  * [x] verbs
+  * [ ] sentence
+  * [x] inventory
+  * [ ] scroll inventory
 * [ ] savegames
 * [ ] achievements
 * [ ] UI dialogs

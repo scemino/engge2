@@ -7,6 +7,7 @@ import roomlib
 import objlib
 import actorlib
 import soundlib
+import flags
 
 proc register_vars(v: HSQUIRRELVM) =
   var value: SQInteger
@@ -108,7 +109,7 @@ proc register_gameconstants*(v: HSQUIRRELVM) =
       USE_ON = 4
       USE_IN = 32
       GIVEABLE = 0x1000
-      TALKABLE = 0x2000
+      TALKABLE = TALKABLE
       IMMEDIATE = 0x4000
       FEMALE = 0x80000
       MALE = 0x100000

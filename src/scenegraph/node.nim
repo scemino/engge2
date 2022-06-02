@@ -1,6 +1,8 @@
 import glm
 import std/algorithm
 import ../gfx/color
+import ../gfx/recti
+import ../game/motors/motor
 
 type
   Node* = ref object of RootObj
@@ -15,11 +17,31 @@ type
     zOrder*: int
     anchorNorm: Vec2f
     anchor: Vec2f
-    size: Vec2f
+    size*: Vec2f
     visible*: bool
     nodeColor*: Color
     zOrderFunc*: proc (): int
     scaleFunc*: proc (): float32
+    buttons*: seq[Button]
+    shakeMotor*: Motor
+  EventCallback* = proc(node: Node, event: EventKind, pos: Vec2f, tag: pointer)
+  Button = ref object of RootObj
+    callback*: EventCallback
+    inside*: bool
+    down*: bool
+    tag*: pointer
+  EventKind* = enum
+    Enter,
+    Leave,
+    Up,
+    Down
+
+proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
+  let button = Button(callback: callback, tag: tag)
+  self.buttons.add button
+
+proc getRect*(self: Node): Rectf =
+  rectFromPositionSize(self.pos, self.size)
 
 method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White) {.base.} =
   self.visible = visible
