@@ -171,6 +171,11 @@ proc actorSlot*(self: Hud, actor: Object): ActorSlot =
     if slot.actor == actor:
       return slot
 
+proc verb*(self: ActorSlot, verbId: VerbId): Verb =
+  for verb in self.verbs:
+    if verb.id == verbId:
+      return verb
+
 proc hasUpArrow(actor: Object): bool =
   actor.inventoryOffset != 0;
 
@@ -228,6 +233,7 @@ proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     src.color = verbRect.hud.slot.verbUiColors.verbNormal
   of Down:
     verbRect.hud.verb = verbRect.hud.slot.verbs[verbRect.index + 1]
+    info fmt"verb {verbRect.hud.verb.fun} selected"
   else:
     discard
 

@@ -684,38 +684,82 @@ Bridge <-
 
  bridgeGate =
  {
- gate_state = CLOSED
+  gate_state = CLOSED
  gate_opening = NO
  gate_closing = NO
  useDist = 20
- name = "gate"
- defaultVerb = VERB_OPEN
+ name = "@25207"
+  defaultVerb = VERB_OPEN
+  verbLookAt = function()
+ {
+ sayLine(boris, "@25677",
+ "@25678")
+ }
  verbOpen = function() 
  {
-  if (gate_state == OPEN) {
-    sayLine(boris, "@25680")
-  } else {
-    startthread(openGate)
-    defaultVerb = VERB_CLOSE
-  }
+ if (incutscene()) {
+ if (gate_state == OPEN) {
+ if (isBoris()) {
+ sayLine(boris, "@25680")
+ } else {
+ sayLineAlreadyOpen(this)
  }
-
+ } else {
+ startthread(openGate)
+ defaultVerb = VERB_CLOSE
+ }
+ }
+ }
  verbClose = function() 
  {
-  sayLine(boris, "@25681")
  if (gate_state == CLOSED && gate_closing == NO) {
- //noReach()
+  sayLine(boris, "I can't reach that")
  if (isBoris()) {
  sayLine(boris, "@25681")
  } else {
- //sayLineAlreadyClosed(this)
+ sayLineAlreadyClosed(this)
  }
  } else {
  startthread(closeGate)
  defaultVerb = VERB_OPEN
  }
  }
-}
+ verbPush = function()
+ {
+ if (gate_state == CLOSED) {
+ verbOpen()
+ } else {
+ verbClose()
+ }
+ }
+ verbPull = function()
+ {
+ verbPush()
+ }
+ verbUse = function(obj=null)
+ {
+ verbPush()
+ }
+ objectPreWalk = function(verb, obj1, obj2) {
+ 
+ if (verb == VERB_OPEN || verb == VERB_PUSH || verb == VERB_PULL || verb == VERB_USE) {
+ if (isTesterTronRunning()) return NOT_HANDLED
+ if (g.openingScene == 1) {
+ if (gate_state == OPEN) {
+ sayLine(boris, "@25682")
+ } else {
+ sayLine(boris, "@25683")
+ }
+ return HANDLED
+ } else 
+ if (!g.taken_photo) {
+ sayLine("@25684")
+ return HANDLED
+ }
+ }
+ return NOT_HANDLED
+ }
+ }
 }
 defineRoom(Bridge)
 

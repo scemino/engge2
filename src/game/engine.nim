@@ -305,7 +305,7 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
-  let verbFuncName = gEngine.hud.actorSlot(actor).verbs[verbId.int].fun
+  let verbFuncName = gEngine.hud.actorSlot(actor).verb(verbId).fun
   info fmt"callVerb({name},{verbFuncName},{noun1name},{noun2name})"
 
   # TODO: gEngine.selectedActor.stopWalking()
@@ -324,20 +324,20 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
 
 import actor
 
-proc execSentence*(actor: Object, verbId: int, noun1: Object; noun2: Object = nil): bool =
+proc execSentence*(actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.
   ## If `actor` is `null` then the selectedActor is assumed.
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
   let noun2name = if noun2.isNil: "null" else: noun2.name
-  info fmt"exec({name},{verbId.VerbId},{noun1name},{noun2name})"
+  info fmt"exec({name},{verbId},{noun1name},{noun2name})"
   var actor = if actor.isNil: gEngine.currentActor else: actor
   if verbId <= 0 and verbId > 13 or noun1.isNil:
     return false
   # TODO
   #if (a?._verb_tid) stopthread(actor._verb_tid)
 
-  info fmt"noun1.inInventory: {noun1.inInventory} and noun1.touchable: {noun1.touchable} nowalk: {verbNoWalkTo(verbId.VerbId, noun1)}"
+  info fmt"noun1.inInventory: {noun1.inInventory} and noun1.touchable: {noun1.touchable} nowalk: {verbNoWalkTo(verbId, noun1)}"
   
   # test if object became untouchable
   if not noun1.inInventory and not noun1.touchable: 
@@ -347,16 +347,16 @@ proc execSentence*(actor: Object, verbId: int, noun1: Object; noun2: Object = ni
 
   if noun1.inInventory:
     if noun2.isNil or noun2.inInventory:
-      discard callVerb(actor, verbId.VerbId, noun1, noun2)
+      discard callVerb(actor, verbId, noun1, noun2)
       return true
   
-  if verbNoWalkTo(verbId.VerbId, noun1):
+  if verbNoWalkTo(verbId, noun1):
     if not noun1.inInventory: # TODO: test if verb.flags != VERB_INSTANT
       actor.turn(noun1)
-      discard callVerb(actor, verbId.VerbId, noun1, noun2)
+      discard callVerb(actor, verbId, noun1, noun2)
       return true
 
-  actor.exec = newSentence(verbId.VerbId, noun1, noun2)
+  actor.exec = newSentence(verbId, noun1, noun2)
   if not inInventory(noun1):
     actor.walk(noun1)
   else:
@@ -385,10 +385,9 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
     if mbLeft in btns:
       # button left: execute selected verb
       if not obj.isNil:
-        let verbId = gEngine.hud.verb.id
-        let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[verbId.int].fun
-        if obj.table.rawexists(verbName):
-          discard execSentence(nil, verbId, self.noun1)
+        let verb = gEngine.hud.verb
+        if obj.table.rawexists(verb.fun):
+          discard execSentence(nil, verb.id, self.noun1)
       elif not self.clickedAtHandled(roomPos):
         # Just clicking on the ground
         cancelSentence(gEngine.actor)
@@ -399,7 +398,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
-        let verbName = gEngine.hud.actorSlot(gEngine.actor).verbs[defVerbId.int].fun
+        let verbName = gEngine.hud.actorSlot(gEngine.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
           discard execSentence(nil, defVerbId, self.noun1)
 

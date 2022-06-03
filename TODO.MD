@@ -33,6 +33,7 @@
   * [ ] sentence
   * [x] inventory
   * [ ] scroll inventory
+  * [ ] fade
 * [ ] savegames
 * [ ] achievements
 * [ ] UI dialogs
