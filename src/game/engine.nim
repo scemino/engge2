@@ -82,10 +82,11 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
+  self.randSeed = seed
   self.rand = initRand(seed)
 
 proc `seed`*(self: Engine): int64 =
-  self.seed
+  self.randSeed
 
 proc `currentActor`*(self: Engine): Object =
   self.actor
@@ -274,7 +275,12 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   # call room enter function with the door as a parameter if requested
   let nparams = paramCount(self.v, self.room.table, "enter")
   if nparams == 2:
-    call(self.v, self.room.table, "enter", [door.table])
+    if door.isNil:
+      var doorTable: HSQOBJECT
+      sq_resetobject(doorTable)
+      call(self.v, self.room.table, "enter", [doorTable])
+    else:
+      call(self.v, self.room.table, "enter", [door.table])
   else:
     call(self.v, self.room.table, "enter")
   
