@@ -1,7 +1,6 @@
 import std/logging
 import std/strformat
 import motor
-import ../actor
 import ../room
 
 const

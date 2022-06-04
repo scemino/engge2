@@ -3,8 +3,10 @@ import tools/soundtool
 import tools/texturetool
 import tools/actortool
 import tools/consoletool
+import tools/generaltool
 export threadtool
 export soundtool
 export texturetool
 export actortool
 export consoletool
+export generaltool

@@ -38,7 +38,7 @@ proc getText*(id: int): string =
   gTextDb.getText(id)
 
 proc getText*(text: string): string =
-  if text[0] == '@':
+  if text.len > 0 and text[0] == '@':
     var id: int
     discard parseInt(text, id, 1)
     return getText(id)
