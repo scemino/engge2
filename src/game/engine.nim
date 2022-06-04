@@ -75,7 +75,6 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.scene = newScene()
   result.screen = newScene()
   result.hud = newHud()
-  result.screen.addChild result.hud
   result.seedWithTime()
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
@@ -98,6 +97,11 @@ proc follow(self: Engine, actor: Object) =
 proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
   self.actor = actor
   self.hud.actor = actor
+  if self.hud.parent.isNil and not actor.isNil:
+    self.screen.addChild self.hud
+  elif not self.hud.parent.isNil and actor.isNil:
+    self.screen.removeChild self.hud
+
   # TODO:
   # call("onActorSelected", [actor.table, userSelected])
   # let room = if actor.isNil: nil else: actor.room
