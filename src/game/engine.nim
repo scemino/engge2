@@ -123,6 +123,8 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
   info "load room: " & name
   if name == "Void":
     result = Room(name: name, table: table)
+    result.table.setId(newRoomId())
+    setf(rootTbl(gVm.v), name, result.table)
   else:
     var background: string
     table.getf("background", background)
@@ -381,6 +383,7 @@ proc cancelSentence(actor: Object) =
 
 proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
   if self.room.table.rawexists("clickedAt"):
+    info "clickedAt " & $[roomPos.x, roomPos.y]
     self.room.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
     if not result:
       if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
@@ -398,7 +401,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
         let verb = gEngine.hud.verb
         if obj.table.rawexists(verb.fun):
           discard execSentence(nil, verb.id, self.noun1)
-      elif not self.clickedAtHandled(roomPos):
+      if not self.clickedAtHandled(roomPos):
         # Just clicking on the ground
         cancelSentence(gEngine.actor)
         if not gEngine.actor.isNil:
