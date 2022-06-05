@@ -109,6 +109,22 @@ proc isSoundPlaying(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       sq_pushinteger(v, 0)
   1
 
+proc playObjectSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let soundDef = soundDef(v, 2)
+  if soundDef.isNil:
+    return sq_throwerror(v, "failed to get sound")
+  let obj = obj(v, 3)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get actor or object")
+  var loopTimes = 1
+  discard get(v, 4, loopTimes)
+  var fadeInTime = 0.0
+  discard get(v, 5, fadeInTime)
+  warn "playObjectSound not fully implemented"
+  let soundId = gEngine.audio.play(soundDef, scSound, loopTimes, fadeInTime)
+  push(v, soundId.id)
+  return 1
+
 proc playSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Plays a sound that has been loaded with defineSound(file).
   ## Classifies the audio as "sound" (not "music").
@@ -149,6 +165,13 @@ proc playSoundVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, soundId.id)
   1
 
+proc loadSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let sound = soundDef(v, 2)
+  if sound.isNil:
+    return sq_throwerror(v, "failed to get sound")
+  sound.load()
+  0
+
 proc loopMusic(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Loops music.
   ## If loopTimes is not defined or is -1, will loop infinitely.
@@ -166,6 +189,23 @@ proc loopMusic(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sound.isNil:
     return sq_throwerror(v, "failed to get music")
   let soundId = gEngine.audio.play(sound, scMusic, -1)
+  push(v, soundId.id)
+  1
+
+proc loopObjectSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let sound = soundDef(v, 2)
+  if sound.isNil:
+    return sq_throwerror(v, "failed to get sound")
+  let obj = obj(v, 3)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object or actor")
+  var loopTimes = -1
+  discard get(v, 4, loopTimes)
+  var fadeInTime = -1.0
+  discard get(v, 5, fadeInTime)
+  # TODO: loopObjectSound, add object
+  warn "loopObjectSound not fully implemented"
+  let soundId = gEngine.audio.play(sound, scSound, loopTimes, fadeInTime)
   push(v, soundId.id)
   1
 
@@ -291,11 +331,14 @@ proc register_sndlib*(v: HSQUIRRELVM) =
   v.regGblFun(defineSound, "defineSound")
   v.regGblFun(fadeOutSound, "fadeOutSound")
   v.regGblFun(isSoundPlaying, "isSoundPlaying")
+  v.regGblFun(loadSound, "loadSound")
   v.regGblFun(loopMusic, "loopMusic")
+  v.regGblFun(loopObjectSound, "loopObjectSound")
   v.regGblFun(loopSound, "loopSound")
   v.regGblFun(masterSoundVolume, "masterSoundVolume")
   v.regGblFun(musicMixVolume, "musicMixVolume")
   v.regGblFun(playMusic, "playMusic")
+  v.regGblFun(playObjectSound, "playObjectSound")
   v.regGblFun(playSound, "playSound")
   v.regGblFun(playSoundVolume, "playSoundVolume")
   v.regGblFun(soundMixVolume, "soundMixVolume")

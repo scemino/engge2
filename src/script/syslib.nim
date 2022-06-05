@@ -10,8 +10,9 @@ import ../game/engine
 import ../game/room
 import ../game/inputstate
 import ../game/breakwhilecond
-import ../util/utils
 import ../game/motors/motor
+import ../gfx/color
+import ../util/utils
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
@@ -218,7 +219,8 @@ proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     result = breakwhilecond(v, fmt"breakwhilesound({sound.id})", proc (): bool = gEngine.audio.playing(sound))
   else:
     var soundDef = soundDef(v, 2)
-    result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
+    if not soundDef.isNil:
+      result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 
 proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "exCommand not implemented"
@@ -362,6 +364,12 @@ proc removeCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       gEngine.callbacks.del i
       return 0
   0
+
+proc setAmbientLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var c = 0
+  if SQ_FAILED(get(v, 2, c)):
+    return sq_throwerror(v, "failed to get color")
+  gEngine.room.ambientLight = rgb(c)
 
 proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
   let size = sq_gettop(v)
@@ -531,6 +539,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(logWarning, "logWarning")
   v.regGblFun(microTime, "microTime")
   v.regGblFun(removeCallback, "removeCallback")
+  v.regGblFun(setAmbientLight, "setAmbientLight")
   v.regGblFun(startglobalthread, "startglobalthread")
   v.regGblFun(startthread, "startthread")
   v.regGblFun(stopthread, "stopthread")

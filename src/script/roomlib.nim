@@ -8,6 +8,7 @@ import ../game/engine
 import ../game/overlayto
 import ../game/motors/rotateto
 import ../game/room
+import ../game/walkbox
 import ../util/tween
 import ../util/easing
 import ../gfx/color
@@ -26,6 +27,45 @@ proc addTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 4, obj.leave)):
       return sq_throwerror(v, "failed to get leave")
   0
+
+proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let numArgs = sq_gettop(v)
+  var pos1, pos2: Vec2f
+  if numArgs == 3:
+    var x = 0
+    if SQ_FAILED(get(v, 2, x)):
+      return sq_throwerror(v, "failed to get x")
+    var y = 0;
+    if SQ_FAILED(get(v, 3, y)):
+      return sq_throwerror(v, "failed to get y")
+    pos1 = vec2(x.float32, y.float32)
+    pos2 = gEngine.actor.node.pos
+  elif numArgs == 5:
+    var x1 = 0
+    if SQ_FAILED(get(v, 2, x1)):
+      return sq_throwerror(v, "failed to get x1")
+    var y1 = 0
+    if SQ_FAILED(get(v, 3, y1)):
+      return sq_throwerror(v, "failed to get y1")
+    pos1 = vec2(x1.float32, y1.float32)
+    var x2 = 0
+    if SQ_FAILED(sq_getinteger(v, 2, x2)):
+      return sq_throwerror(v, "failed to get x2")
+    var y2 = 0;
+    if SQ_FAILED(sq_getinteger(v, 3, y1)):
+      return sq_throwerror(v, "failed to get y2")
+    pos2 = vec2(x2.float32, y2.float32)
+  else:
+    return sq_throwerror(v, "Invalid argument number in clampInWalkbox")
+  let walkboxes = gEngine.room.walkboxes
+  for walkbox in walkboxes:
+    if walkbox.contains(pos2):
+      let pos = walkbox.getClosestPointOnEdge(pos1)
+      push(v, pos)
+      return 1
+  error "Actor's walkbox has not been found."
+  push(v, pos1)
+  return 1
 
 proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var color: int
@@ -378,6 +418,7 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   ## 
   ## It adds all the room functions in the given Squirrel virtual machine.
   v.regGblFun(addTrigger, "addTrigger")
+  v.regGblFun(clampInWalkbox, "clampInWalkbox")
   v.regGblFun(createLight, "createLight")
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(definePseudoRoom, "definePseudoRoom")

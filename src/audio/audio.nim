@@ -75,7 +75,7 @@ proc load*(self: SoundBuffer, path: string) =
 proc newSoundDefinition*(name: string): SoundDefinition =
   result = SoundDefinition(id: newSoundDefId(), name: name, buffer: newSoundBuffer())
 
-proc load(self: SoundDefinition) =
+proc load*(self: SoundDefinition) =
   if not self.loaded:
     var data = gGGPackMgr.loadStream(self.name).readAll
     self.buffer.loadMem(data[0].addr, data.len.cint)

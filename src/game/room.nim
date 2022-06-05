@@ -129,6 +129,7 @@ type
     entering: bool                ## indicates whether or not an actor is entering this room
     lights*: array[50, Light]     ## Lights of the room
     numLights*: int               ## Number of lights
+    ambientLight*: Color           ## Ambient light color
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
     rotateTo*: Motor
@@ -699,8 +700,8 @@ proc update*(self: Room, elapsedSec: float) =
     layer.update(elapsedSec)
 
 proc createLight*(self: Room, color: Color, pos: Vec2i): Light = 
-  var light = self.lights[self.numLights]
+  result = newLight()
+  self.lights[self.numLights] = result
   self.numLights += 1
-  light.color = color
-  light.pos = pos
-  return light
+  result.color = color
+  result.pos = pos

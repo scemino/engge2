@@ -145,7 +145,7 @@
 - [x] randomseed
 - [ ] refreshUI
 - [x] screenSize
-- [ ] setAmbientLight
+- [x] setAmbientLight
 - [ ] setDebugger
 - [x] setVerb
 - [ ] startDialog
@@ -163,7 +163,7 @@
 
 - [x] addCallback
 - [x] addTrigger
-- [ ] clampInWalkbox
+- [x] clampInWalkbox
 - [x] createLight
 - [x] lightBrightness
 - [x] lightConeAngle
@@ -294,14 +294,14 @@
 - [x] defineSound
 - [x] fadeOutSound
 - [x] isSoundPlaying
-- [ ] loadSound
+- [x] loadSound
 - [x] loopMusic
-- [ ] loopObjectSound
+- [x] loopObjectSound
 - [x] loopSound
 - [x] masterSoundVolume
 - [x] musicMixVolume
 - [x] playMusic
-- [ ] playObjectSound
+- [x] playObjectSound
 - [x] playSound
 - [x] playSoundVolume
 - [x] soundMixVolume
