@@ -35,7 +35,7 @@ proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var x = 0
     if SQ_FAILED(get(v, 2, x)):
       return sq_throwerror(v, "failed to get x")
-    var y = 0;
+    var y = 0
     if SQ_FAILED(get(v, 3, y)):
       return sq_throwerror(v, "failed to get y")
     pos1 = vec2(x.float32, y.float32)
@@ -51,7 +51,7 @@ proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var x2 = 0
     if SQ_FAILED(sq_getinteger(v, 2, x2)):
       return sq_throwerror(v, "failed to get x2")
-    var y2 = 0;
+    var y2 = 0
     if SQ_FAILED(sq_getinteger(v, 3, y1)):
       return sq_throwerror(v, "failed to get y2")
     pos2 = vec2(x2.float32, y2.float32)
@@ -307,6 +307,34 @@ proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       discard sq_arrayappend(v, -2)
   1
 
+proc roomEffect(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var effect = 0
+  # let count = sq_gettop(v)
+  if SQ_FAILED(get(v, 2, effect)):
+    return sq_throwerror(v, "failed to get effect")
+  let room = gEngine.room
+  if room.isNil:
+    return 0
+  warn "roomEffect not implemented"
+  # if count == 14:
+  #   var unused = 0
+  #   get(v, 3, gEngine.roomEffect.iFade)
+  #   get(v, 4, gEngine.roomEffect.wobbleIntensity)
+  #   get(v, 5, unused)
+  #   get(v, 6, gEngine.roomEffect.shadows.r)
+  #   get(v, 7, gEngine.roomEffect.shadows.g)
+  #   get(v, 8, gEngine.roomEffect.shadows.b)
+  #   get(v, 9, gEngine.roomEffect.midtones.r)
+  #   get(v, 10, gEngine.roomEffect.midtones.g)
+  #   get(v, 11, gEngine.roomEffect.midtones.b)
+  #   get(v, 12, gEngine.roomEffect.highlights.r)
+  #   get(v, 13, gEngine.roomEffect.highlights.g)
+  #   get(v, 14, gEngine.roomEffect.highlights.b)
+  # else:
+  #   gEngine.roomEffect.reset()
+  # room.effect = effect
+  0
+
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Fades in or out (FADE_IN, FADE_OUT ) of the current room over the specified duration. 
   ## 
@@ -435,6 +463,7 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(masterRoomArray, "masterRoomArray")
   v.regGblFun(removeTrigger, "removeTrigger")
   v.regGblFun(roomActors, "roomActors")
+  v.regGblFun(roomEffect, "roomEffect")
   v.regGblFun(roomFade, "roomFade")
   v.regGblFun(roomLayer, "roomLayer")
   v.regGblFun(roomRotateTo, "roomRotateTo")

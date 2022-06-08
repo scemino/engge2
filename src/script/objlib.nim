@@ -592,6 +592,10 @@ proc objectScreenSpace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get object")
   gEngine.screen.addChild obj.node
 
+proc objectShader(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  error "TODO: objectShader: not implemented"
+  0
+
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the state of an object, although this can just be a internal state, 
   ## 
@@ -827,6 +831,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectScale, "objectScale")
   v.regGblFun(objectScaleTo, "objectScaleTo")
   v.regGblFun(objectScreenSpace, "objectScreenSpace")
+  v.regGblFun(objectShader, "objectShader")
   v.regGblFun(objectSort, "objectSort")
   v.regGblFun(objectState, "objectState")
   v.regGblFun(objectTouchable, "objectTouchable")
