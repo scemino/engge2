@@ -10,6 +10,7 @@ import inputstate
 import screen
 import verb
 import resmanager
+import shaders
 import ../script/squtils
 import ../script/flags
 import ../script/vm
@@ -18,6 +19,7 @@ import ../game/prefs
 import ../gfx/spritesheet
 import ../gfx/texture
 import ../gfx/graphics
+import ../gfx/shader
 import ../gfx/color
 import ../gfx/recti
 import ../io/ggpackmanager
@@ -59,6 +61,8 @@ type
     defaultObj*: HSQOBJECT
     inventory*: seq[Object]
     cutscene*: Task
+    roomShader: Shader
+    effect: RoomEffect
 
 var gEngine*: Engine
 
@@ -562,6 +566,11 @@ proc render*(self: Engine) =
   if not self.room.isNil:
     var camSize = self.room.getScreenSize()
     camera(camSize.x.float32, camSize.y.float32)
+
+    # update room effect
+    if self.effect != self.room.effect:
+      setShaderEffect(self.room.effect)
+      self.effect = self.room.effect
     
   self.scene.draw()
 

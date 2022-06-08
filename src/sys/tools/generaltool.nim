@@ -2,16 +2,18 @@ import glm
 import ../debugtool
 import ../../game/engine
 import ../../game/room
+import ../../game/shaders
 import ../../libs/imgui
 import ../../sys/app
 
+const
+  RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0"
 
 type 
   GeneralTool = ref object of DebugTool
 
 var 
   gGeneralVisible = true
-  gRoomIndex = -1'i32
 
 proc newGeneralTool*(): GeneralTool =
   result = GeneralTool()
@@ -37,16 +39,21 @@ method render*(self: GeneralTool) =
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   igSeparator()
 
-  if igCombo("Room", gRoomIndex.addr, getRoom, nil, gEngine.rooms.len.int32, -1'i32):
-    gEngine.setRoom(gEngine.rooms[gRoomIndex])
+  let room = gEngine.room
+  var index = gEngine.rooms.find(room).int32
+  if igCombo("Room", index.addr, getRoom, nil, gEngine.rooms.len.int32, -1'i32):
+    gEngine.setRoom(gEngine.rooms[index])
   
-  if gRoomIndex >= 0:
-    let room = gEngine.rooms[gRoomIndex]
+  if not room.isNil:
     igText("Sheet: %s", room.sheet[0].addr)
     igText("Size: %d x %d", room.roomSize.x, room.roomSize.y)
     igText("Fullscreen: %d", room.fullScreen)
     igText("Height: %d", room.height)
     igColorEdit4("Overlay", room.overlay.arr)
+
+    var effect = room.effect.int32
+    if igCombo("Shader", effect.addr, RoomEffects):
+      room.effect = effect.RoomEffect
 
   # if I remove this it does not compile, why ???
   if igBeginTable("???", 1, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):

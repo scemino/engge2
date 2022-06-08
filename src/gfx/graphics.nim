@@ -88,8 +88,14 @@ proc noTexture*() =
   state.texture = emptyTexture
   glBindTexture(GL_TEXTURE_2D, emptyTexture.id)
 
-proc gfxShader*(shader: var Shader) =
+proc gfxShader*(shader: Shader) =
   state.shader = shader
+
+proc gfxShader*(): Shader =
+  state.shader
+
+proc gfxResetShader*() =
+  state.shader  = newShader(vsrc, fsrc)
 
 proc gfxInit*() =
   emptyImage = newImage(1, 1, 4, @[0xFF'u8, 0xFF, 0xFF, 0xFF])

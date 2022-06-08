@@ -25,6 +25,7 @@ import graph
 import verb
 import light
 import screen
+import shaders
 
 const 
   GONE = 4
@@ -134,7 +135,8 @@ type
     pathFinder: PathFinder
     rotateTo*: Motor
     triggers*: seq[Object]        ## Triggers currently enabled in the room
-    trigger*: Object               ## Trigger where the current actor is
+    trigger*: Object              ## Trigger where the current actor is
+    effect*: RoomEffect
   RoomParser = object
     input: Stream
     filename: string
