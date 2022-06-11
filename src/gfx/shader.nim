@@ -84,3 +84,15 @@ proc setUniform*(self: Shader, name: string, value: Mat4f) =
     var v = value
     glUniformMatrix4fv(loc, 1, false, v.caddr)
     checkGLError(fmt"setUniform({name},{value})")
+
+proc setUniform*(self: Shader, name: string, value: float32) =
+  self.ensureProgramActive():
+    let loc = self.getUniformLocation(name)
+    glUniform1f(loc, value)
+    checkGLError(fmt"setUniform({name},{value})")
+
+proc setUniform*(self: Shader, name: string, value: var openArray[float32]) =
+  self.ensureProgramActive():
+    let loc = self.getUniformLocation(name)
+    glUniform1fv(loc, value.len.GLsizei, value[0].addr)
+    checkGLError(fmt"setUniform({name},{value})")

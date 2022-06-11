@@ -62,7 +62,6 @@ type
     inventory*: seq[Object]
     cutscene*: Task
     roomShader: Shader
-    effect: RoomEffect
 
 var gEngine*: Engine
 
@@ -568,9 +567,12 @@ proc render*(self: Engine) =
     camera(camSize.x.float32, camSize.y.float32)
 
     # update room effect
-    if self.effect != self.room.effect:
+    if gShaderParams.effect != self.room.effect:
       setShaderEffect(self.room.effect)
-      self.effect = self.room.effect
+    gShaderParams.randomValue[0] = gEngine.rand.rand(0f..1f)
+    gShaderParams.timeLapse = floorMod(self.time.float32, 1000f)
+    gShaderParams.iGlobalTime = gShaderParams.timeLapse
+    updateShader()
     
   self.scene.draw()
 

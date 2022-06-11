@@ -54,6 +54,12 @@ method render*(self: GeneralTool) =
     var effect = room.effect.int32
     if igCombo("Shader", effect.addr, RoomEffects):
       room.effect = effect.RoomEffect
+    igDragFloat("iFade", gShaderParams.iFade.addr, 0.01f, 0f, 1f);
+    igDragFloat("wobbleIntensity", gShaderParams.wobbleIntensity.addr, 0.01f, 0f, 1f)
+    igDragFloat3("shadows", gShaderParams.shadows.arr, 0.01f, -1f, 1f)
+    igDragFloat3("midtones", gShaderParams.midtones.arr, 0.01f, -1f, 1f)
+    igDragFloat3("highlights", gShaderParams.highlights.arr, 0.01f, -1f, 1f)
+
 
   # if I remove this it does not compile, why ???
   if igBeginTable("???", 1, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
