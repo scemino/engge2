@@ -1,9 +1,9 @@
 import glm
-import room
+import ../room
 import task
-import ../gfx/color
-import ../util/tween
-import ../util/easing
+import ../../gfx/color
+import ../../util/tween
+import ../../util/easing
 
 type OverlayTo = ref object of Task
     room: Room

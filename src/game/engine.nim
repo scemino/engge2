@@ -5,7 +5,7 @@ import room
 import thread
 import callback
 import ids
-import task
+import tasks/task
 import inputstate
 import screen
 import verb

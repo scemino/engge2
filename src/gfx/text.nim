@@ -122,7 +122,7 @@ proc `align=`*(self: Text, align: TextAlignment) =
 proc `align`*(self: Text): TextAlignment =
   self.txtAlign
 
-proc update(self: Text)
+proc update*(self: Text)
 
 proc `bounds`*(self: Text): Vec2f =
   self.update()
@@ -154,7 +154,7 @@ proc width(self: Text, reader: TokenReader, tok: Token): float32 =
   for c in reader.substr(tok):
     result += self.font.getGlyph(c).advance.float32
 
-proc update(self: Text) =
+proc update*(self: Text) =
   if self.dirty:
     self.dirty = false
     var (_, name, _) = splitFile(self.font.path)

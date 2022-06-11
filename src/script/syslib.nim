@@ -9,7 +9,7 @@ import ../game/callback
 import ../game/engine
 import ../game/room
 import ../game/inputstate
-import ../game/breakwhilecond
+import ../game/tasks/breakwhilecond
 import ../game/motors/motor
 import ../gfx/color
 import ../util/utils

@@ -1,7 +1,7 @@
 import std/algorithm
 import glm
 import walkbox
-import indprioqueue
+import ../util/indprioqueue
 
 const Epsilon = 1e-9
 type

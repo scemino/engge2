@@ -5,7 +5,7 @@ import sqnim
 import squtils
 import ../util/utils
 import ../game/engine
-import ../game/overlayto
+import ../game/tasks/overlayto
 import ../game/motors/rotateto
 import ../game/room
 import ../game/walkbox

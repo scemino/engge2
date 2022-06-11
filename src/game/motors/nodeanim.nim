@@ -25,7 +25,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
   for frame in anim.frames:
     if frame == "null":
       frames.add(SpriteSheetFrame())
-    else:
+    elif not ss.isNil and ss.frames.contains(frame):
       frames.add(ss.frames[frame])
   var newFps: float32
   if fps != 0.0f:

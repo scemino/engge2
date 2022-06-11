@@ -1,7 +1,7 @@
 import std/logging
 import task
-import ../util/utils
-import thread
+import ../../util/utils
+import ../thread
 
 type 
   Predicate* = proc (): bool

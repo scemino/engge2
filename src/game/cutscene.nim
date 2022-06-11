@@ -1,9 +1,8 @@
 import std/logging
-import std/strformat
 import sqnim
 import ../script/vm
 import ../script/squtils
-import ../game/task
+import ../game/tasks/task
 
 type 
   CutsceneState = enum
@@ -20,7 +19,7 @@ type
     stopped: bool
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
-  result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride)
+  result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj)
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
@@ -60,7 +59,7 @@ proc checkEndCutscene(self: Cutscene) =
 proc doCutsceneOverride(self: Cutscene) =
   if not sq_isnull(self.closureOverride):
     self.state = csCheckOverride
-    debug fmt"start cutsceneOverride"
+    debug "start cutsceneOverride"
     sq_pushobject(self.getThread(), self.closureOverride)
     sq_pushobject(self.getThread(), self.envObj)
     if SQ_FAILED(sq_call(self.getThread(), 1, SQFalse, SQTrue)):
@@ -71,11 +70,11 @@ proc doCutsceneOverride(self: Cutscene) =
 proc checkEndCutsceneOverride(self: Cutscene) =
   if self.isStopped():
     self.state = csEnd
-    debug fmt"end checkEndCutsceneOverride"
+    debug "end checkEndCutsceneOverride"
 
 proc endCutscene(self: Cutscene) =
   self.state = csQuit
-  debug fmt"End cutscene"
+  debug "End cutscene"
   # m_engine.setInputState(m_inputState)
   # m_engine.follow(m_engine.getCurrentActor())
   call("onCutsceneEnded")

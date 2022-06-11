@@ -1,6 +1,6 @@
 import std/parseutils
 import glm
-import ../polyBool/polyBool
+import ../libs/polyBool/polyBool
 
 type Walkbox* = object
   ## Represents an area where an actor can or cannot walk
