@@ -47,6 +47,9 @@ proc isSound*(id: int): bool =
 proc isLight*(id: int): bool =
   isBetween(id, START_LIGHTID, END_LIGHTID)
 
+proc isCallback*(id: int): bool =
+  isBetween(id, START_CALLBACKID, END_CALLBACKID)
+
 proc newRoomId*(): int =
   result = gRoomId
   gRoomId += 1

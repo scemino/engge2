@@ -162,7 +162,7 @@ template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
     sq_pop(v, 1)
   else:
     discard get(v, -1, value)
-    sq_pop(v, 1)
+    sq_pop(v, 2)
 
 template getf*[T](name: string, value: var T) =
   getf(gVm.v, rootTbl(gVm.v), name, value)
@@ -182,6 +182,7 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   sq_pop(v, 1)
 
 template callFunc*[T](v: HSQUIRRELVM, res: var T, o: HSQOBJECT, name: string; args: openArray[untyped] = []) =
+  let top = sq_gettop(v)
   sq_pushobject(v, o)
   sq_pushstring(v, name, -1)
   discard sq_get(v, -2)
@@ -191,7 +192,7 @@ template callFunc*[T](v: HSQUIRRELVM, res: var T, o: HSQOBJECT, name: string; ar
     push(v, arg)
   discard sq_call(v, 1 + args.len, SQTrue, SQTrue)
   discard get(v, -1, res)
-  sq_pop(v, 1)
+  sq_settop(v, top)
 
 template callFunc*[T](o: HSQOBJECT, res: var T, name: string; args: openArray[untyped] = []) =
   gVm.v.callFunc(res, o, name, args)

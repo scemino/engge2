@@ -144,110 +144,107 @@ proc textEditCallbackStub(data: ptr ImGuiInputTextCallbackData): int32 {.cdecl.}
 
 proc draw*(self: Console, p_open: ptr bool) =
   igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
-  if not igBegin("Console", p_open):
-    igEnd()
-    return
-
-  # As a specific feature guaranteed by the library, after calling Begin() the last Item represent the title bar. So e.g. IsItemHovered() will return true when hovering the title bar.
-  # Here we create a context menu only available from the title bar.
-  if igBeginPopupContextItem():
-    if igMenuItem("Close Console"):
-      p_open[] = false
-    igEndPopup()
-  
-  igTextWrapped("Enter 'HELP' for help, press TAB to use text completion.")
-  if igSmallButton("Clear"):
-    self.clearLog()
-  igSameLine()
-  let copy_to_clipboard = igSmallButton("Copy")
-  igSeparator()
-
-  # Options menu
-  if igBeginPopup("Options"):
-    igCheckbox("Auto-scroll", addr self.autoScroll)
-    igEndPopup()
-
-  # Options, Filter
-  if igButton("Options"):
-    igOpenPopup("Options")
-  igSameLine()
-  #Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180)
-  igSeparator()
-
-  let footer_height_to_reserve =
-      igGetStyle().itemSpacing.y + igGetFrameHeightWithSpacing() # 1 separator, 1 input text
-  igBeginChild("ScrollingRegion",
-                    ImVec2(x: 0, y: -footer_height_to_reserve),
-                    false,
-                    ImGuiWindowFlags.HorizontalScrollbar) # Leave room for 1 separator + 1 InputText
-  if igBeginPopupContextWindow():
-    if igSelectable("Clear"):
+  if igBegin("Console", p_open):
+    # As a specific feature guaranteed by the library, after calling Begin() the last Item represent the title bar. So e.g. IsItemHovered() will return true when hovering the title bar.
+    # Here we create a context menu only available from the title bar.
+    if igBeginPopupContextItem():
+      if igMenuItem("Close Console"):
+        p_open[] = false
+      igEndPopup()
+    
+    igTextWrapped("Enter 'HELP' for help, press TAB to use text completion.")
+    if igSmallButton("Clear"):
       self.clearLog()
-    igEndPopup()
+    igSameLine()
+    let copy_to_clipboard = igSmallButton("Copy")
+    igSeparator()
 
-  # Display every line as a separate entry so we can change their color or add custom widgets. If you only want raw text you can use ImGui::TextUnformatted(log.begin(), log.end())
-  # NB- if you have thousands of entries this approach may be too inefficient and may require user-side clipping to only process visible items.
-  # You can seek and display only the lines that are visible using the ImGuiListClipper helper, if your elements are evenly spaced and you have cheap random access to the elements.
-  # To use the clipper we could replace the 'for (int i = 0 i < Items.Size i++)' loop with:
-  #     ImGuiListClipper clipper(Items.Size)
-  #     while (clipper.Step())
-  #         for (int i = clipper.DisplayStart i < clipper.DisplayEnd i++)
-  # However, note that you can not use this code as is if a filter is active because it breaks the 'cheap random-access' property. We would need random-access on the post-filtered list.
-  # A typical application wanting coarse clipping and filtering may want to pre-compute an array of indices that passed the filtering test, recomputing this array when user changes the filter,
-  # and appending newly elements as they are inserted. This is left as a task to the user until we can manage to improve this example code!
-  # If your items are of variable size you may want to implement code similar to what ImGuiListClipper does. Or split your data into fixed height items to allow random-seeking into your list.
-  igPushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(x: 4, y: 1)) # Tighten spacing
+    # Options menu
+    if igBeginPopup("Options"):
+      igCheckbox("Auto-scroll", addr self.autoScroll)
+      igEndPopup()
 
-  if copy_to_clipboard:
-    igLogToClipboard()
+    # Options, Filter
+    if igButton("Options"):
+      igOpenPopup("Options")
+    igSameLine()
+    #Filter.Draw("Filter (\"incl,-excl\") (\"error\")", 180)
+    igSeparator()
 
-  for item in self.items:
-    var it = item
-    if not passFilter(addr self.filter, item):
-      continue
+    let footer_height_to_reserve =
+        igGetStyle().itemSpacing.y + igGetFrameHeightWithSpacing() # 1 separator, 1 input text
+    igBeginChild("ScrollingRegion",
+                      ImVec2(x: 0, y: -footer_height_to_reserve),
+                      false,
+                      ImGuiWindowFlags.HorizontalScrollbar) # Leave room for 1 separator + 1 InputText
+    if igBeginPopupContextWindow():
+      if igSelectable("Clear"):
+        self.clearLog()
+      igEndPopup()
 
-    # Normally you would store more information in your item (e.g. make Items[] an array of structure, store color/type etc.)
-    var pop_color = false
-    if item.contains("[error]"):
-      it = item.substr(7)
-      igPushStyleColor(ImGuiCol.Text, ImVec4(x: 1.0f, y: 0.4f, z: 0.4f, w: 1.0f))
-      pop_color = true
-    elif item.contains("> "):
-      igPushStyleColor(ImGuiCol.Text, ImVec4(x: 1.0f, y: 0.8f, z: 0.6f, w: 1.0f))
-      pop_color = true
-    igTextUnformatted(it)
-    if pop_color:
-      igPopStyleColor()
+    # Display every line as a separate entry so we can change their color or add custom widgets. If you only want raw text you can use ImGui::TextUnformatted(log.begin(), log.end())
+    # NB- if you have thousands of entries this approach may be too inefficient and may require user-side clipping to only process visible items.
+    # You can seek and display only the lines that are visible using the ImGuiListClipper helper, if your elements are evenly spaced and you have cheap random access to the elements.
+    # To use the clipper we could replace the 'for (int i = 0 i < Items.Size i++)' loop with:
+    #     ImGuiListClipper clipper(Items.Size)
+    #     while (clipper.Step())
+    #         for (int i = clipper.DisplayStart i < clipper.DisplayEnd i++)
+    # However, note that you can not use this code as is if a filter is active because it breaks the 'cheap random-access' property. We would need random-access on the post-filtered list.
+    # A typical application wanting coarse clipping and filtering may want to pre-compute an array of indices that passed the filtering test, recomputing this array when user changes the filter,
+    # and appending newly elements as they are inserted. This is left as a task to the user until we can manage to improve this example code!
+    # If your items are of variable size you may want to implement code similar to what ImGuiListClipper does. Or split your data into fixed height items to allow random-seeking into your list.
+    igPushStyleVar(ImGuiStyleVar.ItemSpacing, ImVec2(x: 4, y: 1)) # Tighten spacing
 
-  if copy_to_clipboard:
-    igLogFinish()
+    if copy_to_clipboard:
+      igLogToClipboard()
 
-  if self.scrollToBottom or (self.autoScroll and igGetScrollY() >= igGetScrollMaxY()):
-    igSetScrollHereY(1.0f)
-  self.scrollToBottom = false
+    for item in self.items:
+      var it = item
+      if not passFilter(addr self.filter, item):
+        continue
 
-  igPopStyleVar()
-  igEndChild()
-  igSeparator()
+      # Normally you would store more information in your item (e.g. make Items[] an array of structure, store color/type etc.)
+      var pop_color = false
+      if item.contains("[error]"):
+        it = item.substr(7)
+        igPushStyleColor(ImGuiCol.Text, ImVec4(x: 1.0f, y: 0.4f, z: 0.4f, w: 1.0f))
+        pop_color = true
+      elif item.contains("> "):
+        igPushStyleColor(ImGuiCol.Text, ImVec4(x: 1.0f, y: 0.8f, z: 0.6f, w: 1.0f))
+        pop_color = true
+      igTextUnformatted(it)
+      if pop_color:
+        igPopStyleColor()
 
-  # Command-line
-  var reclaim_focus = false
-  if igInputText("Input",
-                       cast[cstring](self.inputBuf[0].addr),
-                       self.inputBuf.len.uint,
-                       (ImGuiInputTextFlags.EnterReturnsTrue.int or ImGuiInputTextFlags.CallbackCompletion.int or ImGuiInputTextFlags.CallbackHistory.int).ImGuiInputTextFlags,
-                       textEditCallbackStub,
-                       self.unsafeAddr):
-    var s = ($cast[cstring](self.inputBuf[0].addr))
-    s.removeSuffix(" ")
-    if s.len > 0:
-      self.execCommand(s)
-    s = ""
-    reclaim_focus = true
+    if copy_to_clipboard:
+      igLogFinish()
 
-  # Auto-focus on window apparition
-  igSetItemDefaultFocus()
-  if reclaim_focus:
-    igSetKeyboardFocusHere(-1)  # Auto focus previous widget
+    if self.scrollToBottom or (self.autoScroll and igGetScrollY() >= igGetScrollMaxY()):
+      igSetScrollHereY(1.0f)
+    self.scrollToBottom = false
+
+    igPopStyleVar()
+    igEndChild()
+    igSeparator()
+
+    # Command-line
+    var reclaim_focus = false
+    if igInputText("Input",
+                        cast[cstring](self.inputBuf[0].addr),
+                        self.inputBuf.len.uint,
+                        (ImGuiInputTextFlags.EnterReturnsTrue.int or ImGuiInputTextFlags.CallbackCompletion.int or ImGuiInputTextFlags.CallbackHistory.int).ImGuiInputTextFlags,
+                        textEditCallbackStub,
+                        self.unsafeAddr):
+      var s = ($cast[cstring](self.inputBuf[0].addr))
+      s.removeSuffix(" ")
+      if s.len > 0:
+        self.execCommand(s)
+      s = ""
+      reclaim_focus = true
+
+    # Auto-focus on window apparition
+    igSetItemDefaultFocus()
+    if reclaim_focus:
+      igSetKeyboardFocusHere(-1)  # Auto focus previous widget
 
   igEnd()

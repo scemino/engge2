@@ -22,13 +22,13 @@ method render*(self: SoundTool) =
 
   igBegin("Sounds".cstring, addr gSoundsVisible)
   igText("# sounds: %d/%d", count, gEngine.audio.sounds.len)
-  igSeparator();
+  igSeparator()
     
   if igBeginTable("Threads", 7, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
-    igTableSetupColumn("");
-    igTableSetupColumn("Id");
+    igTableSetupColumn("")
+    igTableSetupColumn("Id")
     igTableSetupColumn("Category")
-    igTableSetupColumn("Name");
+    igTableSetupColumn("Name")
     igTableSetupColumn("Loops")
     igTableSetupColumn("Volume")
     igTableSetupColumn("Status")

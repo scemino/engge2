@@ -14,13 +14,13 @@ type
     offset*: Vec2f                  
     scale*: Vec2f                
     rotation*: float             
-    zOrder*: int
+    zOrder*: int32
     anchorNorm: Vec2f
     anchor: Vec2f
     size*: Vec2f
     visible*: bool
     nodeColor*: Color
-    zOrderFunc*: proc (): int
+    zOrderFunc*: proc (): int32
     scaleFunc*: proc (): float32
     buttons*: seq[Button]
     shakeMotor*: Motor
@@ -48,7 +48,7 @@ method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White
   self.scale = scale
   self.nodeColor = color
 
-proc getZSort*(self: Node): int =
+proc getZSort*(self: Node): int32 =
   if self.zOrderFunc.isNil: self.zOrder else: self.zOrderFunc()
 
 proc getScale*(self: Node): Vec2f =

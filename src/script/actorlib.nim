@@ -684,7 +684,7 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
   info "Create actor " &  actor.getName()
   actor.node = newNode(actor.name)
-  actor.node.zOrderFunc = proc (): int = actor.node.pos.y.int
+  actor.node.zOrderFunc = proc (): int32 = actor.node.pos.y.int32
   actor.node.scaleFunc = proc (): float32 = actor.room.getScaling(actor.node.pos.y)
   gEngine.actors.add(actor)
 

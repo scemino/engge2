@@ -1,10 +1,12 @@
 import glm
+import sqnim
 import ../debugtool
 import ../../game/engine
 import ../../game/room
 import ../../game/shaders
 import ../../libs/imgui
 import ../../sys/app
+import ../../script/vm
 
 const
   RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0"
@@ -37,6 +39,7 @@ method render*(self: GeneralTool) =
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
+  igText("VM stack top: %d", sq_gettop(gVm.v))
   igSeparator()
 
   let room = gEngine.room

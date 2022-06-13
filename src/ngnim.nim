@@ -1,4 +1,4 @@
-import std/[logging, os]
+import std/[logging, os, strformat, times]
 import sys/[app, input]
 import sqnim
 import game/engine
@@ -37,7 +37,10 @@ proc runVm() =
     vm.v.execNutFile("ng.nut")
   else:
     info "Booting with embedded Boot.bnut"
+    let time = getTime()
     vm.v.execBnutEntry("Boot.bnut")
+    let duration = getTime() - time
+    info fmt"Boot ended in {duration}"
     # vm.v.execNut("ng", "cameraInRoom(StartScreen)")
     vm.v.execNut("ng", "start(true)")
   sq_pop(vm.v, 1)
@@ -56,6 +59,8 @@ proc main() =
   addDebugTool(newTextureTool())
   addDebugTool(newActorTool())
   addDebugTool(newGeneralTool())
+  addDebugTool(newObjectTool())
+  addDebugTool(newStackTool())
 
   # init app
   app.init(title = "engge II")

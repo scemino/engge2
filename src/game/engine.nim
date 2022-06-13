@@ -17,7 +17,6 @@ import ../script/vm
 import ../game/motors/motor
 import ../game/prefs
 import ../gfx/spritesheet
-import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/shader
 import ../gfx/color
@@ -38,14 +37,12 @@ type
   Engine* = ref object of RootObj
     rand*: Rand
     randSeed: int64
-    spriteSheets: Table[string, SpriteSheet]
-    textures: Table[string, Texture]
     v: HSQUIRRELVM
     rooms*: seq[Room]
+    room*: Room
     actors*: seq[Object]
     actor*: Object
-    room*: Room
-    fade*: Tween[float]
+    fade*: Tween[float] # will be removed by a shader
     callbacks*: seq[Callback]
     tasks*: seq[Task]
     threads*: seq[Thread]
@@ -56,9 +53,9 @@ type
     cameraPanTo*: Motor
     inputState*: InputState
     noun1*: Object
-    hud*: Hud
     prefs*: Preferences
     defaultObj*: HSQOBJECT
+    hud*: Hud
     inventory*: seq[Object]
     cutscene*: Task
     roomShader: Shader

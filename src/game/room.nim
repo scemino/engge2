@@ -45,7 +45,7 @@ type
   Layer* = ref object of RootObj
     names*: seq[string]
     parallax*: Vec2f
-    zsort*: int
+    zsort*: int32
     objects*: seq[Object]
     room: Room
     node*: Node
@@ -410,7 +410,7 @@ proc delObject*(self: Object) =
     self.node.parent.removeChild self.node
 
 # Layer
-proc newLayer(names: seq[string], parallax: Vec2f, zsort: int): Layer =
+proc newLayer(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
@@ -444,6 +444,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   # assign an id
   obj.table.setId(newObjId())
+  obj.name = frames[0]
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
   obj.touchable = true
@@ -597,7 +598,7 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
     for jLayer in jRoom["layers"].items():
       names.setLen(0)
       let parallax = parseParallax(jLayer["parallax"])
-      let zsort = jLayer["zsort"].getInt
+      let zsort = jLayer["zsort"].getInt.int32
       if jLayer["name"].kind == JArray:
         for jName in jLayer["name"].items():
           names.add(jName.getStr())

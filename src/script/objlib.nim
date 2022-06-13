@@ -643,7 +643,7 @@ proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var zsort: int
   if SQ_FAILED(get(v, 3, zsort)):
     return sq_throwerror(v, "failed to get zsort")
-  obj.node.zOrder = zsort
+  obj.node.zOrder = zsort.int32
   0
 
 proc objectUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
