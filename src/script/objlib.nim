@@ -246,7 +246,7 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
-  if not obj.isNil:
+  if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   var enabled = 0
   if SQ_FAILED(get(v, 3, enabled)):
@@ -613,8 +613,14 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  var state: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 3, state)):
+  let nArgs = sq_gettop(v)
+  if nArgs == 2:
+    push(v, obj.getState())
+    return 1
+  if nArgs != 3:
+    return sq_throwerror(v, "invalid number of arguments")
+  var state: int
+  if SQ_FAILED(get(v, 3, state)):
     return sq_throwerror(v, "failed to get state")
   obj.setState(state)
   0
