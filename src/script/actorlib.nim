@@ -691,6 +691,14 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushobject(v, actor.table)
   1
 
+proc flashSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var on: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 2, on)):
+    return sq_throwerror(v, "failed to get on")
+  # TODO: g_pEngine->flashSelectableActor(on != 0)
+  warn("flashSelectableActor not implemented")
+  0
+
 proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
   var obj: Object
   var index: int
@@ -936,6 +944,7 @@ proc register_actorlib*(v: HSQUIRRELVM) =
   v.regGblFun(actorWalkTo, "actorWalkTo")
   v.regGblFun(addSelectableActor, "addSelectableActor")
   v.regGblFun(createActor, "createActor")
+  v.regGblFun(flashSelectableActor, "flashSelectableActor")
   v.regGblFun(is_actor, "is_actor")
   v.regGblFun(isActorOnScreen, "isActorOnScreen")
   v.regGblFun(isActorSelectable, "isActorSelectable")

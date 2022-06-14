@@ -1,8 +1,10 @@
 import std/logging
+import std/strformat
 import sqnim
 import ../script/vm
 import ../script/squtils
-import ../game/tasks/task
+import ../game/ids
+import ../game/thread
 
 type 
   CutsceneState = enum
@@ -12,14 +14,16 @@ type
     csCheckOverride
     csEnd
     csQuit
-  Cutscene = ref object of Task
+  Cutscene = ref object of ThreadBase
+    id: int
     v: HSQUIRRELVM
     threadObj, closure, closureOverride, envObj: HSQOBJECT
     state: CutsceneState
     stopped: bool
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
-  result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj)
+  result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId())
+  info fmt"Create cutscene {result.id}"
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
@@ -32,7 +36,13 @@ proc destroy*(self: Cutscene) =
   discard sq_release(gVm.v, self.closureOverride)
   discard sq_release(gVm.v, self.envObj)
 
-proc getThread*(self: Cutscene): HSQUIRRELVM =
+method getId*(self: Cutscene): int =
+  self.id
+
+method getName*(self: Cutscene): string =
+  "Cutscene"
+
+method getThread*(self: Cutscene): HSQUIRRELVM =
   cast[HSQUIRRELVM](self.thread_obj.value.pThread)
 
 proc start(self: Cutscene) =
@@ -54,7 +64,7 @@ proc isStopped(self: Cutscene): bool =
 proc checkEndCutscene(self: Cutscene) =
   if self.isStopped():
     self.state = csEnd
-    debug "end cutscene: {id}"
+    debug fmt"end cutscene: {self.getId()}"
 
 proc doCutsceneOverride(self: Cutscene) =
   if not sq_isnull(self.closureOverride):
@@ -72,7 +82,7 @@ proc checkEndCutsceneOverride(self: Cutscene) =
     self.state = csEnd
     debug "end checkEndCutsceneOverride"
 
-proc endCutscene(self: Cutscene) =
+method stop*(self: Cutscene) =
   self.state = csQuit
   debug "End cutscene"
   # m_engine.setInputState(m_inputState)
@@ -100,7 +110,7 @@ method update*(self: Cutscene, elapsed: float): bool =
     return false
   of csEnd:
     debug "endCutscene"
-    self.endCutscene()
+    self.stop()
     return false
   of csQuit:
     return true

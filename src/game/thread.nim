@@ -4,45 +4,78 @@ import sqnim
 import ids
 
 type
-  Thread* = ref object of RootObj
-    id*: int
-    name*: string
+  ThreadBase* = ref object of RootObj
     global*: bool
-    v*: HSQUIRRELVM
-    thread_obj*, env_obj*, closureObj*: HSQOBJECT
-    args*: seq[HSQOBJECT]
-    waitTime*: float
     numFrames*: int
+    waitTime*: float
     pauseable*: bool
-    init: bool
     stopRequest: bool
+  Thread* = ref object of ThreadBase
+    id: int
+    name: string
+    v*: HSQUIRRELVM
+    threadObj*, envObj*, closureObj*: HSQOBJECT
+    args*: seq[HSQOBJECT]
+    init: bool
 
-proc newThread*(name: string, global: bool, v: HSQUIRRELVM, thread_obj, env_obj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
+method getThread*(self: ThreadBase): HSQUIRRELVM {.base.} =
+  discard
+
+method getId*(self: ThreadBase): int {.base.} =
+  discard
+
+method getName*(self: ThreadBase): string {.base.} =
+  discard
+
+proc isSuspended*(self: ThreadBase): bool =
+  let state = sq_getvmstate(self.getThread())
+  return state != 1
+
+proc isDead*(self: ThreadBase): bool =
+  let state = sq_getvmstate(self.getThread())
+  self.stopRequest or state == 0
+
+proc resume*(self: ThreadBase) =
+  if not self.isDead:
+    # let state = sq_getvmstate(self.getThread())
+    # info fmt"resume thread {self.getId()}, state={state}"
+    if self.isSuspended:
+      discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
+
+proc suspend*(self: ThreadBase) =
+  if self.pauseable and not self.isSuspended:
+    discard sq_suspendvm(self.getThread())
+
+method stop*(self: ThreadBase) {.base.} =
+  discard
+
+method update*(self: ThreadBase, elapsed: float): bool {.base.} =
+  return false
+
+proc newThread*(name: string, global: bool, v: HSQUIRRELVM, threadObj, envObj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
   new(result)
   result.id = newThreadId()
   result.name = name
   result.global = global
   result.v = v
-  result.thread_obj = thread_obj
-  result.env_obj = env_obj
+  result.threadObj = threadObj
+  result.envObj = envObj
   result.closureObj = closureObj
   result.args = args
   result.pauseable = true
 
-  sq_addref(result.v, result.thread_obj)
+  sq_addref(result.v, result.threadObj)
   sq_addref(result.v, result.envObj)
   sq_addref(result.v, result.closureObj)
 
-proc getThread*(self: Thread): HSQUIRRELVM =
-  cast[HSQUIRRELVM](self.thread_obj.value.pThread)
+method getThread*(self: Thread): HSQUIRRELVM =
+  cast[HSQUIRRELVM](self.threadObj.value.pThread)
 
-proc isSuspended*(self: Thread): bool =
-  let state = sq_getvmstate(self.getThread())
-  return state != 1
+method getId*(self: Thread): int =
+  self.id
 
-proc isDead*(self: Thread): bool =
-  let state = sq_getvmstate(self.getThread())
-  self.stopRequest or state == 0
+method getName*(self: Thread): string =
+  self.name
 
 proc destroy*(self: Thread) =
   debug fmt"destroy thread {self.id}"
@@ -63,22 +96,11 @@ proc call*(self: Thread): bool =
     return false
   return true
 
-proc resume*(self: Thread) =
-  if not self.isDead:
-    #let state = sq_getvmstate(self.getThread())
-    #info fmt"resume thread {self.id}, state={state}"
-    if self.isSuspended:
-      discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
-
-proc suspend*(self: Thread) =
-  if self.pauseable and not self.isSuspended:
-    discard sq_suspendvm(self.getThread())
-
-proc stop*(self: Thread) =
+method stop*(self: Thread) =
   self.stopRequest = true
   self.suspend()
 
-proc update*(self: Thread, elapsed: float): bool =
+method update*(self: Thread, elapsed: float): bool =
   if self.waitTime > 0:
     self.waitTime -= elapsed
     if self.waitTime <= 0:

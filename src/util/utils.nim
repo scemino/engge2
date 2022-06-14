@@ -95,21 +95,27 @@ proc objRoom*(table: HSQOBJECT): Room =
           return room
   nil
 
-proc thread*(v: HSQUIRRELVM): Thread =
+proc thread*(v: HSQUIRRELVM): ThreadBase =
+  if not gEngine.cutscene.isNil:
+    if gEngine.cutscene.getThread() == v:
+      return gEngine.cutscene
   var threads = gEngine.threads.toSeq
   for t in threads:
     if t.getThread() == v:
       return t
   nil
 
-proc thread*(id: int): Thread =
+proc thread*(id: int): ThreadBase =
+  if not gEngine.cutscene.isNil:
+    if gEngine.cutscene.getId() == id:
+      return gEngine.cutscene
   var threads = gEngine.threads.toSeq
   for t in threads:
-    if t.id == id:
+    if t.getId() == id:
       return t
   nil
 
-proc thread*(v: HSQUIRRELVM, i: int): Thread =
+proc thread*(v: HSQUIRRELVM, i: int): ThreadBase =
   var id: int
   if SQ_SUCCEEDED(get(v, i, id)):
     result = thread(id)

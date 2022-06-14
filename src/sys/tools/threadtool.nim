@@ -10,14 +10,14 @@ proc newThreadTool*(): ThreadTool =
 
 var gThreadsVisible = true
 
-proc getState(thread: Thread): string =
+proc getState(thread: ThreadBase): string =
   if thread.isSuspended():
     return "suspended"
   if thread.isDead():
     return "stopped"
   return "playing"
 
-proc showControls(thread: Thread) =
+proc showControls(thread: ThreadBase) =
   if thread.isSuspended():
     if igSmallButton("resume"):
       thread.resume()
@@ -46,9 +46,28 @@ method render*(self: ThreadTool) =
     igTableSetupColumn("State")
     igTableHeadersRow()
 
+    if not gEngine.cutscene.isNil:
+      let thread = gEngine.cutscene
+      let name = thread.getName()
+      let id = thread.getId()
+      let kind = if thread.global: "global" else: "local"
+      let state = thread.getState()
+
+      igTableNextRow()
+      igTableNextColumn()
+      showControls(thread)
+      igTableNextColumn()
+      igText("%5d", id)
+      igTableNextColumn()
+      igText("%-56s", name.cstring)
+      igTableNextColumn()
+      igText("%-6s", kind.cstring)
+      igTableNextColumn()
+      igText("%-9s", state.cstring)
+
     for thread in threads:
-      let name = thread.name
-      let id = thread.id
+      let name = thread.getName()
+      let id = thread.getId()
       let kind = if thread.global: "global" else: "local"
       let state = thread.getState()
 

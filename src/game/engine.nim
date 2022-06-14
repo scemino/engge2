@@ -45,7 +45,7 @@ type
     fade*: Tween[float] # will be removed by a shader
     callbacks*: seq[Callback]
     tasks*: seq[Task]
-    threads*: seq[Thread]
+    threads*: seq[ThreadBase]
     time*: float # time in seconds
     audio*: AudioSystem
     scene*: Scene
@@ -57,7 +57,7 @@ type
     defaultObj*: HSQOBJECT
     hud*: Hud
     inventory*: seq[Object]
-    cutscene*: Task
+    cutscene*: ThreadBase
     roomShader: Shader
 
 var gEngine*: Engine

@@ -71,7 +71,7 @@ proc addFolder(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Not necessary for release. 
   0
 
-proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: Thread)): SQInteger =
+proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: ThreadBase)): SQInteger =
   let t = thread(v)
   if t.isNil:
     sq_throwerror(v, "failed to get thread")
@@ -91,7 +91,7 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var numFrames: int
   if SQ_FAILED(get(v, 2, numFrames)):
     return sq_throwerror(v, "failed to get numFrames")
-  breakfunc(v, proc (t: Thread) = t.numFrames = numFrames)
+  breakfunc(v, proc (t: ThreadBase) = t.numFrames = numFrames)
 
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for time seconds.
@@ -105,16 +105,16 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var time: float
   if SQ_FAILED(get(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
-  breakfunc(v, proc (t: Thread) = t.waitTime = time)
+  breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
 
 proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   var curThread = thread(v)
   if curThread.isNil:
     return sq_throwerror(v, "Current thread should be created with startthread")
   
-  info "curThread.id: " & $curThread.id
-  info fmt"add breakwhilecond pid={curThread.id}"
-  gEngine.tasks.add newBreakWhileCond(curThread.id, name, pred)
+  info "curThread.id: " & $curThread.getId()
+  info fmt"add breakwhilecond pid={curThread.getId()}"
+  gEngine.tasks.add newBreakWhileCond(curThread.getId(), name, pred)
   return -666
 
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -407,7 +407,7 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
   let threadName = if not name.isNil: name else: "anonymous"
   var thread = newThread($threadName, global, gVm.v, thread_obj, env_obj, closureObj, args)
   sq_pop(gVm.v, 1)
-  info("create thread (" & $threadName & ")" & " id: " & $thread.id & " v=" & $(cast[int](thread.v.unsafeAddr)))
+  info("create thread (" & $threadName & ")" & " id: " & $thread.getId() & " v=" & $(cast[int](thread.v.unsafeAddr)))
   if not name.isNil:
     sq_pop(v, 1) # pop name
   sq_pop(v, 1) # pop closure
@@ -418,7 +418,7 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
   if not thread.call():
     return sq_throwerror(v, "call failed")
 
-  sq_pushinteger(v, thread.id)
+  sq_pushinteger(v, thread.getId())
   return 1
 
 proc startthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -492,7 +492,7 @@ proc threadid(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## }
   let t = thread(v)
   if not t.isNil:
-    push(v, t.id)
+    push(v, t.getId())
   else:
     push(v, 0)
   1

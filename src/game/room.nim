@@ -365,6 +365,9 @@ proc play*(self: Object, state: int; loop = false) =
   self.play fmt"state{state}", loop
   self.state = state
 
+proc getState*(self: Object): int =
+  self.state
+
 proc setState*(self: Object, state: int) =
   ## Changes the `state` of an object, although this can just be a internal state, 
   ## 

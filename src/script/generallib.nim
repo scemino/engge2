@@ -208,7 +208,7 @@ proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getstackobj(v, 3, closureOverride)):
       return sq_throwerror(v, "failed to get cutscene override closure")
 
-  let cutscene = newCutscene(v, threadObj, closure, closureOverride, env_obj)
+  let cutscene = newCutscene(v, thread_obj, closure, closureOverride, env_obj)
   gEngine.cutscene = cutscene
 
   # call the closure in the thread
@@ -226,6 +226,10 @@ proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get defaultValue")
   warn "getPrivatePref not implemented"
   push(v, defaultValue)
+  1
+
+proc incutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  push(v, gEngine.cutscene.isNil)
   1
 
 proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -565,6 +569,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(cursorPosY, "cursorPosY")
   v.regGblFun(cutscene, "cutscene")
   v.regGblFun(getPrivatePref, "getPrivatePref")
+  v.regGblFun(incutscene, "incutscene")
   v.regGblFun(inputVerbs, "inputVerbs")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
