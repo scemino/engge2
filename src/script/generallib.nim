@@ -183,16 +183,16 @@ proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let nArgs = sq_gettop(v)
 
-  var env_obj: HSQOBJECT
-  sq_resetobject(env_obj)
-  if SQ_FAILED(sq_getstackobj(v, 1, env_obj)):
+  var envObj: HSQOBJECT
+  sq_resetobject(envObj)
+  if SQ_FAILED(sq_getstackobj(v, 1, envObj)):
     return sq_throwerror(v, "Couldn't get environment from stack")
 
   # create thread and store it on the stack
   discard sq_newthread(gVm.v, 1024)
-  var thread_obj: HSQOBJECT
-  sq_resetobject(thread_obj)
-  if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
+  var threadObj: HSQOBJECT
+  sq_resetobject(threadObj)
+  if SQ_FAILED(sq_getstackobj(gVm.v, -1, threadObj)):
     return sq_throwerror(v, "failed to get coroutine thread from stack")
 
   # get the closure
@@ -208,7 +208,7 @@ proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getstackobj(v, 3, closureOverride)):
       return sq_throwerror(v, "failed to get cutscene override closure")
 
-  let cutscene = newCutscene(v, thread_obj, closure, closureOverride, env_obj)
+  let cutscene = newCutscene(v, threadObj, closure, closureOverride, envObj)
   gEngine.cutscene = cutscene
 
   # call the closure in the thread

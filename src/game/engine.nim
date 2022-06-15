@@ -177,6 +177,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
         else:
           # assign an id
           obj.table.setId(newObjId())
+          setf(rootTbl(gVm.v), obj.name, obj.table)
           info fmt"Create object with existing table: {obj.name} #{obj.id}"
           if obj.table.rawexists("initTouchable"):
             info fmt"initTouchable {obj.name}"

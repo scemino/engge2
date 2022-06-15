@@ -1,13 +1,13 @@
 # TODO
 
 * [x] debug tools (dear imgui)
-  * [ ] actors
+  * [x] actors
   * [ ] camera
   * [x] console
-  * [ ] general
-  * [ ] objects
+  * [x] general
+  * [x] objects
   * [ ] preferences
-  * [ ] room
+  * [x] room
   * [x] textures
   * [ ] vm
   * [x] threads
@@ -27,6 +27,8 @@
 * [ ] input
 * [ ] input mapping
 * [x] walkboxes
+* [x] cutscene
+  * [ ] cutscene override
 * [ ] dialogs
 * [ ] HUD
   * [x] verbs
@@ -118,14 +120,24 @@
 - [x] chr
 - [x] cursorPosX
 - [x] cursorPosY
-- [ ] cutscene
+- [x] cutscene
 - [ ] cutsceneOverride
 - [ ] distance
-- [ ] exCommand EX_ALLOW_SAVEGAMES, EX_POP_CHARACTER_SELECTION, EX_AUTOSAVE, EX_AUTOSAVE_STATE, EX_BUTTON_HOVER_SOUND, EX_CAMERA_TRACKING, EX_FORCE_TALKIE_TEXT, EX_IDLE_TIME, EX_OPTIONS_MUSIC, EX_RESTART, EX_SHOW_OPTIONS
+- [ ] exCommand EX_ALLOW_SAVEGAMES
+- [ ] exCommand EX_POP_CHARACTER_SELECTION
+- [ ] exCommand EX_AUTOSAVE
+- [ ] exCommand EX_AUTOSAVE_STATE
+- [ ] exCommand EX_BUTTON_HOVER_SOUND
+- [ ] exCommand EX_CAMERA_TRACKING
+- [ ] exCommand EX_FORCE_TALKIE_TEXT
+- [ ] exCommand EX_IDLE_TIME
+- [ ] exCommand EX_OPTIONS_MUSIC
+- [ ] exCommand EX_RESTART
+- [ ] exCommand EX_SHOW_OPTIONS
 - [ ] findScreenPosition
 - [ ] frameCounter
 - [ ] in_array
-- [ ] incutscene
+- [x] incutscene
 - [ ] indialog
 - [x] inputVerbs
 - [x] is_array
@@ -183,6 +195,12 @@
 - [x] removeTrigger
 - [x] roomActors
 - [ ] roomEffect
+  - [x] EFFECT_NONE
+  - [x] EFFECT_SEPIA
+  - [ ] EFFECT_EGA
+  - [ ] EFFECT_VHS
+  - [ ] EFFECT_GHOST
+  - [x] EFFECT_BLACKANDWHITE
 - [x] roomFade
 - [x] roomLayer
 - [x] roomOverlayColor
@@ -198,7 +216,7 @@
 - [x] breaktime
 - [x] breakwhileanimating
 - [ ] breakwhilecamera
-- [ ] breakwhilecutscene
+- [x] breakwhilecutscene
 - [ ] breakwhiledialog
 - [ ] breakwhileinputoff
 - [x] breakwhilerunning

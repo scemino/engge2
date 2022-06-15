@@ -145,6 +145,12 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
   breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not thread(id).isNil)
 
+proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks while a cutscene is running.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
+  breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
+
 proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
   ## Note, animatingItem can be an actor or an object.
@@ -518,6 +524,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
+  v.regGblFun(breakwhilecutscene, "breakwhilecutscene")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(breakwhilesound, "breakwhilesound")
   v.regGblFun(breakwhiletalking, "breakwhiletalking")
