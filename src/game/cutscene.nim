@@ -43,7 +43,7 @@ method getName*(self: Cutscene): string =
   "Cutscene"
 
 method getThread*(self: Cutscene): HSQUIRRELVM =
-  cast[HSQUIRRELVM](self.thread_obj.value.pThread)
+  cast[HSQUIRRELVM](self.threadObj.value.pThread)
 
 proc start(self: Cutscene) =
   self.state = csCheckEnd
@@ -92,6 +92,16 @@ method stop*(self: Cutscene) =
   discard sq_suspendvm(self.getThread())
 
 method update*(self: Cutscene, elapsed: float): bool =
+  if self.waitTime > 0:
+    self.waitTime -= elapsed
+    if self.waitTime <= 0:
+      self.waitTime = 0
+      self.resume()
+  elif self.numFrames > 0:
+    self.numFrames -= 1
+    self.numFrames = 0
+    self.resume()
+
   case self.state:
   of csStart:
     debug "startCutscene"
