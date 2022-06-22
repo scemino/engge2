@@ -146,6 +146,9 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       for obj in layer.objects:
         sq_resetobject(obj.table)
         result.table.getf(obj.name, obj.table)
+
+        # set room as delegate
+        obj.table.setdelegate(table)
         
         # check if the object exists in Squirrel VM
         if obj.table.objType == OT_NULL:
@@ -331,7 +334,7 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
   # TODO: Do reach before calling verb so we can kill it if needed.
 
   # TODO: finish this
-  call(gEngine.room.table, noun1.table, verbFuncName)
+  call(noun1.table, verbFuncName)
 
   gEngine.noun1 = nil
 

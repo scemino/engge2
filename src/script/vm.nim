@@ -69,6 +69,12 @@ proc push*(v: HSQUIRRELVM, rect: Recti) {.inline.} =
   sq_pushinteger(v, rect.bottom)
   discard sq_newslot(v, -3, SQFalse)
 
+proc setdelegate*(obj, del: HSQOBJECT) =
+  push(gVm.v, obj)
+  push(gVm.v, del)
+  discard sq_setdelegate(gVm.v, -2)
+  sq_pop(gVm.v, 1)
+
 proc set*[T](v: HSQUIRRELVM, obj: HSQOBJECT, name: string, value: T) =
   sq_pushobject(v, obj)
   sq_pushstring(v, name, -1)
