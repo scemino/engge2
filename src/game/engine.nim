@@ -474,7 +474,7 @@ proc update*(self: Node, elapsed: float) =
     node.update(elapsed)
     
 proc update(self: Engine) =
-  let elapsed = 1/60
+  let elapsed = self.prefs.tmp.gameSpeedFactor / 60'f32
   self.time += elapsed
 
   # update mouse pos

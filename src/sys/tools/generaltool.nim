@@ -2,6 +2,7 @@ import glm
 import sqnim
 import ../debugtool
 import ../../game/engine
+import ../../game/prefs
 import ../../game/room
 import ../../game/shaders
 import ../../libs/imgui
@@ -40,6 +41,8 @@ method render*(self: GeneralTool) =
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   igText("VM stack top: %d", sq_gettop(gVm.v))
+  igSeparator()
+  igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr)
   igSeparator()
 
   let room = gEngine.room
