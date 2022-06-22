@@ -181,6 +181,18 @@ proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
+proc call*(env, o: HSQOBJECT, name: string; args: openArray[HSQOBJECT] = []) =
+  let v = gVm.v
+  sq_pushobject(v, o)
+  sq_pushstring(v, name, -1)
+  discard sq_get(v, -2)
+
+  sq_pushobject(v, env)
+  for arg in args:
+    sq_pushobject(v, arg)
+  discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
+  sq_pop(v, 1)
+
 template callFunc*[T](v: HSQUIRRELVM, res: var T, o: HSQOBJECT, name: string; args: openArray[untyped] = []) =
   let top = sq_gettop(v)
   sq_pushobject(v, o)

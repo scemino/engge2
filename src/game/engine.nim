@@ -331,7 +331,7 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
   # TODO: Do reach before calling verb so we can kill it if needed.
 
   # TODO: finish this
-  call(noun1.table, verbFuncName)
+  call(gEngine.room.table, noun1.table, verbFuncName)
 
   gEngine.noun1 = nil
 
