@@ -302,7 +302,7 @@ proc setRoom*(self: Engine, room: Room) =
 proc findObjAt*(self: Engine, pos: Vec2f): Object =
   for layer in gEngine.room.layers:
     for obj in layer.objects:
-      if obj.node.visible and obj.objType == otNone and obj.contains(pos):
+      if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
         return obj
 
 proc winToScreen*(self: Engine, pos: Vec2f): Vec2f =
