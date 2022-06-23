@@ -1,34 +1,15 @@
-# TODO
+# Engge II
 
-* [x] debug tools (dear imgui)
-  * [x] actors
-  * [ ] camera
-  * [x] console
-  * [x] general
-  * [x] objects
-  * [ ] preferences
-  * [x] room
-  * [x] textures
-  * [ ] vm
-  * [x] threads
-  * [x] sounds
-* [x] actor costume
-* [x] actor animations
-* [x] actor walking
-  * [x] path finding
-  * [x] animation
-  * [x] animation offsets
-  * [x] zsort
-  * [x] scaling
-  * [x] walk facing
-  * [x] final facing
-* [x] lips
-* [x] blink
+
+## TODO
+
+* [ ] camera
+    * [ ] camera follow actor
 * [ ] input
-* [ ] input mapping
-* [x] walkboxes
+  * [ ] input mapping
 * [x] cutscene
   * [ ] cutscene override
+  * [ ] cutscene UI (ESC)
 * [ ] dialogs
 * [ ] HUD
   * [x] verbs
@@ -40,20 +21,48 @@
 * [ ] achievements
 * [ ] UI dialogs
 * [ ] shaders
+* [ ] continuous integration
 * [ ] preferences
-* [x] actor talking
+  * [x] user preferences
+  * [ ] private preferences (achievement)
+  * [x] temp preferences (debug)
+* [x] debug tools (dear imgui)
+  * [x] console
+  * [x] general
+  * [x] objects
+  * [x] actors
+  * [x] room
+  * [x] textures
+  * [x] threads
+  * [x] sounds
+* [x] actor
+  * [x] actor costume
+  * [x] actor animations
+  * [x] actor walking
+    * [x] path finding
+    * [x] animation
+    * [x] animation offsets
+    * [x] zsort
+    * [x] scaling
+    * [x] walk facing
+    * [x] final facing
+    * [x] walkboxes
+  * [x] actor lips
+  * [x] actor blink
+  * [x] actor talking
 * [x] audio
-* [x] squirrel bindings
-* [x] easy squirrel constants bindings
-* [x] change thread management in order to use only 1 thread
+* [x] script
+  * [x] squirrel bindings
+  * [x] easy squirrel constants bindings
+  * [x] change thread management in order to use only 1 thread
 * [x] resource management
-* [x] ref counting with resource management
+  * [ ] ref counting with resource management
 * [x] test object hierarchy: scene graph ?
 * [x] text
 
-# Functions
+## Functions
 
-## Actor
+### Actor
 
 - [x] actorAlpha
 - [x] actorAnimationNames
@@ -105,7 +114,7 @@
 - [x] triggerActors
 - [x] verbUIColors
 
-## General
+### General
 
 - [ ] activeVerb
 - [ ] adhocalytics
@@ -113,7 +122,7 @@
 - [x] assetExists
 - [x] cameraAt
 - [ ] cameraBounds
-- [ ] cameraFollow
+- [x] cameraFollow
 - [x] cameraInRoom
 - [x] cameraPanTo
 - [x] cameraPos
@@ -171,7 +180,7 @@
 - [x] strsplit
 - [x] translate
 
-## Room
+### Room
 
 - [x] addCallback
 - [x] addTrigger
@@ -208,7 +217,7 @@
 - [x] roomSize
 - [x] walkboxHidden
 
-## System
+### System
 
 - [x] activeController
 - [x] addFolder
@@ -226,7 +235,7 @@
 - [x] dumpvar
 - [x] gameTime
 - [ ] getPrivatePref
-- [ ] getUserPref
+- [x] getUserPref
 - [x] include
 - [x] inputHUD
 - [x] inputOff
@@ -249,7 +258,7 @@
 - [x] threadid
 - [x] threadpauseable
 
-## Object
+### Object
 
 - [x] createObject 
 - [x] createTextObject
@@ -306,7 +315,7 @@
 - [ ] shakeObject
 - [ ] stopObjectMotors
 
-## Sound
+### Sound
 
 - [x] actorSound
 - [x] defineSound

@@ -4,6 +4,7 @@ import ../debugtool
 import ../../game/engine
 import ../../game/prefs
 import ../../game/room
+import ../../game/motors/motor
 import ../../game/shaders
 import ../../libs/imgui
 import ../../sys/app
@@ -40,9 +41,16 @@ method render*(self: GeneralTool) =
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
+  igText("Camera follow: %s", if gEngine.follow.isNil: "(none)".cstring else: gEngine.follow.name.cstring)
+  igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
+  var camPos = gEngine.cameraPos()
+  if igDragFloat2("Camera pos", camPos.arr):
+    gEngine.follow = nil
+    let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
+    gEngine.cameraAt(camPos - halfScreenSize)
   igText("VM stack top: %d", sq_gettop(gVm.v))
   igSeparator()
-  igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr)
+  igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
   igSeparator()
 
   let room = gEngine.room

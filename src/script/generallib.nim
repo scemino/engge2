@@ -83,6 +83,11 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.cameraAt(at)
   0
 
+proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let actor = actor(v, 2)
+  gEngine.follow = actor
+  return 0
+
 proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the camera to the specified room.
   ## 
@@ -230,6 +235,11 @@ proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc incutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.cutscene.isNil)
+  1
+
+proc indialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "indialog not implemented"
+  push(v, false)
   1
 
 proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -561,6 +571,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(arrayShuffle, "arrayShuffle")
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
+  v.regGblFun(cameraFollow, "cameraFollow")
   v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(cameraPanTo, "cameraPanTo")
   v.regGblFun(cameraPos, "cameraPos")
@@ -570,6 +581,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(cutscene, "cutscene")
   v.regGblFun(getPrivatePref, "getPrivatePref")
   v.regGblFun(incutscene, "incutscene")
+  v.regGblFun(indialog, "indialog")
   v.regGblFun(inputVerbs, "inputVerbs")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")

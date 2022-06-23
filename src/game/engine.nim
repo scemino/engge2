@@ -59,6 +59,7 @@ type
     inventory*: seq[Object]
     cutscene*: ThreadBase
     roomShader: Shader
+    follow*: Object
 
 var gEngine*: Engine
 
@@ -91,10 +92,6 @@ proc `seed`*(self: Engine): int64 =
 proc `currentActor`*(self: Engine): Object =
   self.actor
 
-proc follow(self: Engine, actor: Object) =
-  # TODO: follows actor
-  discard
-
 proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
   self.actor = actor
   self.hud.actor = actor
@@ -110,9 +107,8 @@ proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
     if room.table.rawExists("onActorSelected"):
       sqCall(room.table, "onActorSelected", [actor.table, userSelected])
 
-  # TODO:
-  # if not actor.isNil:
-  #   self.follow(actor)
+  if not actor.isNil:
+    self.follow = actor
 
 proc getObj(room: Room, name: string): Object =
   for layer in room.layers:
@@ -380,6 +376,7 @@ proc execSentence*(actor: Object, verbId: VerbId, noun1: Object; noun2: Object =
     actor.walk(noun2)
 
 proc cancelSentence(actor: Object) =
+  info("cancelSentence")
   var actor = actor
   if actor.isNil: 
     actor = gEngine.actor
@@ -476,10 +473,25 @@ proc update*(self: Node, elapsed: float) =
 
   for node in self.children:
     node.update(elapsed)
-    
+
+proc clampPos(self: Engine, at: Vec2f): Vec2f =
+  let screenSize = self.room.getScreenSize()
+  var x = clamp(at.x, 0.0f, max(self.room.roomSize.x.float32 - screenSize.x.float32, 0.0f))
+  var y = clamp(at.y, 0.0f, max(self.room.roomSize.y.float32 - screenSize.y.float32, 0.0f))
+  vec2(x, y)
+
+proc cameraAt*(self: Engine, at: Vec2f) =
+  ## Set the camera position to the given `at` position.
+  cameraPos(self.clampPos(at))
+
 proc update(self: Engine) =
   let elapsed = self.prefs.tmp.gameSpeedFactor / 60'f32
   self.time += elapsed
+
+  # update camera
+  if not self.follow.isNil:
+    var screenSize = gEngine.room.getScreenSize()
+    self.cameraAt(self.follow.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
 
   # update mouse pos
   let scrPos = self.winToScreen(mousePos())
@@ -530,7 +542,7 @@ proc update(self: Engine) =
   self.audio.update()
 
   # update motors
-  if not self.cameraPanTo.isNil:
+  if not self.cameraPanTo.isNil and self.cameraPanTo.enabled:
     self.cameraPanTo.update(elapsed)
 
   # update room
@@ -543,16 +555,6 @@ proc update(self: Engine) =
     actor.update(elapsed)
 
   self.updateTriggers()
-
-proc clampPos(self: Engine, at: Vec2f): Vec2f =
-  var screenSize = self.room.getScreenSize()
-  var x = clamp(at.x, 0.0f, max(self.room.roomSize.x.float32 - screenSize.x.float32, 0.0f))
-  var y = clamp(at.y, 0.0f, max(self.room.roomSize.y.float32 - screenSize.y.float32, 0.0f))
-  vec2(x, y)
-
-proc cameraAt*(self: Engine, at: Vec2f) =
-  ## Set the camera position to the given `at` position.
-  cameraPos(self.clampPos(at))
 
 proc cameraPos*(self: Engine): Vec2f =
   ## Returns the camera position: the position of the middle of the screen.

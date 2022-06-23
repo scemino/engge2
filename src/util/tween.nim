@@ -18,7 +18,7 @@ proc running*[T](self: Tween[T]): bool =
   if self.swing or self.loop:
     true
   else:
-    self.elapsed != self.duration
+    self.elapsed < self.duration
 
 proc update*[T](self: var Tween[T], elapsed: float) =
   if self.enabled and self.running:
