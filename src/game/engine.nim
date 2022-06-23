@@ -374,6 +374,7 @@ proc execSentence*(actor: Object, verbId: VerbId, noun1: Object; noun2: Object =
     actor.walk(noun1)
   else:
     actor.walk(noun2)
+  return true
 
 proc cancelSentence(actor: Object) =
   info("cancelSentence")
@@ -399,11 +400,12 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
 
     if mbLeft in btns:
       # button left: execute selected verb
+      var handled = false
       if not obj.isNil:
         let verb = gEngine.hud.verb
         if obj.table.rawexists(verb.fun):
-          discard execSentence(nil, verb.id, self.noun1)
-      if not self.clickedAtHandled(roomPos):
+          handled = execSentence(nil, verb.id, self.noun1)
+      if not handled and not self.clickedAtHandled(roomPos):
         # Just clicking on the ground
         cancelSentence(gEngine.actor)
         if not gEngine.actor.isNil:
