@@ -3,20 +3,31 @@
 
 ## TODO
 
-* [ ] camera
-    * [ ] camera follow actor
+* [x] camera
+    * [x] camera follow actor
+    * [x] camera pan
+    * [ ] advanced camera movement
 * [ ] input
   * [ ] input mapping
 * [x] cutscene
   * [ ] cutscene override
   * [ ] cutscene UI (ESC)
 * [ ] dialogs
+  * [x] yack parsing
+  * [ ] yack intepreter
 * [ ] HUD
   * [x] verbs
   * [ ] sentence
   * [x] inventory
   * [ ] scroll inventory
   * [ ] fade
+  * [ ] mouse cursor
+  * [ ] mouse text repositioned
+  * [ ] mouse zsort
+  * [ ] actor selection
+* [ ] triggers
+  * [ ] room trigger should be called in a thread (to be breakable)
+* [ ] pause game
 * [ ] savegames
 * [ ] achievements
 * [ ] UI dialogs
@@ -26,6 +37,8 @@
   * [x] user preferences
   * [ ] private preferences (achievement)
   * [x] temp preferences (debug)
+* [ ] sentence
+  * [ ] cursor verb should be reset (walk to) when action is executed or cancelled
 * [x] debug tools (dear imgui)
   * [x] console
   * [x] general
@@ -50,7 +63,13 @@
   * [x] actor lips
   * [x] actor blink
   * [x] actor talking
-* [x] audio
+  * [ ] actor reach animation
+  * [ ] actor walk fast
+* [ ] audio
+  * [x] talk
+  * [x] sound
+  * [x] music
+  * [ ] sound position
 * [x] script
   * [x] squirrel bindings
   * [x] easy squirrel constants bindings

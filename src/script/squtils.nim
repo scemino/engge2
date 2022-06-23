@@ -99,7 +99,7 @@ template get*[T](v: HSQUIRRELVM, index: int, value: var T): SQRESULT =
 
 template getf*[T](v: HSQUIRRELVM, o: HSQOBJECT, name: string, value: var T) =
   sq_pushobject(v, o)
-  sq_pushstring(v, name, -1)
+  sq_pushstring(v, name.cstring, -1)
   if SQ_FAILED(sq_get(v, -2)):
     sq_pop(v, 1)
   else:

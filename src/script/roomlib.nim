@@ -23,9 +23,12 @@ proc addTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_resetobject(obj.leave)
   if SQ_FAILED(get(v, 3, obj.enter)):
     return sq_throwerror(v, "failed to get enter")
+  sq_addref(gVm.v, obj.enter)
   if nArgs == 4:
     if SQ_FAILED(get(v, 4, obj.leave)):
       return sq_throwerror(v, "failed to get leave")
+    sq_addref(gVm.v, obj.leave)
+  gEngine.room.triggers.add(obj)
   0
 
 proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -451,6 +454,7 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(defineRoom, "defineRoom")
   v.regGblFun(definePseudoRoom, "definePseudoRoom")
   v.regGblFun(enableTrigger, "enableTrigger")
+  v.regGblFun(enterRoomFromDoor, "enterRoomFromDoor")
   v.regGblFun(findRoom, "findRoom")
   v.regGblFun(lightBrightness, "lightBrightness")
   v.regGblFun(lightConeAngle, "lightConeAngle")

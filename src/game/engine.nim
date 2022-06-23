@@ -162,14 +162,14 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           # assign a name
           sq_pushobject(gVm.v, obj.table)
           sq_pushstring(gVm.v, "name", -1)
-          sq_pushstring(gVm.v, obj.name, -1)
+          sq_pushstring(gVm.v, obj.name.cstring, -1)
           discard sq_newslot(gVm.v, -3, false)
 
           obj.touchable = true
           
           # adds the object to the room table
           sq_pushobject(gVm.v, result.table)
-          sq_pushstring(gVm.v, obj.name, -1)
+          sq_pushstring(gVm.v, obj.name.cstring, -1)
           sq_pushobject(gVm.v, obj.table)
           discard sq_newslot(gVm.v, -3, false)
           sq_pop(gVm.v, 1)
@@ -440,11 +440,13 @@ proc updateTriggers(self: Engine) =
   if not self.actor.isNil:
     if not self.room.trigger.isNil:
       if not self.room.trigger.contains(self.actor.node.pos):
+        info "call leave trigger " & self.room.trigger.name
         self.callTrigger(self.room.trigger.leave)
         self.room.trigger = nil
     else:
       for trigger in self.room.triggers:
         if trigger.contains(self.actor.node.pos):
+          info "call enter trigger " & trigger.name
           self.room.trigger = trigger
           self.callTrigger(self.room.trigger.enter)
           return
