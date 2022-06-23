@@ -11,6 +11,7 @@ import ids
 import ../script/squtils
 import ../io/ggpackmanager
 import ../gfx/color
+import ../script/vm
 import objanim
 import motors/motor
 import motors/walkto
@@ -139,4 +140,4 @@ proc pickupObject*(self: Object, obj: Object) =
   call("onPickup", [obj.table, self.table])
 
   if obj.table.rawexists("onPickUp"):
-    obj.table.call("onPickUp", [self.table])
+    sqCall(obj.table, "onPickUp", [self.table])

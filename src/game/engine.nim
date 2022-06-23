@@ -103,13 +103,14 @@ proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
   elif not self.hud.parent.isNil and actor.isNil:
     self.screen.removeChild self.hud
 
-  # TODO:
-  # call("onActorSelected", [actor.table, userSelected])
-  # let room = if actor.isNil: nil else: actor.room
-  # if not room.isNil:
-  #   if room.table.rawExists("onActorSelected"):
-  #     room.table.call("onActorSelected", [actor, userSelected])
+  # call onActorSelected callbacks
+  sqCall("onActorSelected", [actor.table, userSelected])
+  let room = if actor.isNil: nil else: actor.room
+  if not room.isNil:
+    if room.table.rawExists("onActorSelected"):
+      sqCall(room.table, "onActorSelected", [actor.table, userSelected])
 
+  # TODO:
   # if not actor.isNil:
   #   self.follow(actor)
 
@@ -236,7 +237,7 @@ proc exitRoom(self: Engine, nextRoom: Room) =
     # call room exit function with the next room as a parameter if requested
     let nparams = paramCount(self.v, self.room.table, "exit")
     if nparams == 2:
-      call(self.room.table, "exit", [nextRoom.table])
+      sqCall(self.room.table, "exit", [nextRoom.table])
     else:
       call(self.room.table, "exit")
 

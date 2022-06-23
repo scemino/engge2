@@ -23,7 +23,7 @@ proc newVM*(): VM =
 
 proc destroy*(self: VM) =
   sq_close(self.v)
-  
+
 proc push*(v: HSQUIRRELVM, value: bool) {.inline.} =
   sq_pushbool(v, if value: SQTrue else: SQFalse)
 
@@ -52,7 +52,7 @@ proc push*(v: HSQUIRRELVM, pos: Vec2i) {.inline.} =
   discard sq_newslot(v, -3, SQFalse)
 
 proc push*(v: HSQUIRRELVM, pos: Vec2f) {.inline.} =
-  push(v, vec2(pos.x.int32,pos.y.int32))
+  push(v, vec2(pos.x.int32, pos.y.int32))
 
 proc push*(v: HSQUIRRELVM, rect: Recti) {.inline.} =
   sq_newtable(v)
