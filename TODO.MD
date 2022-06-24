@@ -135,7 +135,7 @@
 
 ### General
 
-- [ ] activeVerb
+- [x] activeVerb
 - [ ] adhocalytics
 - [x] arrayShuffle
 - [x] assetExists

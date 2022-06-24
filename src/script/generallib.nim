@@ -29,6 +29,10 @@ proc getarray(obj: HSQOBJECT, arr: var seq[HSQOBJECT]) =
   for o in obj.items:
     arr.add(obj)
 
+proc activeVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  push(v, gEngine.hud.verb.id.int)
+  1
+
 proc arrayShuffle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) != OT_ARRAY:
     return sq_throwerror(v, "An array is expected")
@@ -568,6 +572,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
   ## 
   ## It adds all the general functions in the given Squirrel virtual machine.
+  v.regGblFun(activeVerb, "activeVerb")
   v.regGblFun(arrayShuffle, "arrayShuffle")
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
