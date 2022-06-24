@@ -117,6 +117,34 @@ proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   gEngine.tasks.add newBreakWhileCond(curThread.getId(), name, pred)
   return -666
 
+proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
+  ## Note, animatingItem can be an actor or an object.
+  ## It is an error to call breakwhileanimating in a function that was not started with `startthread`.
+  ## 
+  ## . code-block:: Squirrel
+  ## actorFace(ray, FACE_LEFT)
+  ## actorCostume(ray, "RayVomit")
+  ## actorPlayAnimation(ray, "vomit")
+  ## breakwhileanimating(ray)
+  ## actorCostume(ray, "RayAnimation")
+  var obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.isNil and obj.nodeAnim.enabled)
+
+proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks while a camera is moving.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhilecamera in a function that was not started with startthread. 
+  breakwhilecond(v, "breakwhilecamera()", proc (): bool = not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled)
+
+proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks while a cutscene is running.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
+  breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
+
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while the thread referenced by threadId is running.
   ## Once the thread finishes execution, the method will continue running.
@@ -144,28 +172,6 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return 0
 
   breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not thread(id).isNil)
-
-proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Breaks while a cutscene is running.
-  ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
-  breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
-
-proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
-  ## Note, animatingItem can be an actor or an object.
-  ## It is an error to call breakwhileanimating in a function that was not started with `startthread`.
-  ## 
-  ## . code-block:: Squirrel
-  ## actorFace(ray, FACE_LEFT)
-  ## actorCostume(ray, "RayVomit")
-  ## actorPlayAnimation(ray, "vomit")
-  ## breakwhileanimating(ray)
-  ## actorCostume(ray, "RayAnimation")
-  var obj = obj(v, 2)
-  if obj.isNil:
-    return sq_throwerror(v, "failed to get object")
-  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.isNil and obj.nodeAnim.enabled)
 
 proc isSomeoneTalking(): bool =
   ## Returns true if at least 1 actor is talking.
@@ -524,6 +530,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakhere, "breakhere")
   v.regGblFun(breaktime, "breaktime")
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
+  v.regGblFun(breakwhilecamera, "breakwhilecamera")
   v.regGblFun(breakwhilecutscene, "breakwhilecutscene")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(breakwhilesound, "breakwhilesound")

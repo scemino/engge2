@@ -243,7 +243,7 @@
 - [x] breakhere
 - [x] breaktime
 - [x] breakwhileanimating
-- [ ] breakwhilecamera
+- [x] breakwhilecamera
 - [x] breakwhilecutscene
 - [ ] breakwhiledialog
 - [ ] breakwhileinputoff
