@@ -293,7 +293,7 @@
 - [x] objectAlphaTo
 - [x] objectAt
 - [x] objectBumperCycle
-- [ ] objectCenter
+- [x] objectCenter
 - [x] objectColor
 - [ ] objectDependentOn
 - [x] objectFPS

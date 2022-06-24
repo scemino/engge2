@@ -254,6 +254,14 @@ proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # TODO: objectBumperCycle
   0
 
+proc objectCenter(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  let pos = obj.node.pos + obj.usePos
+  push(v, pos)
+  1
+
 proc objectColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets an object's color. The color is an int in the form of 0xRRGGBB 
   ## 
@@ -817,6 +825,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectAlphaTo, "objectAlphaTo")
   v.regGblFun(objectAt, "objectAt")
   v.regGblFun(objectBumperCycle, "objectBumperCycle")
+  v.regGblFun(objectCenter, "objectCenter")
   v.regGblFun(objectColor, "objectColor")
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
