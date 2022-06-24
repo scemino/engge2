@@ -145,6 +145,12 @@ proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
   breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
 
+proc breakwhileinputoff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Breaks while input is not active.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhileinputoff in a function that was not started with startthread. 
+  breakwhilecond(v, "breakwhileinputoff()", proc (): bool = not gEngine.inputState.inputActive)
+
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while the thread referenced by threadId is running.
   ## Once the thread finishes execution, the method will continue running.
@@ -532,6 +538,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilecamera, "breakwhilecamera")
   v.regGblFun(breakwhilecutscene, "breakwhilecutscene")
+  v.regGblFun(breakwhileinputoff, "breakwhileinputoff")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(breakwhilesound, "breakwhilesound")
   v.regGblFun(breakwhiletalking, "breakwhiletalking")

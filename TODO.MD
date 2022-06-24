@@ -246,7 +246,7 @@
 - [x] breakwhilecamera
 - [x] breakwhilecutscene
 - [ ] breakwhiledialog
-- [ ] breakwhileinputoff
+- [x] breakwhileinputoff
 - [x] breakwhilerunning
 - [x] breakwhilesound
 - [x] breakwhiletalking
