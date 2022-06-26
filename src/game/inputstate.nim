@@ -46,7 +46,7 @@ proc newInputState*(): InputState =
 proc setText*(self: var InputState, text: string) =
   self.text.text = text
   self.text.update()
-  self.textNode.setAnchorNorm(vec2(0.5f, 1f))
+  self.textNode.setAnchorNorm(vec2(1f, 1f))
   self.textNode.updateBounds()
 
 proc setState*(self: var InputState, state: InputStateFlag) =
