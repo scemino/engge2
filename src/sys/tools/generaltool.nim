@@ -6,12 +6,14 @@ import ../../game/prefs
 import ../../game/room
 import ../../game/motors/motor
 import ../../game/shaders
+import ../../scenegraph/walkboxnode
 import ../../libs/imgui
 import ../../sys/app
 import ../../script/vm
 
 const
-  RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0"
+  RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0\0"
+  WalkboxModes = "None\0Merged\0All\0\0"
 
 type 
   GeneralTool = ref object of DebugTool
@@ -64,6 +66,9 @@ method render*(self: GeneralTool) =
     igText("Fullscreen: %d", room.fullScreen)
     igText("Height: %d", room.height)
     igColorEdit4("Overlay", room.overlay.arr)
+    var mode = gEngine.walkboxNode.mode.int32
+    if igCombo("Walkbox", mode.addr, WalkboxModes):
+      gEngine.walkboxNode.mode = mode.WalkboxMode
 
     var effect = room.effect.int32
     if igCombo("Shader", effect.addr, RoomEffects):

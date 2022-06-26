@@ -30,6 +30,7 @@ import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
 import ../scenegraph/hud
+import ../scenegraph/walkboxnode
 import ../sys/app
 import ../util/common
 from std/times import getTime, toUnix, nanosecond
@@ -70,6 +71,7 @@ type
     buttons: MouseButtonMask
     mouseDownTime: DateTime
     walkFastState: bool
+    walkboxNode*: WalkboxNode
 
 var gEngine*: Engine
 
@@ -305,6 +307,10 @@ proc setRoom*(self: Engine, room: Room) =
       # sets the current room for scripts
       rootTbl(gVm.v).setf("currentRoom", room.table)
     self.enterRoom(room)
+    if not self.walkboxNode.isNil:
+      self.walkboxNode.remove()
+    self.walkboxNode = newWalkboxNode(room)
+    self.scene.addChild self.walkboxNode
 
 proc findObjAt*(self: Engine, pos: Vec2f): Object =
   for layer in gEngine.room.layers:

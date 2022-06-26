@@ -1,30 +1,29 @@
 # Engge II
 
-
 ## TODO
 
-* [x] camera
+* [ ] camera
+    * [ ] advanced camera movement
     * [x] camera follow actor
     * [x] camera pan
-    * [ ] advanced camera movement
 * [ ] input
   * [ ] input mapping
-* [x] cutscene
+* [ ] cutscene
   * [ ] cutscene override
   * [ ] cutscene UI (ESC)
 * [ ] dialogs
-  * [x] yack parsing
   * [ ] yack intepreter
+  * [x] yack parsing
 * [ ] HUD
-  * [x] verbs
   * [ ] sentence
-  * [x] inventory
   * [ ] scroll inventory
   * [ ] fade
-  * [x] mouse cursor
   * [ ] mouse text repositioned
   * [ ] mouse zsort
   * [ ] actor selection
+  * [x] verbs
+  * [x] inventory
+  * [x] mouse cursor
 * [ ] triggers
   * [ ] room trigger should be called in a thread (to be breakable)
 * [ ] pause game
@@ -34,8 +33,8 @@
 * [ ] shaders
 * [ ] continuous integration
 * [ ] preferences
-  * [x] user preferences
   * [ ] private preferences (achievement)
+  * [x] user preferences
   * [x] temp preferences (debug)
 * [ ] sentence
   * [ ] cursor verb should be reset (walk to) when action is executed or cancelled
@@ -48,7 +47,8 @@
   * [x] textures
   * [x] threads
   * [x] sounds
-* [x] actor
+* [ ] actor
+  * [ ] actor reach animation
   * [x] actor costume
   * [x] actor animations
   * [x] actor walking
@@ -63,18 +63,17 @@
   * [x] actor lips
   * [x] actor blink
   * [x] actor talking
-  * [ ] actor reach animation
   * [x] actor walk fast
 * [ ] audio
+  * [ ] sound position
   * [x] talk
   * [x] sound
   * [x] music
-  * [ ] sound position
 * [x] script
   * [x] squirrel bindings
   * [x] easy squirrel constants bindings
   * [x] change thread management in order to use only 1 thread
-* [x] resource management
+* [ ] resource management
   * [ ] ref counting with resource management
 * [x] test object hierarchy: scene graph ?
 * [x] text
