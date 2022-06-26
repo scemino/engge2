@@ -64,7 +64,7 @@
   * [x] actor blink
   * [x] actor talking
   * [ ] actor reach animation
-  * [ ] actor walk fast
+  * [x] actor walk fast
 * [ ] audio
   * [x] talk
   * [x] sound

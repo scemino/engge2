@@ -1,4 +1,4 @@
-import std/[random, streams, tables, sequtils, logging, strformat]
+import std/[random, streams, tables, sequtils, logging, strformat, times]
 import sqnim
 import glm
 import room
@@ -67,6 +67,9 @@ type
     cutscene*: ThreadBase
     roomShader: Shader
     follow*: Object
+    buttons: MouseButtonMask
+    mouseDownTime: DateTime
+    walkFastState: bool
 
 var gEngine*: Engine
 
@@ -492,6 +495,13 @@ proc cameraAt*(self: Engine, at: Vec2f) =
   ## Set the camera position to the given `at` position.
   cameraPos(self.clampPos(at))
 
+proc walkFast(self: Engine, state = true) =
+  if self.walkFastState != state:
+    info "walk fast: " & $state
+    self.walkFastState = state
+    if not self.actor.isNil:
+      sqCall(self.actor.table, "run", [state])
+
 proc update(self: Engine) =
   let elapsed = self.prefs.tmp.gameSpeedFactor / 60'f32
   self.time += elapsed
@@ -539,6 +549,16 @@ proc update(self: Engine) =
 
   # call clickedAt if any button down
   let btns = mouseBtns()
+  if mbLeft in btns:
+    if mbLeft notin self.buttons:
+      self.mouseDownTime = now()
+    else:
+      let mouseDnDur = now() - self.mouseDownTime
+      if mouseDnDur > initDuration(milliseconds = 500):
+        self.walkFast()
+  else:
+    self.walkFast(false)
+  self.buttons = btns
   if btns.len > 0:
     self.clickedAt(scrPos, btns)
 
