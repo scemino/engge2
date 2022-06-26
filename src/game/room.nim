@@ -181,9 +181,6 @@ proc getFlags*(self: Object): int =
   if self.table.rawexists("flags"):
     self.table.getf("flags", result)
 
-proc hasFlag*(self: Object, flags: int): bool =
-  (self.getFlags() and flags) != 0
-
 proc getScaling*(self: Scaling, yPos: float32): float32 =
   if self.values.len == 0:
     1.0f

@@ -31,8 +31,15 @@ import ../scenegraph/parallaxnode
 import ../scenegraph/spritenode
 import ../scenegraph/hud
 import ../sys/app
+import ../util/common
 from std/times import getTime, toUnix, nanosecond
 
+const
+  ScreenMargin = 100f
+  DOOR_LEFT = 0x140
+  DOOR_RIGHT = 0x240
+  DOOR_BACK = 0x440
+  DOOR_FRONT = 0x840
 type
   Engine* = ref object of RootObj
     rand*: Rand
@@ -490,8 +497,8 @@ proc update(self: Engine) =
   self.time += elapsed
 
   # update camera
+  let screenSize = gEngine.room.getScreenSize()
   if not self.follow.isNil:
-    var screenSize = gEngine.room.getScreenSize()
     self.cameraAt(self.follow.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
 
   # update mouse pos
@@ -502,11 +509,33 @@ proc update(self: Engine) =
     let roomPos = self.room.screenToRoom(scrPos)
     self.noun1 = self.findObjAt(roomPos)
     # give can be used only on inventory and talkto to talkable objects (actors)
-    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
+    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
     # add verb if not walk to or if noun1 is present
     if self.hud.verb.id > 1 or txt.len > 0:
       txt = if txt.len > 0: fmt"{getText(self.hud.verb.text)} {txt}" else: getText(self.hud.verb.text)
     self.inputState.setText(txt)
+    # update cursor shape
+    # if cursor is in the margin of the screen and if camera can move again
+    # then show a left arrow or right arrow
+    if scrPos.x < ScreenMargin and cameraPos().x >= 1f:
+      self.inputState.setCursorShape(CursorShape.Left)
+    elif scrPos.x > (ScreenWidth - ScreenMargin) and cameraPos().x < (self.room.roomSize.x.float32 - screenSize.x.float32):
+      self.inputState.setCursorShape(CursorShape.Right)
+    elif not self.noun1.isNil:
+      # if the object is a door, it has a flag indicating its direction: left, right, front, back
+      let flags = self.noun1.getFlags()
+      if flags.hasFlag(DOOR_LEFT):
+        self.inputState.setCursorShape(CursorShape.Left)
+      elif flags.hasFlag(DOOR_RIGHT):
+        self.inputState.setCursorShape(CursorShape.Right)
+      elif flags.hasFlag(DOOR_FRONT):
+          self.inputState.setCursorShape(CursorShape.Front)
+      elif flags.hasFlag(DOOR_BACK):
+        self.inputState.setCursorShape(CursorShape.Back)
+      else:
+        self.inputState.setCursorShape(CursorShape.Normal)
+    else:
+      self.inputState.setCursorShape(CursorShape.Normal)
 
   # call clickedAt if any button down
   let btns = mouseBtns()

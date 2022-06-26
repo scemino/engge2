@@ -18,6 +18,13 @@ type
     UI_HUDOBJECTS_OFF = 0x20.cint
     UI_CURSOR_ON = 0x40.cint
     UI_CURSOR_OFF = 0x80.cint
+  CursorShape* = enum
+    Normal
+    Front,
+    Back,
+    Left,
+    Right,
+    Pause
   InputState* = object
     inputHUD*: bool
     inputActive*: bool
@@ -27,12 +34,13 @@ type
     cursorNode: SpriteNode
     text: Text
     textNode: TextNode
+    cursorShape: CursorShape
 
 proc newInputState*(): InputState =
   result = InputState(showCursor: true)
-  var gameSheet = gResMgr.spritesheet("GameSheet")
-  var texture = gResMgr.texture(gameSheet.meta.image)
-  var frame = gameSheet.frames["cursor"]
+  let gameSheet = gResMgr.spritesheet("GameSheet")
+  let texture = gResMgr.texture(gameSheet.meta.image)
+  let frame = gameSheet.frames["cursor"]
   result.node = newNode("input")
   result.cursorNode = newSpriteNode(texture, frame)
   result.cursorNode.scale = vec2(2f, 2f)
@@ -41,13 +49,31 @@ proc newInputState*(): InputState =
   result.node.addChild result.cursorNode
   result.node.addChild result.textNode
   result.textNode.offset = vec2(0f, frame.sourceSize.y.float32)
-  result.textNode.setAnchorNorm(vec2(0.5f, 1f))
 
 proc setText*(self: var InputState, text: string) =
   self.text.text = text
   self.text.update()
   self.textNode.setAnchorNorm(vec2(1f, 1f))
   self.textNode.updateBounds()
+
+proc setCursorShape*(self: var InputState, shape: CursorShape) =
+  if self.cursorShape != shape:
+    self.cursorShape = shape
+    var name: string
+    case shape:
+    of Normal:
+      name = "cursor"
+    of Left:
+      name = "cursor_left"
+    of Right:
+      name = "cursor_right"
+    of Front:
+      name = "cursor_front"
+    of Back:
+      name = "cursor_back"
+    of Pause:
+      name = "cursor_pause"
+    self.cursorNode.setFrame(gResMgr.spritesheet("GameSheet").frames[name])
 
 proc setState*(self: var InputState, state: InputStateFlag) =
   if (UI_INPUT_ON.cint and state.cint) == UI_INPUT_ON.cint:

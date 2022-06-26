@@ -21,7 +21,7 @@
   * [x] inventory
   * [ ] scroll inventory
   * [ ] fade
-  * [ ] mouse cursor
+  * [x] mouse cursor
   * [ ] mouse text repositioned
   * [ ] mouse zsort
   * [ ] actor selection

@@ -638,6 +638,12 @@ Bridge <-
   })
  }
 
+ bridgeHighwayDoor = 
+ {
+ name =  "@25625"
+ flags = FAR_LOOK|DOOR_BACK
+ }
+
  enter = function() 
  {
     objectTouchable(bridgeHighwayDoorOpening, YES)
