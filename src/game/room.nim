@@ -65,6 +65,7 @@ type
     color*: Color
   Object* = ref object of RootObj
     n: string                     ## name of the object
+    key*: string                  ## key used to identify this object by script
     usePos*: Vec2f                ## use position
     useDir*: Direction            ## use direction
     hotspot*: Recti               ## hotspot
@@ -147,8 +148,9 @@ type
 proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence = 
   Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
-proc newObject*(facing: Facing): Object =
-  Object(facing: facing)
+proc newObject*(): Object =
+  result = Object()
+  sq_resetobject(result.table)
 
 proc facing*(dir: Direction): Facing =
   dir.Facing
@@ -226,11 +228,10 @@ proc `getSpriteSheet`*(self: Object): SpriteSheet =
     gResMgr.spritesheet(self.sheet)
 
 proc `name`*(self: Object): string =
-  if self.n.len > 0:
-    self.n
+  if self.table.objType == OT_TABLE and rawexists(self.table, "name"):
+    getf(self.table, "name", result)
   else:
-    getf(self.table, "name", self.n)
-    self.n
+    result = self.n
 
 proc `name=`*(self: Object, name: string) =
   self.n = name
@@ -437,7 +438,8 @@ proc screenToRoom*(self: Room, pos: Vec2f): Vec2f =
   (pos * screenSize) / vec2(ScreenWidth, ScreenHeight) + cameraPos()
 
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
-  var obj = Object(temporary: true)
+  var obj = newObject()
+  obj.temporary = true
   
   # create a table for this object
   sq_newtable(gVm.v)
@@ -447,7 +449,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   # assign an id
   obj.table.setId(newObjId())
-  obj.name = frames[0]
+  obj.table.setf("name", frames[0])
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
   obj.touchable = true
@@ -483,7 +485,8 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   result = obj
 
 proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWidth = 0.0f): Object =
-  var obj = Object(temporary: true)
+  var obj = newObject()
+  obj.temporary = true
   
   # create a table for this object
   sq_newtable(gVm.v)
@@ -623,7 +626,7 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   if jRoom.hasKey("objects"):
     for jObject in jRoom["objects"]:
       var obj = new(Object)
-      obj.name = jObject["name"].getStr
+      obj.key = jObject["name"].getStr
       obj.usePos = vec2f(parseVec2i(jObject["usepos"].getStr))
       let useDir = jObject.getNode("usedir")
       obj.useDir = if useDir.isSome: parseUseDir(useDir.get) else: dNone

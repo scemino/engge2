@@ -39,7 +39,8 @@ proc setHeadIndex*(self: Object, head: int) =
     self.showLayer(fmt"{self.animName(HeadAnimName)}{i}", i == head)
 
 proc newActor*(): Object =
-  result = newObject(FACE_FRONT)
+  result = newObject()
+  result.facing = FACE_FRONT
   result.table.setId newActorId()
   result.showLayer("blink", false)
   result.showLayer("eyes_left", false)

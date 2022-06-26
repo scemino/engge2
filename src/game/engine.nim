@@ -110,10 +110,10 @@ proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
   if not actor.isNil:
     self.follow = actor
 
-proc getObj(room: Room, name: string): Object =
+proc getObj(room: Room, key: string): Object =
   for layer in room.layers:
       for obj in layer.objects:
-        if obj.name == name:
+        if obj.key == key:
           return obj
 
 proc defineRoom*(name: string, table: HSQOBJECT): Room =
@@ -142,7 +142,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
 
       for obj in layer.objects:
         sq_resetobject(obj.table)
-        result.table.getf(obj.name, obj.table)
+        result.table.getf(obj.key, obj.table)
 
         # set room as delegate
         obj.table.setdelegate(table)
@@ -160,32 +160,25 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           # info fmt"Create object with new table: {obj.name} #{obj.id}"
 
           # assign a name
-          sq_pushobject(gVm.v, obj.table)
-          sq_pushstring(gVm.v, "name", -1)
-          sq_pushstring(gVm.v, obj.name.cstring, -1)
-          discard sq_newslot(gVm.v, -3, false)
+          setf(obj.table, "name", obj.key)
 
           obj.touchable = true
           
           # adds the object to the room table
-          sq_pushobject(gVm.v, result.table)
-          sq_pushstring(gVm.v, obj.name.cstring, -1)
-          sq_pushobject(gVm.v, obj.table)
-          discard sq_newslot(gVm.v, -3, false)
-          sq_pop(gVm.v, 1)
+          setf(result.table, obj.name, obj.table)
           obj.setRoom(result)
         else:
           # assign an id
           obj.table.setId(newObjId())
-          setf(rootTbl(gVm.v), obj.name, obj.table)
-          info fmt"Create object with existing table: {obj.name} #{obj.id}"
+          setf(rootTbl(gVm.v), obj.key, obj.table)
+          info fmt"Create object with existing table: {obj.key} #{obj.id}"
           if obj.table.rawexists("initTouchable"):
-            info fmt"initTouchable {obj.name}"
+            info fmt"initTouchable {obj.key}"
             obj.table.getf("initTouchable", obj.touchable)
           else:
             obj.touchable = true
           if obj.table.rawexists("initState"):
-            info fmt"initState {obj.name}"
+            info fmt"initState {obj.key}"
             var state: int
             obj.table.getf("initState", state)
             obj.setState(state)
@@ -206,7 +199,11 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
     for layer in result.layers:
       for obj in layer.objects:
         if obj.parent != "":
-          result.getObj(obj.parent).node.addChild(obj.node)
+          let parent = result.getObj(obj.parent)
+          if parent.isNil:
+            warn "parent: '" & obj.parent & "' not found"
+          else:
+            parent.node.addChild(obj.node)
   
   # Add inventory object to root table
   for (k,v) in result.table.pairs:
@@ -505,7 +502,7 @@ proc update(self: Engine) =
     let roomPos = self.room.screenToRoom(scrPos)
     self.noun1 = self.findObjAt(roomPos)
     # give can be used only on inventory and talkto to talkable objects (actors)
-    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.hasFlag(TALKABLE)): "" else: self.noun1.name
+    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
     # add verb if not walk to or if noun1 is present
     if self.hud.verb.id > 1 or txt.len > 0:
       txt = if txt.len > 0: fmt"{getText(self.hud.verb.text)} {txt}" else: getText(self.hud.verb.text)

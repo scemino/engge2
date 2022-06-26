@@ -1,5 +1,3 @@
-import std/logging
-import std/strformat
 import glm
 import sqnim
 import ../debugtool
@@ -7,7 +5,6 @@ import ../../game/engine
 import ../../game/room
 import ../../libs/imgui
 import ../../script/squtils
-import ../../script/vm
 import ../../io/textdb
 import ../../scenegraph/node
 
@@ -25,6 +22,9 @@ proc showProperties() =
   if not gObject.isNil and gShowProperties:
     let objRoom = if gObject.room.isNil: "Void" else: gObject.room.name
     igBegin("Object properties", addr gShowProperties)
+    igText("Key: %s", gObject.key.cstring)
+    igText("Name: %s", getText(gObject.name()).cstring)
+    igCheckbox("Touchable", gObject.touchable.addr)
     igText("Room: %s", objRoom.cstring)
     igText("Facing: %d", gObject.facing)
     igDragInt("Z-Order: ", gObject.node.zOrder.addr)
@@ -51,7 +51,7 @@ method render*(self: ObjectTool) =
       igPushID(obj.table.getId().int32)
       igCheckbox("", addr obj.node.visible)
       igSameLine()
-      if igSelectable(getText(obj.name()).cstring, selected):
+      if igSelectable(obj.key.cstring, selected):
         gObject = obj
       igPopID()
 

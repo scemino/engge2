@@ -499,7 +499,7 @@ proc objectParent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var parent = obj(v, 3)
   if parent.isNil:
     return sq_throwerror(v, "failed to get parent")
-  obj.parent = parent.name
+  obj.parent = parent.key
   parent.node.addChild obj.node
   0
 
