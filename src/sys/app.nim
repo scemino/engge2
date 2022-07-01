@@ -2,6 +2,7 @@ import glm
 import sdl2
 import sdl2/mixer
 import ../gfx/graphics
+import ../game/screen
 import ../sys/input
 import ../libs/opengl
 import ../libs/imgui/impl_sdl2
@@ -27,7 +28,7 @@ var appOnMouseButton: proc(button: int32, action: InputAction)
 var appOnMouseMove: proc(pos: Vec2f)
 
 # public procedures
-proc init*(title = "", size = vec2(1280, 720)) =
+proc init*(title = "", size = vec2(ScreenWidth, ScreenHeight)) =
   sdl2.init(INIT_EVERYTHING)
   discard mixer.openAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096)
   discard mixer.allocateChannels(32)

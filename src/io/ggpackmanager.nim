@@ -1,4 +1,4 @@
-import std/[streams, os, tables, json, sequtils, logging, strutils, strformat]
+import std/[streams, os, tables, json, sequtils, logging, strutils, strformat, algorithm]
 import nimyggpack
 
 type
@@ -60,8 +60,7 @@ proc newGGPackFileManager*(path: string): GGPackFileManager =
     info fmt"Add ggpack {file}"
     result.ggpacks.add newGGPackDecoder(newFileStream(file), xorKeys["56ad"])
 
-method loadStream(self: GGPackFileManager, path: string): Stream =
-  var entry = path.toLower
+method loadStream(self: GGPackFileManager, entry: string): Stream =
   var (_, _, ext) = splitFile(entry)
   for pack in self.ggpacks:
     if pack.entries.contains(entry):
@@ -78,8 +77,7 @@ method listFiles*(self: GGPackFileManager): seq[string] =
     for (entry,_) in pack.entries.pairs:
       result.add("ggpack://" & self.path & "/" & entry)
 
-method assetExists*(self: GGPackFileManager, path: string): bool =
-  var entry = path.toLower
+method assetExists*(self: GGPackFileManager, entry: string): bool =
   for pack in self.ggpacks:
     if pack.entries.contains(entry):
       return true

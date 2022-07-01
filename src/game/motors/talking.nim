@@ -1,6 +1,7 @@
 import std/tables
 import std/logging
 import std/strformat
+import std/strutils
 import std/parseutils
 import glm
 import sqnim
@@ -10,6 +11,7 @@ import ../../scenegraph/textnode
 import ../../game/engine
 import ../../game/room
 import ../../game/resmanager
+import ../../game/screen
 import ../../io/lip
 import ../../io/textdb
 import ../../io/ggpackmanager
@@ -45,7 +47,7 @@ proc talkieKey(self: Talking): string =
 
 proc loadActorSpeech(self: Talking, name: string): SoundId =
   info fmt"loadActorSpeech {name}.ogg"
-  var soundDefinition = newSoundDefinition(name & ".ogg")
+  let soundDefinition = newSoundDefinition(name.toUpper & ".ogg")
   gEngine.audio.soundDefs.add(soundDefinition)
   if soundDefinition.isNil:
     error fmt"File {name}.ogg not found"
@@ -73,13 +75,13 @@ proc say(self: Talking, text: string) =
     self.soundId = self.loadActorSpeech(name)
 
   self.obj.sayNode.remove()
-  var text = newText(gResMgr.font("sayline"), txt, taCenter, 600, self.color)
+  var text = newText(gResMgr.font("sayline"), txt, taCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
   # clamp position to keep it on screen
-  pos.x = clamp(pos.x, 10f + text.bounds.x / 2f, 1280f - text.bounds.x / 2f)
-  pos.y = clamp(pos.y, 10f + text.bounds.y.float32, 720f - text.bounds.y.float32)
+  pos.x = clamp(pos.x, 10f + text.bounds.x / 2f, ScreenWidth - text.bounds.x / 2f)
+  pos.y = clamp(pos.y, 10f + text.bounds.y.float32, ScreenHeight - text.bounds.y.float32)
   self.obj.sayNode.pos = pos
   self.obj.sayNode.setAnchorNorm(vec2(0.5f, 0.5f))
   gEngine.screen.addChild self.obj.sayNode
