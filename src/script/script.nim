@@ -8,6 +8,7 @@ import objlib
 import actorlib
 import soundlib
 import flags
+import ../game/shaders
 
 proc register_vars(v: HSQUIRRELVM) =
   var value: SQInteger
@@ -144,6 +145,12 @@ proc register_gameconstants*(v: HSQUIRRELVM) =
       ANDROID = 6
       SWITCH = 7
       PS4 = 8
+      EFFECT_NONE           = RoomEffect.None.int
+      EFFECT_SEPIA          = RoomEffect.Sepia.int
+      EFFECT_EGA            = RoomEffect.Ega.int
+      EFFECT_VHS            = RoomEffect.Vhs.int
+      EFFECT_GHOST          = RoomEffect.Ghost.int
+      EFFECT_BLACKANDWHITE  = RoomEffect.BlackAndWhite.int
       # these codes corresponds to SDL key codes used in TWP
       KEY_UP = 0x40000052
       KEY_RIGHT = 0x4000004F

@@ -4,12 +4,12 @@ import ../gfx/shader
 
 type
   RoomEffect* = enum
-    None,
-    Sepia,
-    Ega,
-    Vhs,
-    Ghost,
-    BlackAndWhite
+    None          = 0,
+    Sepia         = 1,
+    Ega           = 2,
+    Vhs           = 3,
+    Ghost         = 4,
+    BlackAndWhite = 5
   
 const
   vertexShader = """#version 330 core
