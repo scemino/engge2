@@ -335,22 +335,16 @@ proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## The number is a pseudo-random number and the game will produce the same sequence of numbers unless primed using randomSeed(seed).
   ## 
   ## .. code-block:: Squirrel
-  ## num = random(1, 10)   // Returns an int
-  ## wait_time = random(0.5, 2.0)   // Returns a float
-  if sq_gettype(v, 2) == OT_INTEGER:
-    var min, max: int
-    discard sq_getinteger(v, 2, min)
-    discard sq_getinteger(v, 3, max)
-    let value = gEngine.rand.rand(min..max)
-    sq_pushinteger(v, value)
-    return 1
-  else:
-    var min, max: SQFloat
-    discard sq_getfloat(v, 2, min)
-    discard sq_getfloat(v, 3, max)
-    let value = gEngine.rand.rand(min..max)
-    sq_pushfloat(v, value)
-    return 1
+  ## wait_time = random(0.5, 2.0)
+  var min, max: SQFloat
+  discard sq_getfloat(v, 2, min)
+  discard sq_getfloat(v, 3, max)
+  if min > max:
+    swap(min, max)
+  info fmt"rand({min}..{max})"
+  let value = gEngine.rand.rand(min..max)
+  sq_pushfloat(v, value)
+  return 1
 
 proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Selects an item randomly from the given array or listed options. 
