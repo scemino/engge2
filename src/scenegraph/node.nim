@@ -122,7 +122,9 @@ method addChild*(self: Node, child: Node) {.base.} =
   ## - `child`: child node to add.
   if not child.parent.isNil:
     child.pos -= self.absolutePosition()
-    child.parent.children.del child.parent.children.find(child)
+    let i = child.parent.children.find(child)
+    if i >= 0:
+      child.parent.children.del i
   self.children.add(child)
   child.parent = self
 
