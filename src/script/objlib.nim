@@ -275,6 +275,19 @@ proc objectColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.node.color = rgba(color)
   0
 
+proc objectDependentOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let child = obj(v, 2)
+  if child.isNil:
+    return sq_throwerror(v, "failed to get child object")
+  let parent = obj(v, 3)
+  if parent.isNil:
+    return sq_throwerror(v, "failed to get parent object")
+  var state = 0
+  if SQ_FAILED(get(v, 4, state)):
+    return sq_throwerror(v, "failed to get state")
+  warn "objectDependentOn not implemented"
+  0
+
 proc objectFPS(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets how many frames per second (fpsRate) the object will animate at. 
   ## 
@@ -836,6 +849,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectBumperCycle, "objectBumperCycle")
   v.regGblFun(objectCenter, "objectCenter")
   v.regGblFun(objectColor, "objectColor")
+  v.regGblFun(objectDependentOn, "objectDependentOn")
   v.regGblFun(objectFPS, "objectFPS")
   v.regGblFun(objectHidden, "objectHidden")
   v.regGblFun(objectHotspot, "objectHotspot")
