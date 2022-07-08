@@ -143,7 +143,7 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 4, im)):
       return sq_throwerror(v, "failed to get interpolation method")
     pos = obj.node.absolutePosition()
-    interpolation = im.InterpolationMethod
+    interpolation = im
   elif numArgs == 5:
     var x, y: int
     if SQ_FAILED(get(v, 2, x)):
@@ -156,7 +156,7 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 5, im)):
       return sq_throwerror(v, "failed to get interpolation method")
     pos = vec2(x.float32, y.float32)
-    interpolation = im.InterpolationMethod
+    interpolation = im
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   info fmt"cameraPanTo: {pos}, dur={duration}, method={interpolation}"

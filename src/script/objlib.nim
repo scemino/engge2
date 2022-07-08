@@ -241,7 +241,7 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0
     if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
-    obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation.InterpolationMethod)
+    obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation)
   0
 
 proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -410,7 +410,7 @@ proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if sq_gettop(v) >= 6 and SQ_FAILED(get(v, 6, interpolation)):
       interpolation = 0
     var destPos = vec2(x.float32, y.float32)
-    obj.moveTo = newMoveTo(duration, obj, destPos, interpolation.InterpolationMethod)
+    obj.moveTo = newMoveTo(duration, obj, destPos, interpolation)
   0
 
 proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -462,7 +462,7 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if sq_gettop(v) >= 6 and SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
     var destPos = vec2(x.float32, y.float32)
-    obj.moveTo = newOffsetTo(duration, obj, destPos, interpolation.InterpolationMethod)
+    obj.moveTo = newOffsetTo(duration, obj, destPos, interpolation)
   0
 
 proc objectOwner(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -563,7 +563,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0
     if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
-    obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation.InterpolationMethod)
+    obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation)
   0
 
 proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -589,7 +589,7 @@ proc objectScaleTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0
     if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
-    obj.rotateTo = newScaleTo(duration, obj.node, scale, interpolation.InterpolationMethod)
+    obj.rotateTo = newScaleTo(duration, obj.node, scale, interpolation)
   0
 
 proc objectScreenSpace(v: HSQUIRRELVM): SQInteger {.cdecl.} =

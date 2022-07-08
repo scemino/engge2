@@ -356,9 +356,9 @@ proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getfloat(v, 3, t)):
     return sq_throwerror(v, "failed to get time")
   if fadeType == 0: # FadeIn
-    gEngine.fade = newTween[float](1.0f, 0.0f, t, imLinear)
+    gEngine.fade = newTween[float](1.0f, 0.0f, t, ikLinear)
   elif fadeType == 1: # FadeOut
-    gEngine.fade = newTween[float](0.0f, 1.0f, t, imLinear)
+    gEngine.fade = newTween[float](0.0f, 1.0f, t, ikLinear)
   0
 
 proc roomLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -418,7 +418,7 @@ proc roomRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var rotation: float
   if SQ_FAILED(get(v, 2, rotation)):
     return sq_throwerror(v, "failed to get rotation")
-  gEngine.room.rotateTo = newRotateTo(0.200f, gEngine.room.scene, rotation, imLinear)
+  gEngine.room.rotateTo = newRotateTo(0.200f, gEngine.room.scene, rotation, ikLinear)
   0
 
 proc roomSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =

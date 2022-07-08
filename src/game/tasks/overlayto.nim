@@ -12,7 +12,7 @@ type OverlayTo = ref object of Task
 proc newOverlayTo*(duration: float, room: Room, frm, to: Color): OverlayTo =
   new(result)
   result.room = room
-  result.tween = newTween[Color](room.overlay, to, duration, imLinear)
+  result.tween = newTween[Color](room.overlay, to, duration, ikLinear)
 
 method update(self: OverlayTo, el: float): bool =
   self.tween.update(el)

@@ -12,7 +12,7 @@ type
     loop: bool
 
 proc newTween*[T](frm, to: T, duration: float, im: InterpolationMethod): Tween[T] =
-  Tween[T](frm: frm, to: to, delta: to - frm, duration: duration, value: frm, easing: easing(im), enabled: true, swing: (im.int and imSwing.int)==imSwing.int, loop: (im.int and imLooping.int)==imLooping.int, dir_forward: true)
+  Tween[T](frm: frm, to: to, delta: to - frm, duration: duration, value: frm, easing: easing(im), enabled: true, swing: im.swing, loop: im.loop, dir_forward: true)
 
 proc running*[T](self: Tween[T]): bool =
   if self.swing or self.loop:
@@ -39,7 +39,7 @@ proc current*[T](self: Tween[T]): T {.inline.} =
 
 when isMainModule:
   import easing
-  var t = newTween[float](0, 5, 2, imLinear)
+  var t = newTween[float](0, 5, 2, ikLinear)
   t.update(0.5)
   echo t.current()
   doAssert t.current() == 1.25
