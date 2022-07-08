@@ -2,6 +2,7 @@ import std/[json, parseutils, options, sequtils, streams, strformat, logging, ta
 import glm
 import sqnim
 import ids
+import ../audio/audio
 import ../script/vm
 import ../script/squtils
 import ../gfx/recti
@@ -113,6 +114,7 @@ type
     icons*: seq[string]
     iconFps: int
     enter*, leave*: HSQOBJECT
+    sound*: SoundId
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use

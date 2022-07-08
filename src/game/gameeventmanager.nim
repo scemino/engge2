@@ -19,4 +19,4 @@ method trig(self: GameEventManager, name: string) =
   if sound.isNil:
     warn fmt"Cannot trig sound '{name}', sound not found (id={id})"
   else:
-    discard gEngine.audio.play(sound, scSound)
+    discard gEngine.audio.play(sound, Sound)

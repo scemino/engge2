@@ -45,13 +45,16 @@ method render*(self: SoundTool) =
         igTableNextColumn()
         igText("%s", ($sound.cat).cstring)
         igTableNextColumn()
-        igText("%s", ($sound.sndDef.name).cstring)
+        igText("%s", sound.sndDef.name.cstring)
         igTableNextColumn()
         igText("%d", sound.chan.numLoops)
         igTableNextColumn()
         igText("%0.1f", sound.chan.vol)
         igTableNextColumn()
         igText("%s", ($status(sound.chan)).cstring)
+        igSameLine()
+        if igSmallButton("STOP"):
+          gEngine.audio.fadeOut(sound)
     
     igEndTable()
 

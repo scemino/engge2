@@ -1,4 +1,5 @@
 import std/logging
+import std/strformat
 import std/streams
 import std/tables
 import sdl2
@@ -8,14 +9,14 @@ import ../io/ggpackmanager
 
 type
   AudioStatus* = enum
-    asStopped,
-    asPaused,
-    asPlaying
+    Stopped,
+    Paused,
+    Playing
   VolumeKind* = enum
     vkMaster,
     vkMusic,
     vkSound,
-    vkTalk,
+    vkTalk
   AudioChannel* = ref object of RootObj
     id*: cint
     numLoops*: int
@@ -25,9 +26,9 @@ type
   SoundBuffer = ref object of RootObj
     chunk: ptr Chunk
   SoundCategory* = enum
-    scMusic,
-    scSound,
-    scTalk
+    Music,
+    Sound,
+    Talk
   SoundDefinition* = ref object of RootObj
     id*: int            # identifier for this sound
     name*: string        # name of the sound to load
@@ -87,12 +88,12 @@ proc newAudioChannel(channel: Natural): AudioChannel =
 proc status*(self: AudioChannel): AudioStatus =
   if mixer.paused(self.id) == 1:
     checkError()
-    asPaused
+    Paused
   elif mixer.playing(self.id) == 1:
     checkError()
-    asPlaying
+    Playing
   else:
-    asStopped
+    Stopped
 
 proc `volume=`*(self: AudioChannel, volume: float) =
   self.vol = volume
@@ -102,11 +103,11 @@ proc `volume=`*(self: AudioChannel, volume: float) =
 proc play*(self: AudioChannel; loopTimes = 0; fadeInTimeMs = 0.0) =
   if not self.buffer.isNil:
     case self.status():
-    of asPaused:
+    of Paused:
       info "resume"
       mixer.resume(self.id)
       checkError()
-    of asStopped:
+    of Stopped:
       self.numLoops = loopTimes
       if fadeInTimeMs == 0:
         # info "playChannel"
@@ -116,14 +117,16 @@ proc play*(self: AudioChannel; loopTimes = 0; fadeInTimeMs = 0.0) =
         # info "fadeInChannel"
         discard mixer.fadeInChannel(self.id, self.buffer.chunk, loopTimes.cint, fadeInTimeMs.cint)
         checkError()
-    of asPlaying:
+    of Playing:
       return
 
 proc stop*(self: AudioChannel, fadeOutTimeSec = 0.0) =
-  if fadeOutTimeSec <= 0.0:
+  if fadeOutTimeSec <= 0.001:
+    info fmt"halt channel {self.id}"
     discard mixer.haltChannel(self.id)
     checkError()
   else:
+    info fmt"fadeout channel {self.id} for {fadeOutTimeSec} s"
     discard mixer.fadeOutChannel(self.id, (fadeOutTimeSec * 1000).cint)
     checkError()
 
@@ -153,11 +156,11 @@ proc update*(self: SoundId, audio: AudioSystem) =
 
   var volKind: VolumeKind
   case self.cat:
-  of scMusic:
+  of Music:
     volKind = vkMusic
-  of scSound:
+  of Sound:
     volKind = vkSound
-  of scTalk:
+  of Talk:
     volKind = vkTalk
   let categoryVolume = audio.volume(volKind)
   let masterVolume = audio.volume(vkMaster)
@@ -173,7 +176,7 @@ proc newAudioSystem*(): AudioSystem =
 
 proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopTimes = 0; fadeInTimeMs = 0.0): SoundId =
   for chan in self.chans:
-    if chan.status() == asStopped:
+    if chan.status() == Stopped:
       sndDef.load()
       chan.buffer = sndDef.buffer
       chan.play(loopTimes, fadeInTimeMs)
@@ -184,6 +187,7 @@ proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopT
   error "cannot play sound no more channel available"
 
 proc fadeOut*(self: AudioSystem, snd: SoundId, fadeOutTimeSec = 0.0) =
+  info fmt"fadeout sound '{snd.sndDef.name}'"
   snd.chan.stop(fadeOutTimeSec)
 
 proc fadeOut*(self: AudioSystem, sndDef: SoundDefinition, fadeOutTimeSec = 0.0) =
@@ -193,11 +197,11 @@ proc fadeOut*(self: AudioSystem, sndDef: SoundDefinition, fadeOutTimeSec = 0.0) 
 
 proc fadeOut*(self: AudioSystem, fadeOutTimeSec = 0.0) =
   for sound in self.sounds:
-    if not sound.isNil and sound.cat == scMusic:
+    if not sound.isNil and sound.cat == Music:
       self.fadeOut(sound, fadeOutTimeSec)
 
 proc playing*(self: AudioSystem, snd: SoundId): bool =
-  not snd.isNil and snd.chan.status() == asPlaying
+  not snd.isNil and snd.chan.status() == Playing
 
 proc playing*(self: AudioSystem, snd: SoundDefinition): bool =
   for sound in self.sounds:
@@ -230,6 +234,6 @@ proc update*(self: AudioSystem) =
   for soundId in self.sounds:
     if not soundId.isNil:
       soundId.update(self)
-      if soundId.chan.status() == asStopped:
+      if soundId.chan.status() == Stopped:
         # info fmt"Sound stopped: ch{soundId.chan.id} #{soundId.id} {soundId.sndDef.name}"
         self.sounds[soundId.chan.id] = nil
