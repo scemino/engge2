@@ -188,14 +188,18 @@ proc updateInventory(self: Hud) =
   let itemsSheet = gResMgr.spritesheet("InventoryItems")
   let count = self.act.inventory.len - self.act.inventoryOffset * 4
   for i in 0..<min(8, count):
-    let icon = self.act.inventory[self.act.inventoryOffset * 4 + i].getIcon()
-    let itemFrame = itemsSheet.frames[icon]
-    self.inventoryNodes[i].color = White
-    self.inventoryNodes[i].pos = vec2(startOffsetX + ((i mod 4)*(137+7)).float32, startOffsetY - ((i div 4)*75).float32)
-    self.inventoryNodes[i].setFrame(itemFrame)
-    self.inventoryNodes[i].scale = vec2(4f, 4f)
-    self.inventoryNodes[i].setAnchorNorm(vec2f(0.5f, 0f))
-    self.inventoryNodes[i].addButton(onInventoryObject, nil)
+    let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
+    let icon = obj.getIcon()
+    if itemsSheet.frames.hasKey(icon):
+      let itemFrame = itemsSheet.frames[icon]
+      self.inventoryNodes[i].color = White
+      self.inventoryNodes[i].pos = vec2(startOffsetX + ((i mod 4)*(137+7)).float32, startOffsetY - ((i div 4)*75).float32)
+      self.inventoryNodes[i].setFrame(itemFrame)
+      self.inventoryNodes[i].scale = vec2(4f, 4f)
+      self.inventoryNodes[i].setAnchorNorm(vec2f(0.5f, 0f))
+      self.inventoryNodes[i].addButton(onInventoryObject, nil)
+    else:
+      warn fmt"Icon '{icon}' for object {obj.name}({obj.key}) not found in InventoryItems spritesheet"
 
 proc `actor=`*(self: Hud, actor: Object) =
   let actorSlot = self.actorSlot(actor)

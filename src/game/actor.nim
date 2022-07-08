@@ -32,11 +32,11 @@ proc getFacing(dir: Direction): Facing =
   else: 
       FACE_RIGHT
 
-proc animName*(self: Object, key: string): string
+proc setAnimName*(self: Object, key: string): string
 
 proc setHeadIndex*(self: Object, head: int) =
   for i in 1..6:
-    self.showLayer(fmt"{self.animName(HeadAnimName)}{i}", i == head)
+    self.showLayer(fmt"{self.setAnimName(HeadAnimName)}{i}", i == head)
 
 proc newActor*(): Object =
   result = newObject()
@@ -50,14 +50,14 @@ proc newActor*(): Object =
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
 
-proc animName(self: Object, key: string): string =
+proc setAnimName(self: Object, key: string): string =
   if self.animNames.contains(key):
     result = self.animNames[key]
   else:
     result = key
 
 proc stand*(self: Object) =
-  self.play(self.animName(StandAnimName))
+  self.play(self.setAnimName(StandAnimName))
 
 proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
   if head.len > 0:

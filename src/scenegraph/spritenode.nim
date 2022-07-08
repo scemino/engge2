@@ -10,6 +10,24 @@ type
     texture: Texture
     rect: Recti
     flipX*: bool
+  SpriteFrameKind* = enum
+    Spritesheet,
+    Raw
+  SpriteFrame* = object
+    texture*: Texture
+    case kind*: SpriteFrameKind
+      of Spritesheet:
+        frame*: SpriteSheetFrame
+      of Raw:
+        discard
+
+proc newSpritesheetFrame*(texture: Texture, frame: SpriteSheetFrame): SpriteFrame =
+  ## Creates a new `Spritesheet SpriteFrame`.
+  result = SpriteFrame(kind: Spritesheet, texture: texture, frame: frame)
+
+proc newSpriteRawFrame*(texture: Texture): SpriteFrame =
+  ## Creates a new `Raw SpriteFrame`.
+  result = SpriteFrame(kind: Raw, texture: texture)
 
 proc setFrame*(self: SpriteNode, frame: SpriteSheetFrame) =
   self.rect = frame.frame
@@ -19,8 +37,26 @@ proc setFrame*(self: SpriteNode, frame: SpriteSheetFrame) =
   var anchor = vec2(round(x-1f), round(y+1f))
   self.setAnchor(anchor)
 
+proc setTexture*(self: SpriteNode, texture: Texture) =
+  self.texture = texture
+  let rect = rectFromPositionSize(vec2(0'i32, 0'i32), texture.size())
+  self.setFrame(SpriteSheetFrame(frame: rect, spriteSourceSize: rect, sourceSize: texture.size()))
+
+proc setFrame*(self: SpriteNode, frame: SpriteFrame) =
+  case frame.kind:
+  of Spritesheet:
+    self.texture = frame.texture
+    self.setFrame(frame.frame)
+  of Raw:
+    self.setTexture(frame.texture)
+
 proc newSpriteNode*(texture: Texture, frame: SpriteSheetFrame): SpriteNode =
   result = SpriteNode(texture: texture)
+  result.init()
+  result.setFrame(frame)
+
+proc newSpriteNode*(frame: SpriteFrame): SpriteNode =
+  result = SpriteNode(texture: frame.texture)
   result.init()
   result.setFrame(frame)
 

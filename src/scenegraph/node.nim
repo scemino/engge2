@@ -13,7 +13,7 @@ type
     pos*: Vec2f
     offset*: Vec2f                  
     scale*: Vec2f                
-    rotation*: float             
+    rotation*: float32             
     zOrder*: int32
     anchorNorm: Vec2f
     anchor: Vec2f

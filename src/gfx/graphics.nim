@@ -52,7 +52,7 @@ void main() {
     1'u32, 2'u32, 3'u32
   ]
   emptyImage: Image
-  emptyTexture: Texture
+  gEmptyTexture*: Texture
 
 proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0); flipX = false)
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0))
@@ -85,8 +85,8 @@ proc bindTexture*(self: Texture) =
   glBindTexture(GL_TEXTURE_2D, self.id)
 
 proc noTexture*() =
-  state.texture = emptyTexture
-  glBindTexture(GL_TEXTURE_2D, emptyTexture.id)
+  state.texture = gEmptyTexture
+  glBindTexture(GL_TEXTURE_2D, gEmptyTexture.id)
 
 proc gfxShader*(shader: Shader) =
   state.shader = shader
@@ -99,12 +99,12 @@ proc gfxResetShader*() =
 
 proc gfxInit*() =
   emptyImage = newImage(1, 1, 4, @[0xFF'u8, 0xFF, 0xFF, 0xFF])
-  emptyTexture = newTexture(emptyImage)
+  gEmptyTexture = newTexture(emptyImage)
 
   state.shader  = newShader(vsrc, fsrc)
   state.color   = vec3(1f, 1f, 1f)
   state.mvp     = ortho(-1f, 1f, -1f, 1f, -1f, 1f)
-  state.texture = emptyTexture
+  state.texture = gEmptyTexture
 
   glGenVertexArrays(1, state.vao.addr)
   glBindVertexArray(state.vao)

@@ -73,10 +73,10 @@ type
     sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
     nodeAnim*: Motor
     animLoop: bool
-    animName: string
+    animName*: string
     animFlags*: int
     anims*: seq[ObjectAnimation]  
-    state: int
+    state*: int
     alphaTo*: Motor
     rotateTo*: Motor
     moveTo*: Motor
@@ -149,7 +149,7 @@ proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence =
   Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
 proc newObject*(): Object =
-  result = Object()
+  result = Object(state: -1)
   sq_resetobject(result.table)
 
 proc facing*(dir: Direction): Facing =
@@ -285,6 +285,15 @@ proc lockFacing*(self: Object, left, right, front, back: Facing) =
 proc unlockFacing*(self: Object) =
   self.lockFacing = false
 
+proc removeInventory(self: Object, obj: Object) =
+  let i = self.inventory.find(obj)
+  if i >= 0:
+    self.inventory.del i
+
+proc removeInventory*(self: Object) =
+  if not self.owner.isNil:
+    self.owner.removeInventory(self)
+
 proc resetLockFacing*(self: Object) =
   self.facingMap[FACE_LEFT] = FACE_LEFT
   self.facingMap[FACE_RIGHT] = FACE_RIGHT
@@ -345,11 +354,8 @@ proc playCore(self: Object, state: string; loop = false): bool =
     let anim = self.anims[i]
     if anim.name == state:
       self.animFlags = anim.flags
-      info fmt"playObjectState {self.name}, state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
-      if not self.node.parent.isNil:
-        discard
-        # TODO:
-        self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
+      info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
+      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
       return true
 
 proc play*(self: Object, state: string; loop = false) =
@@ -381,7 +387,7 @@ proc setState*(self: Object, state: int) =
   ## .. code-block:: Squirrel
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
-  var graphState = if state == GONE: 1 else: state
+  let graphState = if state == GONE: 1 else: state
   if self.state != state:
     self.play(graphState)
   else:
@@ -411,7 +417,7 @@ proc delObject*(self: Object) =
     self.node.parent.removeChild self.node
 
 # Layer
-proc newLayer(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
+proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
@@ -461,8 +467,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
     obj.anims.add objAnim
 
   # adds object to the scenegraph
-  var objNode = newNode(obj.name)
-  obj.node = objNode
+  obj.node = newNode(obj.name)
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
   obj.layer = self.layer(0)
@@ -622,7 +627,7 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   # objects
   if jRoom.hasKey("objects"):
     for jObject in jRoom["objects"]:
-      var obj = new(Object)
+      var obj = Object(state: -1)
       obj.key = jObject["name"].getStr
       obj.usePos = vec2f(parseVec2i(jObject["usepos"].getStr))
       let useDir = jObject.getNode("usedir")

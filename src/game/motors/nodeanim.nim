@@ -1,5 +1,6 @@
 import std/tables
 import ../../gfx/spritesheet
+import ../../gfx/texture
 import ../../scenegraph/node
 import ../../scenegraph/spritenode
 import motor
@@ -10,7 +11,7 @@ import ../resmanager
 
 type NodeAnim = ref object of Motor
   node: SpriteNode
-  frames: seq[SpriteSheetFrame]
+  frames: seq[SpriteFrame]
   index: int
   elapsed: float
   frameDuration: float
@@ -19,50 +20,52 @@ type NodeAnim = ref object of Motor
   anim: ObjectAnimation
   obj: Object
 
-proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
-  var ss = obj.getSpriteSheet()
-  var frames: seq[SpriteSheetFrame]
-  for frame in anim.frames:
-    if frame == "null":
-      frames.add(SpriteSheetFrame())
-    elif not ss.isNil and ss.frames.contains(frame):
-      frames.add(ss.frames[frame])
-  var newFps: float32
-  if fps != 0.0f:
-    newFps = fps.float32
+proc getFrames(self: Object, frames: seq[string]): seq[SpriteFrame] =
+  let ss = self.getSpriteSheet()
+  if ss.isNil:
+    for frame in frames:
+      result.add(newSpriteRawFrame(gResMgr.texture(frame)))
   else:
-    newFps = if anim.fps == 0.0f: 10.0f else: anim.fps
+    let texture = gResMgr.texture(ss.meta.image)
+    for frame in frames:
+      if frame == "null":
+        result.add(newSpritesheetFrame(texture, SpriteSheetFrame()))
+      elif not ss.isNil and ss.frames.contains(frame):
+        result.add(newSpritesheetFrame(texture, ss.frames[frame]))
+
+proc getFps(fps, animFps: float32): float32 =
+  if fps != 0.0f:
+    result = fps.float32
+  else:
+    result = if animFps == 0.0f: 10.0f else: animFps
+
+proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
+  let frames = obj.getFrames(anim.frames)
 
   new(result)
   result.obj = obj
   result.anim = anim
   result.frames = frames
-  result.frameDuration = 1.0 / newFps
+  result.frameDuration = 1.0 / getFps(fps, anim.fps)
   result.loop = loop or anim.loop
   result.init()
 
-  var newNode = node
+  var rootNode = node
   if node.isNil:
     obj.node.removeAll()
-    newNode = obj.node
+    rootNode = obj.node
 
   if frames.len > 0:
-    var spNode: SpriteNode
-    let ss = obj.getSpriteSheet()
-    let frame = frames[0]
-    let texture = gResMgr.texture(ss.meta.image)
-    spNode = newSpriteNode(texture, frame)
-
-    result.node = spNode
+    result.node = newSpriteNode(frames[0])
     result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
     result.node.visible = not obj.hiddenLayers.contains(anim.name)
     if anim.offsets.len > 0:
       result.node.pos = vec2f(anim.offsets[0])
-    newNode.addChild result.node
+    rootNode.addChild result.node
   
   for layer in anim.layers:
-    result.layers.add newNodeAnim(obj, layer, fps, newNode, loop)
+    result.layers.add newNodeAnim(obj, layer, fps, rootNode, loop)
 
 proc trigSound(self: NodeAnim) =
   if self.anim.triggers.len > 0:

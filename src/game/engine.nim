@@ -133,6 +133,11 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
   if name == "Void":
     result = Room(name: name, table: table)
     result.table.setId(newRoomId())
+    result.scene = newScene()
+    var layer = newLayer(@["background"], vec2(1f, 1f), 0)
+    layer.node = newParallaxNode(vec2(1f, 1f), gEmptyTexture, @[])
+    result.layers.add(layer)
+    result.scene.addChild layer.node
     setf(rootTbl(gVm.v), name, result.table)
   else:
     var background: string
@@ -179,6 +184,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           # adds the object to the room table
           setf(result.table, obj.name, obj.table)
           obj.setRoom(result)
+          obj.setState(0)
         else:
           # assign an id
           obj.table.setId(newObjId())
@@ -194,18 +200,11 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
             var state: int
             obj.table.getf("initState", state)
             obj.setState(state)
+          else:
+            obj.setState(0)
           obj.setRoom(result)
 
         layerNode.addChild obj.node
-
-        if obj.anims.len > 0 and obj.anims[0].frames.len > 0:
-          var ss = obj.getSpriteSheet()
-          if obj.anims[0].frames[0] != "null":
-            var frame = ss.frames[obj.anims[0].frames[0]]
-            var ss = obj.getSpriteSheet()
-            var texture = gResMgr.texture(ss.meta.image)
-            var spNode = newSpriteNode(texture, frame)
-            obj.node.addChild spNode
 
     # assign parent node
     for layer in result.layers:

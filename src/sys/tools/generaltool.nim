@@ -39,7 +39,7 @@ method render*(self: GeneralTool) =
 
   let inCutscene = not gEngine.cutscene.isNil
   let scrPos = gEngine.winToScreen(mousePos())
-  let roomPos = gEngine.room.screenToRoom(scrPos)
+  let roomPos = if gEngine.room.isNil: vec2f(0f, 0f) else: gEngine.room.screenToRoom(scrPos)
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
