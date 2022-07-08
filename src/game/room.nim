@@ -468,6 +468,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   # adds object to the scenegraph
   obj.node = newNode(obj.name)
+  obj.node.zOrder = 1
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
   obj.layer = self.layer(0)
