@@ -786,6 +786,15 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get state")
   0
 
+proc removeInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Removes an object from the current actor's inventory.
+  ## If the object is not in the current actor's inventory, the command silently fails.
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  obj.removeInventory()
+  0
+
 proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Globally sets a default object.
   ## When the player executes the sentence open painting and the painting object has no verbOpen function defined,
@@ -857,5 +866,6 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectValidVerb, "objectValidVerb")
   v.regGblFun(pickupObject, "pickupObject")
   v.regGblFun(playObjectState, "playObjectState")
+  v.regGblFun(removeInventory, "removeInventory")
   v.regGblFun(setDefaultObject, "setDefaultObject")
   v.regGblFun(shakeObject, "shakeObject")

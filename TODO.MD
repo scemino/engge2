@@ -328,7 +328,7 @@
 - [ ] pickupReplacementObject
 - [x] playObjectState
 - [ ] popInventory
-- [ ] removeInventory
+- [x] removeInventory
 - [x] setDefaultObject
 - [ ] shakeObject
 - [ ] stopObjectMotors
