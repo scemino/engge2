@@ -336,14 +336,24 @@ proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## wait_time = random(0.5, 2.0)
-  var min, max: SQFloat
-  discard sq_getfloat(v, 2, min)
-  discard sq_getfloat(v, 3, max)
-  if min > max:
-    swap(min, max)
-  info fmt"rand({min}..{max})"
-  let value = gEngine.rand.rand(min..max)
-  sq_pushfloat(v, value)
+  if sq_gettype(v, 2) == OT_FLOAT or sq_gettype(v, 3) == OT_FLOAT:
+    var min, max: SQFloat
+    discard sq_getfloat(v, 2, min)
+    discard sq_getfloat(v, 3, max)
+    if min > max:
+      swap(min, max)
+    # info fmt"rand({min}..{max})"
+    let value = gEngine.rand.rand(min..max)
+    sq_pushfloat(v, value)
+  else:
+    var min, max: SQInteger
+    discard sq_getinteger(v, 2, min)
+    discard sq_getinteger(v, 3, max)
+    if min > max:
+      swap(min, max)
+    # info fmt"rand({min}..{max})"
+    let value = gEngine.rand.rand(min..max)
+    sq_pushinteger(v, value)
   return 1
 
 proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
