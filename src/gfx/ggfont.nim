@@ -43,4 +43,8 @@ method getKerning*(self: GGFont, prev, next: char): float32 =
   0f
 
 method getGlyph*(self: GGFont, chr: char): Glyph =
-  self.glyphs[ord(chr)]
+  let key = ord(chr)
+  if self.glyphs.hasKey(key):
+    result = self.glyphs[key]
+  else:
+    result = self.glyphs[ord('?')]
