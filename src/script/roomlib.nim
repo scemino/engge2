@@ -415,13 +415,10 @@ proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc roomRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var room = room(v, 2)
-  if room.isNil:
-    return sq_throwerror(v, "failed to get room")
   var rotation: float
-  if SQ_FAILED(get(v, 3, rotation)):
+  if SQ_FAILED(get(v, 2, rotation)):
     return sq_throwerror(v, "failed to get rotation")
-  room.rotateTo = newRotateTo(0.200f, room.scene, rotation, imLinear)
+  gEngine.room.rotateTo = newRotateTo(0.200f, gEngine.room.scene, rotation, imLinear)
   0
 
 proc roomSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
