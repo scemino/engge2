@@ -22,9 +22,9 @@ proc newParallaxNode*(parallax: Vec2f, texture: Texture, frames: seq[SpriteSheet
   result.setSize(vec2(width, height))
 
 method transform*(self: ParallaxNode, parentTrans: Mat4f): Mat4f =
-  var transf = procCall self.Node.transform(parentTrans)
-  var camPos = cameraPos()
-  var p = vec2f(-camPos.x * self.parallax.x, camPos.y * self.parallax.y)
+  let transf = procCall self.Node.transform(parentTrans)
+  let camPos = cameraPos()
+  let p = vec2f(-camPos.x * self.parallax.x, -camPos.y * self.parallax.y)
   translate(transf, vec3(p, 0.0f))
 
 method drawCore(self: ParallaxNode, transf: Mat4f) =
