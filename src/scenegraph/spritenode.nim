@@ -34,7 +34,7 @@ proc setFrame*(self: SpriteNode, frame: SpriteSheetFrame) =
   self.setSize(vec2(frame.frame.size.x.float32, frame.frame.size.y.float32))
   let x = if self.flipX: -frame.sourceSize.x.float32 / 2'f32 + frame.frame.size.x.float32 + frame.spriteSourceSize.x.float32 else: frame.sourceSize.x.float32 / 2'f32 - frame.spriteSourceSize.x.float32
   let y = frame.sourceSize.y.float32 / 2'f32 - frame.spriteSourceSize.h.float32 - frame.spriteSourceSize.y.float32
-  var anchor = vec2(round(x-1f), round(y+1f))
+  var anchor = vec2(round(x-0.5f), round(y+0.5f))
   self.setAnchor(anchor)
 
 proc setTexture*(self: SpriteNode, texture: Texture) =
