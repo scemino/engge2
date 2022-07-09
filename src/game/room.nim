@@ -454,7 +454,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   # assign an id
   obj.table.setId(newObjId())
-  obj.table.setf("name", frames[0])
+  obj.table.setf("name", if frames.len > 0: frames[0] else: "noname")
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
   obj.touchable = true
@@ -474,19 +474,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
   obj.layer = self.layer(0)
-  if obj.anims.len > 0:
-    var ss = obj.getSpriteSheet()
-    var spNode: SpriteNode
-    if ss.isNil:
-      spNode = newSpriteNode(gResMgr.texture(obj.anims[0].frames[0]))
-    else:
-      let frame = ss.frames[obj.anims[0].frames[0]]
-      let texture = gResMgr.texture(ss.meta.image)
-      spNode = newSpriteNode(texture, frame)
-    obj.node.addChild spNode
-
-  # play state
-  obj.play(0)
+  obj.setState(0)
   result = obj
 
 proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWidth = 0.0f): Object =
