@@ -27,6 +27,7 @@ proc runVm() =
   sq_pushroottable(vm.v)
 
   sqstd_register_stringlib(vm.v)
+  sqstd_register_mathlib(vm.v)
   sqstd_register_iolib(vm.v)
   register_gameconstants(vm.v)
   register_gamelib(vm.v)

@@ -267,6 +267,13 @@ proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.inputVerbsActive = on
   1
 
+proc integer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var f = 0.0
+  if SQ_FAILED(get(v, 2, f)):
+    return sq_throwerror(v, "Failed to get float value")
+  push(v, f.int)
+  1
+
 proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   push(v, sq_gettype(v, 2) in types)
   1
@@ -607,6 +614,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(incutscene, "incutscene")
   v.regGblFun(indialog, "indialog")
   v.regGblFun(inputVerbs, "inputVerbs")
+  v.regGblFun(integer, "int")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
   v.regGblFun(is_string, "is_string")
