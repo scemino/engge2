@@ -38,10 +38,13 @@ proc getText*(id: int): string =
   gTextDb.getText(id)
 
 proc getText*(text: string): string =
-  if text.len > 0 and text[0] == '@':
-    var id: int
-    discard parseInt(text, id, 1)
-    return getText(id)
+  if text.len > 0:
+    if text[0] == '@':
+      var id: int
+      discard parseInt(text, id, 1)
+      return getText(id)
+    elif text[0] == '^':
+      return text.substr(1)
   return text
 
 when isMainModule:

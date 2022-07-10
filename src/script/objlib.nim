@@ -336,10 +336,10 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, rectFromPositionSize(obj.hotspot.pos + vec2(pos.x.int32, pos.y.int32), obj.hotspot.size))
     result = 1
   else:
-    var left = 0
-    var top = 0
-    var right = 0
-    var bottom = 0
+    var left = 0'i32
+    var top = 0'i32
+    var right = 0'i32
+    var bottom = 0'i32
     if SQ_FAILED(get(v, 3, left)):
       return sq_throwerror(v, "failed to get left")
     if SQ_FAILED(get(v, 4, top)):
@@ -348,7 +348,7 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get right")
     if SQ_FAILED(get(v, 6, bottom)):
       return sq_throwerror(v, "failed to get bottom")
-    obj.hotspot = rect(left.int32, top.int32, (right-left).int32, (top-bottom).int32)
+    obj.hotspot = rect(left, top, right-left, bottom-top)
     result = 0
 
 proc objectIcon(v: HSQUIRRELVM): SQInteger {.cdecl.} =

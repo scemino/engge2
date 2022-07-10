@@ -41,6 +41,7 @@ proc showProperties() =
     igBegin("Object properties", addr gShowProperties)
     igText("Key: %s", gObject.key.cstring)
     igText("Name: %s", getText(gObject.name()).cstring)
+    igText("Type: %s", ($gObject.objType).cstring)
     igSeparator()
     igText("State: %d", gObject.state)
     if igCombo("Anim", animIdx.addr, getAnim, nil, gObject.anims.len.int32, -1'i32):
@@ -53,6 +54,8 @@ proc showProperties() =
     igText("Facing: %d", gObject.facing)
     igDragInt("Z-Order", gObject.node.zOrder.addr)
     igDragFloat("Volume", addr gObject.volume, 1f, 0f, 1f)
+    igDragInt4("Hotspot", gObject.hotspot.arr)
+    igDragFloat2("Use Position", gObject.usepos.arr)
     igSeparator()
     igDragFloat2("Position", gObject.node.pos.arr)
     igDragFloat("Rotation", gObject.node.rotation.addr)
