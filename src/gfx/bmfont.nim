@@ -1,3 +1,4 @@
+import std/unicode
 import std/parseutils
 import std/streams
 import recti
@@ -131,12 +132,12 @@ proc loadBmFromPack*(path: string): BmFont =
 method getLineHeight*(self: BmFont): int =
   self.lnHeight
 
-method getKerning*(self: BmFont, prev, next: char): float32 =
+method getKerning*(self: BmFont, prev, next: Rune): float32 =
   for kern in self.kernings:
     if kern.first == ord(prev) and kern.second == ord(next):
       return kern.amount.float32
 
-method getGlyph*(self: BmFont, chr: char): Glyph =
+method getGlyph*(self: BmFont, chr: Rune): Glyph =
   for c in self.chars:
     if c.id == ord(chr):
       return Glyph(advance: c.xadv, bounds: rect(c.xoff.int32, self.lnHeight.int32 - c.yoff.int32 - c.h.int32, c.w.int32, c.h.int32), textureRect: rect(c.x.int32, c.y.int32, c.w.int32, c.h.int32))

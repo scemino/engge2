@@ -1,3 +1,4 @@
+import std/unicode
 import std/os
 import std/parseutils
 import glm
@@ -28,7 +29,7 @@ type
     quads: seq[Rectf]
     dirty: bool
   CharInfo = object
-    chr: char
+    chr: Rune
     pos: Vec2f
     color*: Color
     glyph: Glyph
@@ -151,7 +152,7 @@ proc addGlyphQuad(self: Text, info: CharInfo) =
   self.vertices.add Vertex(pos: vec2(info.pos.x + right, info.pos.y + bottom), color: info.color, texCoords: vec2(uv2.x, uv1.y))
 
 proc width(self: Text, reader: TokenReader, tok: Token): float32 =
-  for c in reader.substr(tok):
+  for c in runes(reader.substr(tok)):
     result += self.font.getGlyph(c).advance.float32
 
 proc update*(self: Text) =
@@ -189,7 +190,7 @@ proc update*(self: Text) =
     let lineHeight = self.font.getLineHeight.float32
     var y = -lineHeight
     for line in lines.mitems:
-      var prevChar: char
+      var prevChar: Rune
       var x: float32
       for tok in line.tokens:
         if tok.id == tiColor:
@@ -197,7 +198,7 @@ proc update*(self: Text) =
           discard parseHex(reader.substr(tok), iColor, 1)
           color = rgba(iColor or 0xFF000000'i32)
         else:
-          for c in reader.substr(tok):
+          for c in runes(reader.substr(tok)):
             let glyph = self.font.getGlyph(c)
             let kern = self.font.getKerning(prevChar, c)
             prevChar = c

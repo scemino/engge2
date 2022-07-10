@@ -1,3 +1,4 @@
+import std/unicode
 import recti
 
 type
@@ -13,8 +14,8 @@ type
 method getLineHeight*(self: Font): int {.base.} =
   discard
 
-method getKerning*(self: Font, prev, next: char): float32 {.base.} =
+method getKerning*(self: Font, prev, next: Rune): float32 {.base.} =
   discard
 
-method getGlyph*(self: Font, chr: char): Glyph {.base.} =
+method getGlyph*(self: Font, chr: Rune): Glyph {.base.} =
   discard

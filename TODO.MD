@@ -167,7 +167,7 @@
 - [x] incutscene
 - [ ] indialog
 - [x] inputVerbs
-- [ ] int
+- [x] int
 - [x] is_array
 - [x] is_function
 - [x] is_string

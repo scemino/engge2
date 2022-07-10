@@ -1,3 +1,4 @@
+import std/unicode
 import std/tables
 import std/strutils
 import std/streams
@@ -39,10 +40,10 @@ proc parseGGFontFromPack*(path: string): GGFont =
 method getLineHeight*(self: GGFont): int =
   self.lineHeight
 
-method getKerning*(self: GGFont, prev, next: char): float32 =
+method getKerning*(self: GGFont, prev, next: Rune): float32 =
   0f
 
-method getGlyph*(self: GGFont, chr: char): Glyph =
+method getGlyph*(self: GGFont, chr: Rune): Glyph =
   let key = ord(chr)
   if self.glyphs.hasKey(key):
     result = self.glyphs[key]
