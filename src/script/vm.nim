@@ -60,13 +60,13 @@ proc push*(v: HSQUIRRELVM, rect: Recti) {.inline.} =
   sq_pushinteger(v, rect.left)
   discard sq_newslot(v, -3, SQFalse)
   sq_pushstring(v, "y1", -1)
-  sq_pushinteger(v, rect.top)
+  sq_pushinteger(v, rect.bottom)
   discard sq_newslot(v, -3, SQFalse)
   sq_pushstring(v, "x2", -1)
   sq_pushinteger(v, rect.right)
   discard sq_newslot(v, -3, SQFalse)
   sq_pushstring(v, "y2", -1)
-  sq_pushinteger(v, rect.bottom)
+  sq_pushinteger(v, rect.top)
   discard sq_newslot(v, -3, SQFalse)
 
 proc setdelegate*(obj, del: HSQOBJECT) =
