@@ -5,7 +5,7 @@ import sqnim
 import squtils
 import ../util/utils
 import ../game/engine
-import ../game/tasks/overlayto
+import ../game/motors/overlayto
 import ../game/motors/rotateto
 import ../game/room
 import ../game/walkbox
@@ -411,8 +411,7 @@ proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(sq_getfloat(v, 4, duration)):
       return sq_throwerror(v, "failed to get duration")
     info fmt"start overlay from {rgba(startColor)} to {rgba(endColor)} in {duration}s"
-    var overlayTo = newOverlayTo(duration, room, rgba(startColor), rgba(endColor))
-    gEngine.tasks.add overlayTo
+    gEngine.room.overlayTo = newOverlayTo(duration, room, rgba(endColor))
   0
 
 proc roomRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =

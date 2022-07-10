@@ -71,7 +71,9 @@ method render*(self: GeneralTool) =
     igText("Size: %d x %d", room.roomSize.x, room.roomSize.y)
     igText("Fullscreen: %d", room.fullScreen)
     igText("Height: %d", room.height)
-    igColorEdit4("Overlay", room.overlay.arr)
+    var overlay = room.overlay
+    if igColorEdit4("Overlay", overlay.arr):
+      room.overlay = overlay
     var mode = gEngine.walkboxNode.mode.int32
     if igCombo("Walkbox", mode.addr, WalkboxModes):
       gEngine.walkboxNode.mode = mode.WalkboxMode

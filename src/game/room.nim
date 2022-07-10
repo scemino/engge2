@@ -14,6 +14,7 @@ import ../gfx/graphics
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/textnode
+import ../scenegraph/overlaynode
 import motors/motor
 import objanim
 import ../util/jsonutil
@@ -127,7 +128,7 @@ type
     texture*: Texture             ## Texture used by the spritesheet
     spriteSheet*: SpriteSheet     ## Spritesheet to use when a sprtie is displayed in the room
     table*: HSQOBJECT             ## Squirrel table representing this room
-    overlay*: Color               ## Color of the overlay
+    overlayNode: OverlayNode      ## Represents an overlay
     scene*: Scene                 ## This is the scene representing the hierarchy of a room
     entering: bool                ## indicates whether or not an actor is entering this room
     lights*: array[50, Light]     ## Lights of the room
@@ -135,6 +136,7 @@ type
     ambientLight*: Color           ## Ambient light color
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
+    overlayTo*: Motor
     rotateTo*: Motor
     triggers*: seq[Object]        ## Triggers currently enabled in the room
     trigger*: Object              ## Trigger where the current actor is
@@ -578,8 +580,9 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   result.height = height.int32
   result.roomSize =  roomSize
   result.fullscreen = fullscreen.int32
-  result.overlay = Transparent
   result.scene = newScene()
+  result.overlayNode = newOverlayNode()
+  result.scene.addChild result.overlayNode
 
   # backgrounds
   var names: seq[string]
@@ -694,6 +697,7 @@ proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
   self.pathFinder.calculatePath(frm, to)
 
 proc update*(self: Room, elapsedSec: float) = 
+  self.overlayTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
   for layer in self.layers.mitems:
     layer.update(elapsedSec)
@@ -704,3 +708,9 @@ proc createLight*(self: Room, color: Color, pos: Vec2i): Light =
   self.numLights += 1
   result.color = color
   result.pos = pos
+
+proc `overlay=`*(self: Room, color: Color) =
+  self.overlayNode.ovlColor = color
+
+proc `overlay`*(self: Room): Color =
+  self.overlayNode.ovlColor
