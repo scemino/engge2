@@ -130,6 +130,10 @@ proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, obj.table)
   1
 
+proc isInventoryOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "isInventoryOnScreen not implemented"
+  0
+
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
   ## 
@@ -530,6 +534,10 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get object")
   push(v, obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f)
 
+proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "objectRenderOffset not implemented"
+  0
+
 proc objectRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the room of a given object or actor.
   var obj = obj(v, 2)
@@ -776,6 +784,10 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.pickupObject(obj)
   0
 
+proc pickupReplacementObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "pickupReplacementObject not implemented"
+  0
+
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## The only difference between objectState and playObjectState is if they are called during the enter code.
   ## objectState will set the image to the last frame of the state's animation, where as, playObjectState will play the full animation. 
@@ -797,6 +809,10 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj.play($sqState)
   else:
     return sq_throwerror(v, "failed to get state")
+  0
+
+proc popInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "popInventory not implemented"
   0
 
 proc removeInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -830,6 +846,10 @@ proc shakeObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "shakeObject not implemented"
   0
 
+proc stopObjectMotors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "stopObjectMotors not implemented"
+  0
+
 proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
   ## 
@@ -838,6 +858,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(createTextObject, "createTextObject")
   v.regGblFun(deleteObject, "deleteObject")
   v.regGblFun(findObjectAt, "findObjectAt")
+  v.regGblFun(isInventoryOnScreen, "isInventoryOnScreen")
   v.regGblFun(isObject, "is_object")
   v.regGblFun(isObject, "isObject")
   v.regGblFun(jiggleInventory, "jiggleInventory")
@@ -863,6 +884,7 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectParent, "objectParent")
   v.regGblFun(objectPosX, "objectPosX")
   v.regGblFun(objectPosY, "objectPosY")
+  v.regGblFun(objectRenderOffset, "objectRenderOffset")
   v.regGblFun(objectRoom, "objectRoom")
   v.regGblFun(objectRotate, "objectRotate")
   v.regGblFun(objectRotateTo, "objectRotateTo")
@@ -879,7 +901,10 @@ proc register_objlib*(v: HSQUIRRELVM) =
   v.regGblFun(objectValidUsePos, "objectValidUsePos")
   v.regGblFun(objectValidVerb, "objectValidVerb")
   v.regGblFun(pickupObject, "pickupObject")
+  v.regGblFun(pickupReplacementObject, "pickupReplacementObject")
   v.regGblFun(playObjectState, "playObjectState")
+  v.regGblFun(popInventory, "popInventory")
   v.regGblFun(removeInventory, "removeInventory")
   v.regGblFun(setDefaultObject, "setDefaultObject")
   v.regGblFun(shakeObject, "shakeObject")
+  v.regGblFun(stopObjectMotors, "stopObjectMotors")

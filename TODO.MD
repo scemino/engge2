@@ -163,6 +163,8 @@
 - [ ] exCommand EX_SHOW_OPTIONS
 - [ ] findScreenPosition
 - [ ] frameCounter
+- [ ] getPrivatePref
+- [x] getUserPref
 - [ ] in_array
 - [x] incutscene
 - [ ] indialog
@@ -187,6 +189,8 @@
 - [x] screenSize
 - [x] setAmbientLight
 - [ ] setDebugger
+- [ ] setPrivatePref
+- [ ] setUserPref
 - [x] setVerb
 - [ ] startDialog
 - [ ] stopSentence
@@ -253,8 +257,6 @@
 - [x] breakwhilewalking
 - [x] dumpvar
 - [x] gameTime
-- [ ] getPrivatePref
-- [x] getUserPref
 - [x] include
 - [x] inputHUD
 - [x] inputOff
@@ -269,8 +271,6 @@
 - [x] microTime
 - [ ] moveCursorTo
 - [x] rawsafeget
-- [ ] setPrivatePref
-- [ ] setUserPref
 - [x] startglobalthread
 - [x] startthread
 - [x] stopthread

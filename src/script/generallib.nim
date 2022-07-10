@@ -22,6 +22,7 @@ import ../gfx/graphics
 import ../gfx/recti
 import ../scenegraph/node
 import ../scenegraph/hud
+import ../io/json
 import ../io/ggpackmanager
 import ../io/textdb
 import ../sys/app
@@ -33,6 +34,10 @@ proc getarray(obj: HSQOBJECT, arr: var seq[HSQOBJECT]) =
 proc activeVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.hud.verb.id.int)
   1
+
+proc adhocalytics(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "adhocalytics not implemented"
+  0
 
 proc arrayShuffle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) != OT_ARRAY:
@@ -203,7 +208,7 @@ proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, s)
   1
 
-proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+proc fcutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let nArgs = sq_gettop(v)
 
   var envObj: HSQOBJECT
@@ -238,6 +243,22 @@ proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   discard cutscene.update(0f)
   0
 
+proc cutsceneOverride(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "cutsceneOverride not implemented"
+  0
+
+proc distance(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "distance not implemented"
+  0
+
+proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "findScreenPosition not implemented"
+  0
+
+proc frameCounter(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "frameCounter not implemented"
+  0
+
 proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var name: string
   if SQ_FAILED(get(v, 2, name)):
@@ -250,6 +271,32 @@ proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "getPrivatePref not implemented"
   push(v, defaultValue)
   1
+
+proc push(v: HSQUIRRELVM, node: JsonNode): SQInteger =
+  case node.kind:
+  of JInt:
+    push(v, node.getInt())
+    result = 1
+  of JString:
+    push(v, node.getStr())
+    result = 1
+  of JFloat:
+    push(v, node.getFloat())
+    result = 1
+  else:
+    result = sq_throwerror(v, "This kind of node is not supported")
+
+proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var key: string
+  if SQ_FAILED(get(v, 2, key)):
+    result = sq_throwerror(v, "failed to get key")
+  elif gEngine.prefs.node.hasKey(key):
+    result = push(v, gEngine.prefs.node[key])
+  elif sq_gettop(v) == 3:
+    var obj: HSQOBJECT
+    discard sq_getstackobj(v, 3, obj)  
+    push(v, obj)
+    result = 1
 
 proc incutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.cutscene.isNil)
@@ -278,6 +325,10 @@ proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   push(v, sq_gettype(v, 2) in types)
   1
 
+proc in_array(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "in_array not implemented"
+  0
+
 proc is_array(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   is_oftype(v, [OT_ARRAY])
 
@@ -302,6 +353,10 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     sq_pushstring(v, line.cstring, -1)
     discard sq_arrayappend(v, -2)
   1
+
+proc markAchievement(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn fmt"markAchievement not implemented"
+  0
 
 proc markProgress(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn fmt"markProgress not implemented"
@@ -465,8 +520,16 @@ proc screenSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, screen)
   return 1;
 
+proc setDebugger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "setDebugger not implemented"
+  0
+
 proc setPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "setPrivatePref not implemented"
+  0
+
+proc setUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "setUserPref not implemented"
   0
 
 proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -502,6 +565,11 @@ proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc startDialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "startDialog not implemented"
+  0
+
+proc stopSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "stopSentence not implemented"
+  0
 
 proc strcount(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Counts the occurrences of a substring sub in the string `str`.
@@ -598,6 +666,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   ## 
   ## It adds all the general functions in the given Squirrel virtual machine.
   v.regGblFun(activeVerb, "activeVerb")
+  v.regGblFun(adhocalytics, "adhocalytics")
   v.regGblFun(arrayShuffle, "arrayShuffle")
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
@@ -609,17 +678,24 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(sqChr, "chr")
   v.regGblFun(cursorPosX, "cursorPosX")
   v.regGblFun(cursorPosY, "cursorPosY")
-  v.regGblFun(cutscene, "cutscene")
+  v.regGblFun(fcutscene, "cutscene")
+  v.regGblFun(cutsceneOverride, "cutsceneOverride")
+  v.regGblFun(distance, "distance")
+  v.regGblFun(findScreenPosition, "findScreenPosition")
+  v.regGblFun(frameCounter, "frameCounter")
   v.regGblFun(getPrivatePref, "getPrivatePref")
+  v.regGblFun(getUserPref, "getUserPref")
   v.regGblFun(incutscene, "incutscene")
   v.regGblFun(indialog, "indialog")
   v.regGblFun(inputVerbs, "inputVerbs")
   v.regGblFun(integer, "int")
+  v.regGblFun(in_array, "in_array")
   v.regGblFun(is_array, "is_array")
   v.regGblFun(is_function, "is_function")
   v.regGblFun(is_string, "is_string")
   v.regGblFun(is_table, "is_table")
   v.regGblFun(loadArray, "loadArray")
+  v.regGblFun(markAchievement, "markAchievement")
   v.regGblFun(markProgress, "markProgress")
   v.regGblFun(markStat, "markStat")
   v.regGblFun(ord, "ord")
@@ -631,9 +707,12 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(randomseed, "randomseed")
   v.regGblFun(refreshUI, "refreshUI")
   v.regGblFun(screenSize, "screenSize")
+  v.regGblFun(setDebugger, "setDebugger")
   v.regGblFun(setPrivatePref, "setPrivatePref")
+  v.regGblFun(setUserPref, "setUserPref")
   v.regGblFun(setVerb, "setVerb")
   v.regGblFun(startDialog, "startDialog")
+  v.regGblFun(stopSentence, "stopSentence")
   v.regGblFun(strcrc, "strcrc")
   v.regGblFun(strcount, "strcount")
   v.regGblFun(strfind, "strfind")

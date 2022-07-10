@@ -2,7 +2,6 @@ import std/[logging, strformat]
 import sqnim
 import vm
 import squtils
-import ../io/json
 import ../audio/audio
 import ../game/thread
 import ../game/callback
@@ -145,6 +144,10 @@ proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
   breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
 
+proc breakwhiledialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "breakwhiledialog not implemented"
+  0
+
 proc breakwhileinputoff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while input is not active.
   ## Once the thread finishes execution, the method will continue running.
@@ -257,32 +260,6 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_pushfloat(v, gEngine.time * 1000.0)
   1
 
-proc push(v: HSQUIRRELVM, node: JsonNode): SQInteger =
-  case node.kind:
-  of JInt:
-    push(v, node.getInt())
-    result = 1
-  of JString:
-    push(v, node.getStr())
-    result = 1
-  of JFloat:
-    push(v, node.getFloat())
-    result = 1
-  else:
-    result = sq_throwerror(v, "This kind of node is not supported")
-
-proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var key: string
-  if SQ_FAILED(get(v, 2, key)):
-    result = sq_throwerror(v, "failed to get key")
-  elif gEngine.prefs.node.hasKey(key):
-    result = push(v, gEngine.prefs.node[key])
-  elif sq_gettop(v) == 3:
-    var obj: HSQOBJECT
-    discard sq_getstackobj(v, 3, obj)  
-    push(v, obj)
-    result = 1
-
 proc sysInclude(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var filename: string
   if SQ_FAILED(get(v, 2, filename)):
@@ -369,6 +346,10 @@ proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   # Based on when the machine is booted and runs all the time (not paused or saved).
   # See also gameTime, which is in seconds. 
   push(v, gEngine.time * 1000.0)
+  1
+
+proc moveCursorTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "moveCursorTo not implemented"
   1
 
 proc removeCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -538,6 +519,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhileanimating, "breakwhileanimating")
   v.regGblFun(breakwhilecamera, "breakwhilecamera")
   v.regGblFun(breakwhilecutscene, "breakwhilecutscene")
+  v.regGblFun(breakwhiledialog, "breakwhiledialog")
   v.regGblFun(breakwhileinputoff, "breakwhileinputoff")
   v.regGblFun(breakwhilerunning, "breakwhilerunning")
   v.regGblFun(breakwhilesound, "breakwhilesound")
@@ -545,7 +527,6 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
   v.regGblFun(exCommand, "exCommand")
   v.regGblFun(gameTime, "gameTime")
-  v.regGblFun(getUserPref, "getUserPref")
   v.regGblFun(sysInclude, "include")
   v.regGblFun(inputController, "inputController")
   v.regGblFun(inputHUD, "inputHUD")
@@ -559,6 +540,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(logInfo, "logInfo")
   v.regGblFun(logWarning, "logWarning")
   v.regGblFun(microTime, "microTime")
+  v.regGblFun(moveCursorTo, "moveCursorTo")
   v.regGblFun(removeCallback, "removeCallback")
   v.regGblFun(setAmbientLight, "setAmbientLight")
   v.regGblFun(startglobalthread, "startglobalthread")
