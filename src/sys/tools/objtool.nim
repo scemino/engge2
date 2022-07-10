@@ -49,6 +49,7 @@ proc showProperties() =
     igCheckbox("Touchable", gObject.touchable.addr)
     igColorEdit4("Color", gObject.node.nodeColor.arr)
     igText("Room: %s", objRoom.cstring)
+    igText("Layer: %d", gObject.layer.zsort)
     igText("Facing: %d", gObject.facing)
     igDragInt("Z-Order", gObject.node.zOrder.addr)
     igDragFloat("Volume", addr gObject.volume, 1f, 0f, 1f)

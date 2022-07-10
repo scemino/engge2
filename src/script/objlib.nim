@@ -499,7 +499,7 @@ proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  var layer = 0
+  var layer = 0'i32
   if SQ_FAILED(get(v, 3, layer)):
     return sq_throwerror(v, "failed to get parallax layer")
   gEngine.room.objectParallaxLayer(obj, layer)

@@ -69,7 +69,7 @@ type
     mouseDownTime: DateTime
     walkFastState: bool
     walkboxNode*: WalkboxNode
-    bounds: Recti
+    bounds*: Recti
 
 var gEngine*: Engine
 
@@ -498,9 +498,6 @@ proc clampPos(self: Engine, at: Vec2f): Vec2f =
 proc cameraAt*(self: Engine, at: Vec2f) =
   ## Set the camera position to the given `at` position.
   cameraPos(self.clampPos(at))
-
-proc cameraBounds*(self: Engine, bounds: Recti) =
-  self.bounds = bounds
 
 proc walkFast(self: Engine, state = true) =
   if self.walkFastState != state:

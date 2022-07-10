@@ -13,7 +13,6 @@ import ../gfx/text
 import ../gfx/graphics
 import ../scenegraph/node
 import ../scenegraph/scene
-import ../scenegraph/spritenode
 import ../scenegraph/textnode
 import motors/motor
 import objanim
@@ -96,7 +95,7 @@ type
     node*: Node
     sayNode*: Node
     fps*: float32
-    layer: Layer
+    layer*: Layer
     temporary*: bool
     useWalkboxes*: bool
     triggers*: Table[int, Trigger]
@@ -245,7 +244,7 @@ proc contains*(self: Object, pos: Vec2f): bool =
   var p = pos - self.node.pos
   self.hotspot.contains(vec2i(p))
 
-proc layer*(self: Room, layer: int): Layer =
+proc layer*(self: Room, layer: int32): Layer =
   for l in self.layers:
     if l.zsort == layer:
       return l
@@ -669,18 +668,16 @@ proc parseRoom*(table: HSQOBJECT, s: Stream, filename: string = ""): Room =
 proc parseRoom*(table: HSQOBJECT, buffer: string): Room =
   result = parseRoom(table, newStringStream(buffer), "input")
 
-proc objectParallaxLayer*(self: Room, obj: Object, zsort: int) =
-  if obj.layer != self.layer(zsort):
-    for i in 0..<self.layers.len:
-      var layer = self.layers[i]
-      if layer.zsort == zsort:
-        # removes object from old layer
-        obj.layer.objects.del obj.layer.objects.find obj
-        # adds object to the new one
-        layer.objects.add obj
-        # update scenegraph
-        layer.node.addChild obj.node
-        obj.layer = layer
+proc objectParallaxLayer*(self: Room, obj: Object, zsort: int32) =
+  let layer = self.layer(zsort)
+  if obj.layer != layer:
+    # removes object from old layer
+    obj.layer.objects.del obj.layer.objects.find obj
+    # adds object to the new one
+    layer.objects.add obj
+    # update scenegraph
+    layer.node.addChild obj.node
+    obj.layer = layer
 
 proc walkboxHidden*(self: Room, name: string, hidden: bool) =
   for wb in self.walkboxes.mitems:

@@ -99,7 +99,7 @@ proc cameraBounds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get yMin")
   if SQ_FAILED(get(v, 5, yMax)):
       return sq_throwerror(v, "failed to get yMax")
-  gEngine.cameraBounds(rectFromMinMax(vec2(xMin, yMin), vec2(xMax, yMax)))
+  gEngine.bounds = rectFromMinMax(vec2(xMin, yMin), vec2(xMax, yMax))
 
 proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = actor(v, 2)

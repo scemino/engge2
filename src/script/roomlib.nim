@@ -368,8 +368,9 @@ proc roomLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## .. code-block:: Squirrel
   ## roomLayer(GrateEntry, -2, NO)  // Make lights out layer invisible
   var r = room(v, 2)
-  var layer, enabled: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 3, layer)):
+  var layer: int32
+  var enabled: SQInteger
+  if SQ_FAILED(get(v, 3, layer)):
     return sq_throwerror(v, "failed to get layer")
   if SQ_FAILED(sq_getinteger(v, 4, enabled)):
     return sq_throwerror(v, "failed to get enabled")

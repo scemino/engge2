@@ -1,6 +1,8 @@
+import std/strformat
 import glm
 import sqnim
 import ../debugtool
+import ../../gfx/recti
 import ../../game/engine
 import ../../game/prefs
 import ../../game/room
@@ -43,6 +45,8 @@ method render*(self: GeneralTool) =
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
+  
+  # camera
   igText("Camera follow: %s", if gEngine.follow.isNil: "(none)".cstring else: gEngine.follow.name.cstring)
   igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
   var camPos = gEngine.cameraPos()
@@ -50,6 +54,8 @@ method render*(self: GeneralTool) =
     gEngine.follow = nil
     let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
     gEngine.cameraAt(camPos - halfScreenSize)
+  igText("Bounds: (%d, %d, %d, %d)", gEngine.bounds.x, gEngine.bounds.y, gEngine.bounds.w, gEngine.bounds.h)
+
   igText("VM stack top: %d", sq_gettop(gVm.v))
   igSeparator()
   igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
@@ -78,6 +84,15 @@ method render*(self: GeneralTool) =
     igDragFloat3("shadows", gShaderParams.shadows.arr, 0.01f, -1f, 1f)
     igDragFloat3("midtones", gShaderParams.midtones.arr, 0.01f, -1f, 1f)
     igDragFloat3("highlights", gShaderParams.highlights.arr, 0.01f, -1f, 1f)
+
+    igSeparator()
+    for layer in room.layers:
+      if layer.objects.len == 0:
+        igText(fmt"Layer {$layer.zsort}".cstring)
+      elif igTreeNode(fmt"Layer {$layer.zsort}".cstring):
+        for obj in layer.objects:
+          igText(fmt"{obj.name} ({obj.key})".cstring)
+        igTreePop()
 
 
   # if I remove this it does not compile, why ???
