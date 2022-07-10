@@ -139,7 +139,7 @@
 - [x] arrayShuffle
 - [x] assetExists
 - [x] cameraAt
-- [ ] cameraBounds
+- [x] cameraBounds
 - [x] cameraFollow
 - [x] cameraInRoom
 - [x] cameraPanTo

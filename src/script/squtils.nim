@@ -76,6 +76,11 @@ proc getarray*(v: HSQUIRRELVM, i: int, arr: var seq[string]): SQRESULT =
 proc get(v: HSQUIRRELVM, i: int, value: var int): SQRESULT =
   sq_getinteger(v, i, value)
 
+proc get(v: HSQUIRRELVM, i: int, value: var int32): SQRESULT =
+  var r: int
+  result = sq_getinteger(v, i, r)
+  value = r.int32
+
 proc get(v: HSQUIRRELVM, i: int, value: var bool): SQRESULT =
   var tmp = 0
   result = sq_getinteger(v, i, tmp)

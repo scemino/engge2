@@ -9,7 +9,6 @@ import tasks/task
 import inputstate
 import screen
 import verb
-import resmanager
 import shaders
 import ../script/squtils
 import ../script/flags
@@ -28,12 +27,10 @@ import ../audio/audio
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
-import ../scenegraph/spritenode
 import ../scenegraph/hud
 import ../scenegraph/walkboxnode
 import ../sys/app
 import ../util/common
-from std/times import getTime, toUnix, nanosecond
 
 const
   ScreenMargin = 100f
@@ -72,6 +69,7 @@ type
     mouseDownTime: DateTime
     walkFastState: bool
     walkboxNode*: WalkboxNode
+    bounds: Recti
 
 var gEngine*: Engine
 
@@ -310,6 +308,7 @@ proc setRoom*(self: Engine, room: Room) =
       self.walkboxNode.remove()
     self.walkboxNode = newWalkboxNode(room)
     self.scene.addChild self.walkboxNode
+    self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
 proc findObjAt*(self: Engine, pos: Vec2f): Object =
   for layer in gEngine.room.layers:
@@ -492,13 +491,16 @@ proc update*(self: Node, elapsed: float) =
 
 proc clampPos(self: Engine, at: Vec2f): Vec2f =
   let screenSize = self.room.getScreenSize()
-  var x = clamp(at.x, 0.0f, max(self.room.roomSize.x.float32 - screenSize.x.float32, 0.0f))
-  var y = clamp(at.y, 0.0f, max(self.room.roomSize.y.float32 - screenSize.y.float32, 0.0f))
+  let x = clamp(at.x, self.bounds.left.float32, max(self.bounds.right.float32 - screenSize.x.float32, 0.0f))
+  let y = clamp(at.y, self.bounds.bottom.float32, max(self.bounds.top.float32 - screenSize.y.float32, 0.0f))
   vec2(x, y)
 
 proc cameraAt*(self: Engine, at: Vec2f) =
   ## Set the camera position to the given `at` position.
   cameraPos(self.clampPos(at))
+
+proc cameraBounds*(self: Engine, bounds: Recti) =
+  self.bounds = bounds
 
 proc walkFast(self: Engine, state = true) =
   if self.walkFastState != state:

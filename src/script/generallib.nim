@@ -19,6 +19,7 @@ import ../util/easing
 import ../util/crc
 import ../game/engine
 import ../gfx/graphics
+import ../gfx/recti
 import ../scenegraph/node
 import ../scenegraph/hud
 import ../io/ggpackmanager
@@ -86,6 +87,19 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
   gEngine.cameraAt(at)
   0
+
+proc cameraBounds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Sets how far the camera can pan.
+  var xMin, xMax, yMin, yMax: int32
+  if SQ_FAILED(get(v, 2, xMin)):
+      return sq_throwerror(v, "failed to get xMin")
+  if SQ_FAILED(get(v, 3, xMax)):
+      return sq_throwerror(v, "failed to get xMax")
+  if SQ_FAILED(get(v, 4, yMin)):
+      return sq_throwerror(v, "failed to get yMin")
+  if SQ_FAILED(get(v, 5, yMax)):
+      return sq_throwerror(v, "failed to get yMax")
+  gEngine.cameraBounds(rectFromMinMax(vec2(xMin, yMin), vec2(xMax, yMax)))
 
 proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = actor(v, 2)
@@ -580,6 +594,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(arrayShuffle, "arrayShuffle")
   v.regGblFun(assetExists, "assetExists")
   v.regGblFun(cameraAt, "cameraAt")
+  v.regGblFun(cameraBounds, "cameraBounds")
   v.regGblFun(cameraFollow, "cameraFollow")
   v.regGblFun(cameraInRoom, "cameraInRoom")
   v.regGblFun(cameraPanTo, "cameraPanTo")

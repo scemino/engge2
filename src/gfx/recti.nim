@@ -18,6 +18,9 @@ proc rectFromCenterSize*[T](center, size: Vec2[T]): Rect[T] =
 proc rectFromPositionSize*[T](pos, size: Vec2[T]): Rect[T] =
   rect(pos.x, pos.y, size.x, size.y)
 
+proc rectFromMinMax*[T](min, max: Vec2[T]): Rect[T] =
+  rect(min.x, min.y, max.x - min.x, max.y - min.y)
+
 proc x*[T](r: Rect[T]): T = r.arr[0]
 proc `x=`*[T](r: var Rect[T], x: T) = r.arr[0] = x
 proc y*[T](r: Rect[T]): T = r.arr[1]
@@ -45,7 +48,7 @@ proc top*[T](self: Rect[T]): T =
   self.y + self.h
 
 proc bottom*[T](self: Rect[T]): T =
-  self.y + self.h
+  self.y
 
 proc left*[T](self: Rect[T]): T =
   self.x
