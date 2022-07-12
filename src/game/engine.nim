@@ -182,7 +182,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           # adds the object to the room table
           setf(result.table, obj.name, obj.table)
           obj.setRoom(result)
-          obj.setState(0)
+          obj.setState(0, true)
         else:
           # assign an id
           obj.table.setId(newObjId())
@@ -197,9 +197,9 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
             info fmt"initState {obj.key}"
             var state: int
             obj.table.getf("initState", state)
-            obj.setState(state)
+            obj.setState(state, true)
           else:
-            obj.setState(0)
+            obj.setState(0, true)
           obj.setRoom(result)
 
         layerNode.addChild obj.node

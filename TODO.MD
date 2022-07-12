@@ -60,9 +60,13 @@
     * [x] walk facing
     * [x] final facing
     * [x] walkboxes
-  * [x] actor lips
   * [x] actor blink
   * [x] actor talking
+    * [ ] actor lips movement
+    * [x] change state if in {}
+    * [x] replace \" by "
+    * [x] ignore text if in ()
+    * [x] sound
   * [x] actor walk fast
 * [ ] audio
   * [ ] sound position

@@ -340,7 +340,7 @@ proc suffix(self: Object): string =
   of FACE_RIGHT:
     result = "_right"
 
-proc play*(self: Object, state: string; loop = false)
+proc play*(self: Object, state: string, loop = false, instant = false)
 
 proc setFacing*(self: Object, facing: Facing) =
   if self.facing != facing:
@@ -351,31 +351,31 @@ proc setFacing*(self: Object, facing: Facing) =
 
 import ../game/motors/nodeanim
 
-proc playCore(self: Object, state: string; loop = false): bool =
+proc playCore(self: Object, state: string; loop = false, instant = false): bool =
   ## Plays an animation specified by the `state`. 
   for i in 0..<self.anims.len:
     let anim = self.anims[i]
     if anim.name == state:
       self.animFlags = anim.flags
-      info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}"
-      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop)
+      info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}, instant={instant}"
+      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop, instant)
       return true
 
-proc play*(self: Object, state: string; loop = false) =
+proc play*(self: Object, state: string; loop = false, instant = false) =
   ## Plays an animation specified by the `state`. 
   self.animName = state
   self.animLoop = loop
-  if not self.playCore(state, loop):
-    discard self.playCore(state & self.suffix(), loop)
+  if not self.playCore(state, loop, instant):
+    discard self.playCore(state & self.suffix(), loop, instant)
 
-proc play*(self: Object, state: int; loop = false) =
-  self.play fmt"state{state}", loop
+proc play*(self: Object, state: int, loop = false, instant = false) =
+  self.play fmt"state{state}", loop, instant
   self.state = state
 
 proc getState*(self: Object): int =
   self.state
 
-proc setState*(self: Object, state: int) =
+proc setState*(self: Object, state: int, instant = false) =
   ## Changes the `state` of an object, although this can just be a internal state, 
   ## 
   ## it is typically used to change the object's image as it moves from it's current state to another.
@@ -392,7 +392,7 @@ proc setState*(self: Object, state: int) =
   ## objectTouchable(coin, YES)
   let graphState = if state == GONE: 1 else: state
   if self.state != state:
-    self.play(graphState)
+    self.play(graphState, false, instant)
   else:
     # TODO: I should set the last frame of the animation
     discard

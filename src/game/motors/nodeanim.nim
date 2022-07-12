@@ -16,6 +16,7 @@ type NodeAnim = ref object of Motor
   elapsed: float
   frameDuration: float
   loop: bool
+  instant: bool
   layers: seq[NodeAnim]
   anim: ObjectAnimation
   obj: Object
@@ -39,7 +40,7 @@ proc getFps(fps, animFps: float32): float32 =
   else:
     result = if animFps == 0.0f: 10.0f else: animFps
 
-proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil; loop = false): NodeAnim =
+proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = nil, loop = false, instant = false): NodeAnim =
   let frames = obj.getFrames(anim.frames)
 
   new(result)
@@ -48,6 +49,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
   result.frames = frames
   result.frameDuration = 1.0 / getFps(fps, anim.fps)
   result.loop = loop or anim.loop
+  result.instant = instant
   result.init()
 
   var rootNode = node
@@ -56,7 +58,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     rootNode = obj.node
 
   if frames.len > 0:
-    result.node = newSpriteNode(frames[0])
+    result.node = newSpriteNode(if instant: frames[frames.len-1] else: frames[0])
     result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
     result.node.visible = not obj.hiddenLayers.contains(anim.name)
@@ -65,7 +67,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     rootNode.addChild result.node
   
   for layer in anim.layers:
-    result.layers.add newNodeAnim(obj, layer, fps, rootNode, loop)
+    result.layers.add newNodeAnim(obj, layer, fps, rootNode, loop, instant)
 
 proc trigSound(self: NodeAnim) =
   if self.anim.triggers.len > 0:
@@ -74,7 +76,9 @@ proc trigSound(self: NodeAnim) =
         self.obj.trig(trigger)
 
 method update(self: NodeAnim, el: float) =
-  if self.frames.len != 0:
+  if self.instant:
+    self.disable()
+  elif self.frames.len != 0:
     self.elapsed += el
     if self.elapsed > self.frameDuration:
       self.elapsed = 0
