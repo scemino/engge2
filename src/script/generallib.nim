@@ -155,14 +155,26 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var duration: float
   var interpolation: InterpolationMethod
   if numArgs == 4:
-    var obj = obj(v, 2)
-    if SQ_FAILED(get(v, 3, duration)):
-      return sq_throwerror(v, "failed to get duration")
-    var im: int
-    if SQ_FAILED(get(v, 4, im)):
-      return sq_throwerror(v, "failed to get interpolation method")
-    pos = obj.node.absolutePosition()
-    interpolation = im
+    if sq_gettype(v, 2) == OT_INTEGER:
+      var x: int
+      if SQ_FAILED(get(v, 2, x)):
+        return sq_throwerror(v, "failed to get x")
+      if SQ_FAILED(get(v, 3, duration)):
+        return sq_throwerror(v, "failed to get duration")
+      var im: int
+      if SQ_FAILED(get(v, 4, im)):
+        return sq_throwerror(v, "failed to get interpolation method")
+      pos = vec2(x.float32, cameraPos().y)
+      interpolation = im
+    else:
+      let obj = obj(v, 2)
+      if SQ_FAILED(get(v, 3, duration)):
+        return sq_throwerror(v, "failed to get duration")
+      var im: int
+      if SQ_FAILED(get(v, 4, im)):
+        return sq_throwerror(v, "failed to get interpolation method")
+      pos = obj.node.absolutePosition()
+      interpolation = im
   elif numArgs == 5:
     var x, y: int
     if SQ_FAILED(get(v, 2, x)):
@@ -317,7 +329,7 @@ proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc integer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var f = 0.0
   if SQ_FAILED(get(v, 2, f)):
-    return sq_throwerror(v, "Failed to get float value")
+    return sq_throwerror(v, "failed to get float value")
   push(v, f.int)
   1
 
@@ -418,8 +430,8 @@ proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard sq_getfloat(v, 3, max)
     if min > max:
       swap(min, max)
-    # info fmt"rand({min}..{max})"
     let value = gEngine.rand.rand(min..max)
+    # info fmt"rand({min}..{max}) -> {value}"
     sq_pushfloat(v, value)
   else:
     var min, max: SQInteger
@@ -427,8 +439,8 @@ proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard sq_getinteger(v, 3, max)
     if min > max:
       swap(min, max)
-    # info fmt"rand({min}..{max})"
     let value = gEngine.rand.rand(min..max)
+    # info fmt"rand({min}..{max}) -> {value}"
     sq_pushinteger(v, value)
   return 1
 
