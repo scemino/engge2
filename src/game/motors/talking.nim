@@ -74,6 +74,24 @@ proc say(self: Talking, text: string) =
     # TODO: call sayingLine
     self.soundId = self.loadActorSpeech(name)
 
+  # remove text in parenthesis
+  if txt[0] == '(':
+    let i = txt.find(')')
+    if i != -1:
+      txt = txt.substr(i + 1)
+
+  # modify state ?
+  if txt[0] == '{':
+    let i = txt.find('}')
+    if i != -1:
+      let state = txt.substr(1, i - 1)
+      info fmt"Set state from anim '{state}'"
+      self.obj.play(state)
+      txt = txt.substr(i + 1)
+
+  # replace \" by "
+  txt = txt.replace("\\\"", "\"")
+
   self.obj.sayNode.remove()
   var text = newText(gResMgr.font("sayline"), txt, taCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
@@ -105,7 +123,7 @@ method disable(self: Talking) =
 
 method update(self: Talking, el: float) =
   if gEngine.audio.playing(self.soundId):
-    var letter = self.lip.letter(self.elapsed)
+    let letter = self.lip.letter(self.elapsed)
     self.elapsed += el
     self.obj.setHeadIndex(letterToIndex[letter])
   else:
