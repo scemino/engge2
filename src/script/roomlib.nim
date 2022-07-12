@@ -42,7 +42,7 @@ proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 3, y)):
       return sq_throwerror(v, "failed to get y")
     pos1 = vec2(x.float32, y.float32)
-    pos2 = gEngine.actor.node.pos
+    pos2 = pos1
   elif numArgs == 5:
     var x1 = 0
     if SQ_FAILED(get(v, 2, x1)):
@@ -52,22 +52,23 @@ proc clampInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get y1")
     pos1 = vec2(x1.float32, y1.float32)
     var x2 = 0
-    if SQ_FAILED(sq_getinteger(v, 2, x2)):
+    if SQ_FAILED(sq_getinteger(v, 4, x2)):
       return sq_throwerror(v, "failed to get x2")
     var y2 = 0
-    if SQ_FAILED(sq_getinteger(v, 3, y1)):
+    if SQ_FAILED(sq_getinteger(v, 5, y1)):
       return sq_throwerror(v, "failed to get y2")
     pos2 = vec2(x2.float32, y2.float32)
   else:
     return sq_throwerror(v, "Invalid argument number in clampInWalkbox")
   let walkboxes = gEngine.room.walkboxes
   for walkbox in walkboxes:
-    if walkbox.contains(pos2):
-      let pos = walkbox.getClosestPointOnEdge(pos1)
-      push(v, pos)
+    if walkbox.contains(pos1):
+      info fmt"clampInWalkbox({pos1}) -> {pos1}"
+      push(v, pos1)
       return 1
-  error "Actor's walkbox has not been found."
-  push(v, pos1)
+  let pos = walkboxes[0].getClosestPointOnEdge(pos2)
+  info fmt"clampInWalkbox({pos2}) -> {pos}"
+  push(v, pos)
   return 1
 
 proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
