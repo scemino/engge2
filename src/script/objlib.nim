@@ -205,17 +205,26 @@ proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## .. code-block:: Squirrel
   ## objectAt(text, 160,90)
   ## objectAt(obj, leftMargin, topLinePos)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
-    sq_throwerror(v, "failed to get object")
-  else:
+    result = sq_throwerror(v, "failed to get object")
+  elif sq_gettop(v) == 3:
+    let spot = obj(v, 3)
+    if spot.isNil:
+      result = sq_throwerror(v, "failed to get spot")
+    else:
+      obj.node.pos = spot.node.pos
+      result = 0
+  elif sq_gettop(v) == 4:
     var x, y: SQInteger
     if SQ_FAILED(sq_getinteger(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(sq_getinteger(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
     obj.node.pos = vec2(x.float32, y.float32)
-    0
+    result = 0
+  else:
+    result = sq_throwerror(v, "invalid number of arguments")
 
 proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets an object's alpha (transparency) in the range of 0.0 to 1.0.
