@@ -540,6 +540,7 @@ proc objectPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   push(v, obj.node.absolutePosition().x + obj.usePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f)
+  1
 
 proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the y-coordinate of the given object or actor.
@@ -547,6 +548,7 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   push(v, obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f)
+  1
 
 proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
