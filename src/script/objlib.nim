@@ -464,7 +464,7 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## See also:
   ## - `stopObjectMotors method <#stopObjectMotors.e>`_
   ## - `objectMoveTo method <#objectMoveTo.e>`_
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if not obj.isNil:
     var x = 0
     var y = 0
@@ -548,7 +548,7 @@ proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get x")
   if SQ_FAILED(sq_getinteger(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
-  obj.node.offset = vec2f(x.float32, y.float32)
+  obj.node.renderOffset = vec2f(x.float32, y.float32)
   0
 
 proc objectRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =

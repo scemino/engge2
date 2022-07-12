@@ -450,7 +450,7 @@ proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get x")
   if SQ_FAILED(sq_getinteger(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
-  actor.node.offset = vec2f(x.float32, y.float32)
+  actor.node.renderOffset = vec2f(x.float32, y.float32)
   0
 
 proc actorStand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -473,7 +473,7 @@ proc actorStopWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Set the text color of the specified actor's text that appears when they speak. 
-  var actor = actor(v, 2)
+  let actor = obj(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   var color: int
@@ -518,15 +518,15 @@ proc actorTurnTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorTalkOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies the offset that will be applied to the actor's speech text that appears on screen.
-  var actor = actor(v, 2)
+  let actor = obj(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
-  var x, y: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 3, x)):
+  var x, y: int32
+  if SQ_FAILED(get(v, 3, x)):
     return sq_throwerror(v, "failed to get x")
-  if SQ_FAILED(sq_getinteger(v, 4, y)):
+  if SQ_FAILED(get(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
-  actor.talkOffset = vec2(x.int32, y.int32)
+  actor.talkOffset = vec2(x, y)
 
 proc actorUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var usePos: Vec2f
@@ -709,7 +709,7 @@ proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
     index = 2
     obj = gEngine.currentActor
   
-  var numIds = sq_gettop(v) - index + 1
+  let numIds = sq_gettop(v) - index + 1
   var texts: seq[string]
   for i in 0..<numIds:
     var text: string
