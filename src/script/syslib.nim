@@ -185,11 +185,11 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc isSomeoneTalking(): bool =
   ## Returns true if at least 1 actor is talking.
   for obj in gEngine.actors:
-    if not obj.talking.isNil and not obj.talking.enabled:
+    if not obj.talking.isNil and obj.talking.enabled:
       return true
   for layer in gEngine.room.layers:
     for obj in layer.objects:
-      if not obj.talking.isNil and not obj.talking.enabled:
+      if not obj.talking.isNil and obj.talking.enabled:
         return true
 
 proc breakwhiletalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -209,7 +209,7 @@ proc breakwhiletalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if nArgs == 1:
     breakwhilecond(v, fmt"breakwhiletalking(all)", isSomeoneTalking)
   elif nArgs == 2:
-    var obj = obj(v, 2)
+    let obj = obj(v, 2)
     if obj.isNil:
       return sq_throwerror(v, "failed to get object")
     breakwhilecond(v, fmt"breakwhiletalking({obj.name})", proc (): bool = not obj.talking.isNil and obj.talking.enabled)
