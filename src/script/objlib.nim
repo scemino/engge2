@@ -682,15 +682,20 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets if an object is player touchable. 
-  var obj = obj(v, 2)
+  ## Gets or sets if an object is player touchable. 
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  var touchable: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 3, touchable)):
-    return sq_throwerror(v, "failed to get touchable")
-  obj.touchable = touchable != 0
-  0
+  let nArgs = sq_gettop(v)
+  if nArgs == 2:
+    push(v, obj.touchable)
+    result = 1
+  elif nArgs == 3:
+    var touchable: SQInteger
+    if SQ_FAILED(sq_getinteger(v, 3, touchable)):
+      return sq_throwerror(v, "failed to get touchable")
+    obj.touchable = touchable != 0
+    result = 0
 
 proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##  Sets the zsort order of an object, essentially the order in which an object is drawn on the screen.
