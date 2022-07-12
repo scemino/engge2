@@ -182,7 +182,7 @@ proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## .. code-block:: Squirrel
   ## loopObjectState(aStreetFire, 0)
   ## loopObjectState(flies, 3)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   if sq_gettype(v, 3) == OT_INTEGER:
@@ -190,6 +190,11 @@ proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 3, index)):
       return sq_throwerror(v, "failed to get state")
     obj.play(index, true)
+  elif sq_gettype(v, 3) == OT_STRING:
+    var state: string
+    if SQ_FAILED(get(v, 3, state)):
+      return sq_throwerror(v, "failed to get state (string)")
+    obj.play(state, true)
   else:
     return sq_throwerror(v, "failed to get state")
   0
