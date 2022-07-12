@@ -309,7 +309,7 @@
 - [x] objectParent
 - [x] objectPosX
 - [x] objectPosY
-- [ ] objectRenderOffset
+- [x] objectRenderOffset
 - [x] objectRoom
 - [x] objectRotate
 - [x] objectRotateTo

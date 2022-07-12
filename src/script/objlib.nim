@@ -332,7 +332,7 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object or actor")
   if sq_gettop(v) == 2:
-    var pos = obj.node.absolutePosition()
+    let pos = obj.node.absolutePosition()
     push(v, rectFromPositionSize(obj.hotspot.pos + vec2(pos.x.int32, pos.y.int32), obj.hotspot.size))
     result = 1
   else:
@@ -535,7 +535,20 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f)
 
 proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "objectRenderOffset not implemented"
+  ## Sets the rendering offset of the actor to x and y.
+  ## 
+  ## A rendering offset of 0,0 would cause them to be rendered from the middle of their image.
+  ## Actor's are typically adjusted so they are rendered from the middle of the bottom of their feet.
+  ## To maintain sanity, it is best if all actors have the same image size and are all adjust the same, but this is not a requirement. 
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var x, y: SQInteger
+  if SQ_FAILED(sq_getinteger(v, 3, x)):
+    return sq_throwerror(v, "failed to get x")
+  if SQ_FAILED(sq_getinteger(v, 4, y)):
+    return sq_throwerror(v, "failed to get y")
+  obj.node.offset = vec2f(x.float32, y.float32)
   0
 
 proc objectRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
