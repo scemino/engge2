@@ -126,6 +126,9 @@ template call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string; args: openArray[untyp
   discard sq_call(v, 1 + args.len, SQFalse, SQTrue)
   sq_pop(v, 1)
 
+template call*(o: HSQOBJECT, name: string; args: openArray[untyped]) =
+  call(gVm.v, o, name, args)
+
 proc call*(v: HSQUIRRELVM, o: HSQOBJECT, name: string) =
   pushFunc(v, o, name)
 

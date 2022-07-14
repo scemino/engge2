@@ -16,6 +16,8 @@
   * [x] yack parsing
 * [ ] HUD
   * [ ] sentence
+    * [x] use flag: with, in, on
+    * [ ] use flag: giveto
   * [ ] scroll inventory
   * [ ] fade
   * [ ] mouse text repositioned

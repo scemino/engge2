@@ -89,7 +89,7 @@ proc actorArrived(self: WalkTo) =
         return
     
     info fmt"actorArrived: callVerb"
-    discard callVerb(self.obj, self.obj.exec.verb, self.obj.exec.noun1, self.obj.exec.noun2)
+    discard gEngine.callVerb(self.obj, self.obj.exec.verb, self.obj.exec.noun1, self.obj.exec.noun2)
     self.obj.exec = nil
 
 method update(self: WalkTo, el: float) =

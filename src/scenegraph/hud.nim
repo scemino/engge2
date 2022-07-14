@@ -54,6 +54,7 @@ type
     invRects: array[8, InventoryRect]
     scrollRects: array[2, ScrollRect]
     verb*: Verb
+    obj*: Object
   VerbRect = object
     hud*: Hud
     index*: int
@@ -192,12 +193,13 @@ proc updateInventory(self: Hud) =
     let icon = obj.getIcon()
     if itemsSheet.frames.hasKey(icon):
       let itemFrame = itemsSheet.frames[icon]
+      self.invRects[i] = InventoryRect(hud: self, index: self.act.inventoryOffset * 4 + i)
       self.inventoryNodes[i].color = White
       self.inventoryNodes[i].pos = vec2(startOffsetX + ((i mod 4)*(137+7)).float32, startOffsetY - ((i div 4)*75).float32)
       self.inventoryNodes[i].setFrame(itemFrame)
       self.inventoryNodes[i].scale = vec2(4f, 4f)
       self.inventoryNodes[i].setAnchorNorm(vec2f(0.5f, 0f))
-      self.inventoryNodes[i].addButton(onInventoryObject, nil)
+      self.inventoryNodes[i].addButton(onInventoryObject, self.invRects[i].addr)
     else:
       warn fmt"Icon '{icon}' for object {obj.name}({obj.key}) not found in InventoryItems spritesheet"
 
@@ -242,9 +244,18 @@ proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     discard
 
 proc onInventoryObject(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+  let invRect = cast[ptr InventoryRect](tag)
+  let obj = invRect.hud.act.inventory[invRect.index]
+  let name = if obj.isNil: "(none)" else: obj.name
+  info fmt"on inventory object {name}"
   case event:
   of Enter:
     src.shakeMotor = newShake(0.3, src, 1.2f)
+    invRect.hud.obj = invRect.hud.act.inventory[invRect.index]
+  of Leave:
+    invRect.hud.obj = nil
+  of Down:
+    discard
   else:
     discard
 
@@ -253,6 +264,7 @@ proc onScroll(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Down:
     rect.hud.act.inventoryOffset += rect.offset
+    rect.hud.act.inventoryOffset = min(rect.hud.act.inventoryOffset, 0)
     info fmt"onScroll {rect.hud.act.inventoryOffset} {rect.offset}"
     rect.hud.updateInventory()
   else:

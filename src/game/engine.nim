@@ -10,11 +10,11 @@ import inputstate
 import screen
 import verb
 import shaders
+import prefs
+import motors/motor
 import ../script/squtils
 import ../script/flags
 import ../script/vm
-import ../game/motors/motor
-import ../game/prefs
 import ../gfx/spritesheet
 import ../gfx/graphics
 import ../gfx/shader
@@ -58,6 +58,8 @@ type
     cameraPanTo*: Motor
     inputState*: InputState
     noun1*: Object
+    noun2*: Object
+    useFlag: UseFlag
     prefs*: Preferences
     defaultObj*: HSQOBJECT
     hud*: Hud
@@ -311,6 +313,8 @@ proc setRoom*(self: Engine, room: Room) =
     self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
 proc findObjAt*(self: Engine, pos: Vec2f): Object =
+  if not self.hud.obj.isNil:
+    return self.hud.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects:
       if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
@@ -324,7 +328,7 @@ proc verbNoWalkTo(verbId: VerbId, noun1: Object): bool =
   if verbId == VERB_LOOKAT:
     result = (noun1.flags and FAR_LOOK) != 0
 
-proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
+proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
   # Called after the actor has walked to the object.
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name
@@ -341,14 +345,24 @@ proc callVerb*(actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil
 
   # TODO: Do reach before calling verb so we can kill it if needed.
 
+  # check if verb is use and object can be used with or in or on
+  if verbId == VERB_USE and noun2.isNil:
+    self.useFlag = noun1.useFlag()
+    if self.useFlag != ufNone:
+      return
+
+  if noun2.isNil:
+    call(noun1.table, verbFuncName)
+  else:
+    call(noun1.table, verbFuncName, [noun2.table])
+
   # TODO: finish this
-  call(noun1.table, verbFuncName)
 
   gEngine.noun1 = nil
 
 import actor
 
-proc execSentence*(actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
+proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.
   ## If `actor` is `null` then the selectedActor is assumed.
   let name = if actor.isNil: "currentActor" else: actor.name
@@ -371,13 +385,13 @@ proc execSentence*(actor: Object, verbId: VerbId, noun1: Object; noun2: Object =
 
   if noun1.inInventory:
     if noun2.isNil or noun2.inInventory:
-      discard callVerb(actor, verbId, noun1, noun2)
+      discard self.callVerb(actor, verbId, noun1, noun2)
       return true
   
   if verbNoWalkTo(verbId, noun1):
     if not noun1.inInventory: # TODO: test if verb.flags != VERB_INSTANT
       actor.turn(noun1)
-      discard callVerb(actor, verbId, noun1, noun2)
+      discard self.callVerb(actor, verbId, noun1, noun2)
       return true
 
   actor.exec = newSentence(verbId, noun1, noun2)
@@ -415,7 +429,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
       if not obj.isNil:
         let verb = gEngine.hud.verb
         if obj.table.rawexists(verb.fun):
-          handled = execSentence(nil, verb.id, self.noun1)
+          handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled and not self.clickedAtHandled(roomPos):
         # Just clicking on the ground
         cancelSentence(gEngine.actor)
@@ -428,7 +442,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
         obj.table.getf("defaultVerb", defVerbId)
         let verbName = gEngine.hud.actorSlot(gEngine.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
-          discard execSentence(nil, defVerbId, self.noun1)
+          discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
 
   # TODO: call callbacks
 
@@ -521,12 +535,27 @@ proc update(self: Engine) =
   self.inputState.node.pos = scrPos
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
-    self.noun1 = self.findObjAt(roomPos)
+    if self.hud.verb.id == VERB_USE and self.useFlag != ufNone:
+      self.noun2 = self.findObjAt(roomPos)
+    else:
+      self.noun1 = self.findObjAt(roomPos)
+      self.useFlag = ufNone
+      self.noun2 = nil
     # give can be used only on inventory and talkto to talkable objects (actors)
     var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
     # add verb if not walk to or if noun1 is present
     if self.hud.verb.id > 1 or txt.len > 0:
       txt = if txt.len > 0: fmt"{getText(self.hud.verb.text)} {txt}" else: getText(self.hud.verb.text)
+      if self.useFlag == ufUseWith:
+        txt = txt & " " & getText(10000)
+      elif self.useFlag == ufUseOn:
+        txt = txt & " " & getText(10001)
+      elif self.useFlag == ufUseIn:
+        txt = txt & " " & getText(10002)
+      elif self.useFlag == ufGiveTo:
+        txt = txt & " " & getText(10003)
+      if not self.noun2.isNil:
+        txt = txt & " " & getText(self.noun2.name)
     self.inputState.setText(txt)
     # update cursor shape
     # if cursor is in the margin of the screen and if camera can move again

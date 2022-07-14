@@ -415,7 +415,7 @@ proc pushSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     obj2 = obj(v, 4);
     if obj2.isNil:
       return sq_throwerror(v, "Failed to get obj2")
-  discard execSentence(nil, id, obj1, obj2)
+  discard gEngine.execSentence(nil, id, obj1, obj2)
   0
 
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =

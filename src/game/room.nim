@@ -18,6 +18,7 @@ import ../scenegraph/overlaynode
 import motors/motor
 import objanim
 import ../util/jsonutil
+import ../util/common
 import eventmanager
 import trigger
 import resmanager
@@ -30,8 +31,16 @@ import shaders
 
 const 
   GONE = 4
-
+  USE_WITH = 2
+  USE_ON = 4
+  USE_IN = 32
 type
+  UseFlag* = enum
+    ufNone,
+    ufUseWith,
+    ufUseOn,
+    ufUseIn,
+    ufGiveTo
   Facing* = enum
     FACE_RIGHT = 1
     FACE_LEFT = 2
@@ -317,6 +326,16 @@ proc trig*(self: Object, name: string) =
 proc flags*(self: Object): int =
   if self.table.rawexists("flags"):
     self.table.getf("flags", result)
+
+proc useFlag*(self: Object): UseFlag =
+  if self.flags.hasFlag(USE_WITH):
+    result = ufUseWith
+  elif self.flags.hasFlag(USE_ON):
+    result = ufUseOn
+  elif self.flags.hasFlag(USE_IN):
+    result = ufUseIn
+  else:
+    result = ufNone
 
 proc inInventory*(obj: Object): bool =
   # TODO
