@@ -42,6 +42,7 @@ proc newInputState*(): InputState =
   let texture = gResMgr.texture(gameSheet.meta.image)
   let frame = gameSheet.frames["cursor"]
   result.node = newNode("input")
+  result.node.zOrder = -100
   result.cursorNode = newSpriteNode(texture, frame)
   result.cursorNode.scale = vec2(2f, 2f)
   result.text = newText(gResMgr.font("sayline"), "", taCenter)
@@ -85,9 +86,11 @@ proc setState*(self: var InputState, state: InputStateFlag) =
   if (UI_VERBS_OFF.cint and state.cint) == UI_VERBS_OFF.cint:
     self.inputVerbsActive = false
   if (UI_CURSOR_ON.cint and state.cint) == UI_CURSOR_ON.cint:
-    self.showCursor = true;
+    self.showCursor = true
+    self.node.visible = true
   if (UI_CURSOR_OFF.cint and state.cint) == UI_CURSOR_OFF.cint:
     self.showCursor = false
+    self.node.visible = false
   if (UI_HUDOBJECTS_ON.cint and state.cint) == UI_HUDOBJECTS_ON.cint:
     self.inputHUD = true
   if (UI_HUDOBJECTS_OFF.cint and state.cint) == UI_HUDOBJECTS_OFF.cint:
