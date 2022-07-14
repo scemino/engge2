@@ -337,10 +337,6 @@ proc useFlag*(self: Object): UseFlag =
   else:
     result = ufNone
 
-proc inInventory*(obj: Object): bool =
-  # TODO
-  false
-
 proc getFacing*(self: Object): Facing =
   if self.lockFacing:
     self.facingMap[self.facing]
@@ -510,6 +506,7 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
   # assign an id
   obj.table.setId(newObjId())
   info fmt"Create object with new table: {obj.name} #{obj.id}"
+  obj.name = fmt"text#{obj.id}: {text}"
 
   var font = gResMgr.font(fontName)
   var text = newText(font, text, align, maxWidth, White)

@@ -312,6 +312,9 @@ proc setRoom*(self: Engine, room: Room) =
     self.scene.addChild self.walkboxNode
     self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
+proc inInventory*(obj: Object): bool =
+  gEngine.inventory.contains obj
+
 proc findObjAt*(self: Engine, pos: Vec2f): Object =
   if not self.hud.obj.isNil:
     return self.hud.obj
