@@ -109,7 +109,12 @@ proc cameraBounds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = actor(v, 2)
   gEngine.follow = actor
-  return 0
+  let pos = actor.node.pos
+  let oldRoom = gEngine.room
+  gEngine.setRoom(actor.room)
+  if oldRoom != actor.room:
+    gEngine.cameraAt(pos)
+  0
 
 proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the camera to the specified room.
@@ -630,6 +635,7 @@ proc strlines(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var str: string
   if SQ_FAILED(get(v, 2, str)):
     return sq_throwerror(v, "Failed to get str")
+  sq_newarray(v, 0)
   for line in str.splitLines():
     push(v, line)
     discard sq_arrayappend(v, -2)
