@@ -600,7 +600,7 @@ proc update(self: Engine) =
     else:
       self.inputState.setCursorShape(CursorShape.Normal)
 
-  self.hud.visible = self.inputState.inputVerbsActive
+  self.hud.visible = self.inputState.inputVerbsActive and not self.room.isNil and self.room.fullScreen != 1
 
   # call clickedAt if any button down
   let btns = mouseBtns()
