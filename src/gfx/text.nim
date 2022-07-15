@@ -10,10 +10,14 @@ import ../game/resmanager
 import graphics
 
 type
-  TextAlignment* = enum
-    taLeft,
-    taCenter,
-    taRight
+  TextHAlignment* = enum
+    thLeft,
+    thCenter,
+    thRight
+  TextVAlignment* = enum
+    tvTop,
+    tvCenter,
+    tvBottom
   Text* = ref object of RootObj
     ## This class allows to render a text.
     ## 
@@ -22,7 +26,8 @@ type
     texture*: Texture
     txt: string
     col: Color
-    txtAlign: TextAlignment
+    hAlign: TextHAlignment
+    vAlign: TextVAlignment
     vertices: seq[Vertex]
     bnds: Vec2f
     maxW: float32
@@ -70,7 +75,7 @@ proc readTokenId(self: TokenReader): TokenId =
       self.off += skipWhile(self.text, Whitespace, self.off)
       tiWhitespace
     of '#':
-      self.off += 6
+      self.off += 7
       tiColor
     else:
       self.off += skipUntil(self.text, Whitespace + {'#'}, self.off)
@@ -116,12 +121,19 @@ proc `maxWidth=`*(self: Text, maxW: float) =
 proc `maxWidth`*(self: Text): float =
   self.maxW
 
-proc `align=`*(self: Text, align: TextAlignment) =
-  self.txtAlign = align
+proc `hAlign=`*(self: Text, align: TextHAlignment) =
+  self.hAlign = align
   self.dirty = true
 
-proc `align`*(self: Text): TextAlignment =
-  self.txtAlign
+proc `hAlign`*(self: Text): TextHAlignment =
+  self.hAlign
+
+proc `vAlign=`*(self: Text, align: TextVAlignment) =
+  self.vAlign = align
+  self.dirty = true
+
+proc `vAlign`*(self: Text): TextVAlignment =
+  self.vAlign
 
 proc update*(self: Text)
 
@@ -210,12 +222,12 @@ proc update*(self: Text) =
       y -= lineHeight
 
     # Align text
-    if self.align == taRight:
+    if self.hAlign == thRight:
       for i in 0..<lines.len:
         let w = maxW - self.quads[i].w
         for info in lines[i].charInfos.mitems:
           info.pos.x += w
-    elif self.align == taCenter:
+    elif self.hAlign == thCenter:
       for i in 0..<lines.len:
         let w = maxW - self.quads[i].w
         for info in lines[i].charInfos.mitems:
@@ -235,8 +247,8 @@ proc update*(self: Text) =
 #     Vertex(pos: quad.bottomLeft, color: White)]
 #   gfxDrawLineLoop(vertices, transf)
 
-proc newText*(font: Font, text: string; align = taCenter; maxWidth = 0.0f; color = White): Text =
-  result = Text(font: font, txt: text, txtAlign: align, maxW: maxWidth, col: color, dirty: true)
+proc newText*(font: Font, text: string; hAlign = thCenter; vAlign = tvCenter, maxWidth = 0.0f; color = White): Text =
+  result = Text(font: font, txt: text, hAlign: hAlign, vAlign: vAlign, maxW: maxWidth, col: color, dirty: true)
   result.update()
 
 proc draw*(self: Text; transf = mat4f(1.0)) =
@@ -249,6 +261,6 @@ proc draw*(self: Text; transf = mat4f(1.0)) =
     #   drawQuadLine(quad, transf)
 
 when isMainModule:
-  let reader = newTokenReader("Thimbleweed #ff0080Park\n #008000is #0020FFan #0020FFawesome #10608Fadventure #8020FFgame")
+  let reader = newTokenReader("Thimbleweed #ff0080#Park\n #008000#is #0020FF#an #0020FF#awesome #10608F#adventure #8020FF#game")
   for tok in reader.items():
     echo $tok & " " & reader.substr(tok)

@@ -493,7 +493,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   obj.setState(0)
   result = obj
 
-proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWidth = 0.0f): Object =
+proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAlign = tvCenter, maxWidth = 0.0f): Object =
   var obj = newObject()
   obj.temporary = true
   
@@ -509,16 +509,24 @@ proc createTextObject*(self: Room, fontName, text: string, align = taLeft; maxWi
   obj.name = fmt"text#{obj.id}: {text}"
 
   var font = gResMgr.font(fontName)
-  var text = newText(font, text, align, maxWidth, White)
+  var text = newText(font, text, hAlign, vAlign, maxWidth, White)
 
   var node = newTextNode(text)
-  case align:
-  of taLeft:
-    node.setAnchorNorm(vec2(0f, 0.5f))
-  of taCenter:
-    node.setAnchorNorm(vec2(0.5f, 0.5f))
-  of taRight:
-    node.setAnchorNorm(vec2(1f, 0.5f))
+  var v = 0.5f
+  case vAlign:
+  of tvTop:
+    v = 0f
+  of tvCenter:
+    v = 0.5f
+  of tvBottom:
+    v = 1f
+  case hAlign:
+  of thLeft:
+    node.setAnchorNorm(vec2(0f, v))
+  of thCenter:
+    node.setAnchorNorm(vec2(0.5f, v))
+  of thRight:
+    node.setAnchorNorm(vec2(1f, v))
   obj.node = node
   
   self.layer(0).objects.add(obj)

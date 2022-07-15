@@ -45,7 +45,7 @@ proc newInputState*(): InputState =
   result.node.zOrder = -100
   result.cursorNode = newSpriteNode(texture, frame)
   result.cursorNode.scale = vec2(2f, 2f)
-  result.text = newText(gResMgr.font("sayline"), "", taCenter)
+  result.text = newText(gResMgr.font("sayline"), "", thCenter)
   result.textNode = newTextNode(result.text)
   result.node.addChild result.cursorNode
   result.node.addChild result.textNode

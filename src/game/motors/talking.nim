@@ -93,7 +93,7 @@ proc say(self: Talking, text: string) =
   txt = txt.replace("\\\"", "\"")
 
   self.obj.sayNode.remove()
-  var text = newText(gResMgr.font("sayline"), txt, taCenter, ScreenWidth*3f/4f, self.color)
+  var text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))

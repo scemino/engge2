@@ -70,25 +70,34 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var text: string
   if SQ_FAILED(get(v, 3, text)):
     return sq_throwerror(v, "failed to get text")
-  var taAlign = taCenter
+  var thAlign = thCenter
+  var tvAlign = tvCenter
   var maxWidth = 0.0f
   if sq_gettop(v) == 4:
     var align: int
     if SQ_FAILED(get(v, 4, align)):
       return sq_throwerror(v, "failed to get align")
     let hAlign = align and 0x0000000070000000
-    # let vAlign = align and 0xFFFFFFFFA1000000
+    let vAlign = align and 0xFFFFFFFFA1000000
     maxWidth = (align and 0x00000000000FFFFF).float
     case hAlign:
     of 0x0000000010000000:
-      taAlign = taLeft
+      thAlign = thLeft
     of 0x0000000020000000:
-      taAlign = taCenter
+      thAlign = thCenter
     of 0x0000000040000000:
-      taAlign = taRight
+      thAlign = thRight
     else:
       return sq_throwerror(v, "failed to get halign")
-  var obj = gEngine.room.createTextObject(fontName, text, taAlign, maxWidth)
+    case vAlign:
+    of 0xFFFFFFFF80000000:
+      tvAlign = tvTop
+    of 0x0000000001000000:
+      tvAlign = tvBottom
+    else:
+      return sq_throwerror(v, "failed to get valign")
+  info fmt"Create text {thAlign}, {tvAlign}, max={maxWidth}, text={text}"
+  let obj = gEngine.room.createTextObject(fontName, text, thAlign, tvAlign, maxWidth)
   push(v, obj.table)
   1
 
@@ -590,7 +599,7 @@ proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get rotation")
     if not obj.rotateTo.isNil:
       obj.rotateTo.disable()
-    obj.node.rotation = rotation
+    obj.node.rotation = -rotation
   0
 
 proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -613,7 +622,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0
     if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
-    obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation)
+    obj.rotateTo = newRotateTo(duration, obj.node, -rotation, interpolation)
   0
 
 proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
