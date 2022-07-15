@@ -1,6 +1,5 @@
 import std/tables
 import ../../gfx/spritesheet
-import ../../gfx/texture
 import ../../scenegraph/node
 import ../../scenegraph/spritenode
 import motor
@@ -61,7 +60,6 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     result.node = newSpriteNode(if instant: frames[frames.len-1] else: frames[0])
     result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
-    result.node.visible = not obj.hiddenLayers.contains(anim.name)
     if anim.offsets.len > 0:
       result.node.pos = vec2f(anim.offsets[0])
     rootNode.addChild result.node
@@ -76,6 +74,8 @@ proc trigSound(self: NodeAnim) =
         self.obj.trig(trigger)
 
 method update(self: NodeAnim, el: float) =
+  if not self.node.isNil:
+    self.node.visible = not self.obj.hiddenLayers.contains(self.anim.name)
   if self.instant:
     self.disable()
   elif self.frames.len != 0:

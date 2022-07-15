@@ -41,9 +41,6 @@ proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
   let button = Button(callback: callback, tag: tag)
   self.buttons.add button
 
-proc getRect*(self: Node): Rectf =
-  rectFromPositionSize(self.pos, self.size)
-
 method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White) {.base.} =
   self.visible = visible
   self.scale = scale
@@ -180,3 +177,6 @@ method remove*(self: Node) {.base.} =
   ## Removes this node from its parent.
   if not self.isNil and not self.parent.isNil:
     self.parent.removeChild self
+
+proc getRect*(self: Node): Rectf =
+  rectFromPositionSize(self.absolutePosition(), self.size * self.scale)

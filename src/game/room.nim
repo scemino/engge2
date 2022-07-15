@@ -378,10 +378,23 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
 
 proc play*(self: Object, state: string; loop = false, instant = false) =
   ## Plays an animation specified by the `state`. 
-  self.animName = state
-  self.animLoop = loop
-  if not self.playCore(state, loop, instant):
-    discard self.playCore(state & self.suffix(), loop, instant)
+  if state == "eyes_right":
+    self.showLayer("eyes_front", false)
+    self.showLayer("eyes_left", false)
+    self.showLayer("eyes_right", true)
+  elif state == "eyes_left":
+    self.showLayer("eyes_front", false)
+    self.showLayer("eyes_left", true)
+    self.showLayer("eyes_right", false)
+  elif state == "eyes_front":
+    self.showLayer("eyes_front", true)
+    self.showLayer("eyes_left", false)
+    self.showLayer("eyes_right", false)
+  else:
+    self.animName = state
+    self.animLoop = loop
+    if not self.playCore(state, loop, instant):
+      discard self.playCore(state & self.suffix(), loop, instant)
 
 proc play*(self: Object, state: int, loop = false, instant = false) =
   self.play fmt"state{state}", loop, instant

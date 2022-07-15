@@ -64,12 +64,14 @@ proc say(self: Talking, text: string) =
     id = self.onTalkieId(id)
     txt = getText(id)
 
-    var name = fmt"{self.talkieKey()}_{id}"
-    var path = name & ".lip"
+    let name = fmt"{self.talkieKey().toUpper()}_{id}"
+    let path = name & ".lip"
 
     # TODO: actor animation
+    info fmt"Load lip {path}"
     if gGGPackMgr.assetExists(path):
       self.lip = newLip(path)
+      info fmt"Lip {path} loaded: {self.lip}"
 
     # TODO: call sayingLine
     self.soundId = self.loadActorSpeech(name)
@@ -122,15 +124,16 @@ method disable(self: Talking) =
   self.node.remove()
 
 method update(self: Talking, el: float) =
-  if gEngine.audio.playing(self.soundId):
-    let letter = self.lip.letter(self.elapsed)
-    self.elapsed += el
-    self.obj.setHeadIndex(letterToIndex[letter])
-  else:
-    if self.texts.len > 0:
-      self.elapsed = 0
-      self.say(self.texts[0])
-      self.texts.del 0
+  if self.enabled:
+    if gEngine.audio.playing(self.soundId):
+      let letter = self.lip.letter(self.elapsed)
+      self.elapsed += el
+      self.obj.setHeadIndex(letterToIndex[letter])
     else:
-      self.disable()
+      if self.texts.len > 0:
+        self.elapsed = 0
+        self.say(self.texts[0])
+        self.texts.del 0
+      else:
+        self.disable()
   
