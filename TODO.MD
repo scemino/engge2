@@ -155,8 +155,6 @@
 - [x] chr
 - [x] cursorPosX
 - [x] cursorPosY
-- [x] cutscene
-- [ ] cutsceneOverride
 - [ ] distance
 - [ ] exCommand EX_ALLOW_SAVEGAMES
 - [ ] exCommand EX_POP_CHARACTER_SELECTION
@@ -263,6 +261,8 @@
 - [x] breakwhilesound
 - [x] breakwhiletalking
 - [x] breakwhilewalking
+- [x] cutscene
+- [ ] cutsceneOverride
 - [x] dumpvar
 - [x] gameTime
 - [x] include

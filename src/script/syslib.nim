@@ -5,6 +5,7 @@ import squtils
 import ../audio/audio
 import ../game/thread
 import ../game/callback
+import ../game/cutscene
 import ../game/engine
 import ../game/room
 import ../game/inputstate
@@ -243,6 +244,45 @@ proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if not soundDef.isNil:
       result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 
+proc fcutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  let nArgs = sq_gettop(v)
+
+  var envObj: HSQOBJECT
+  sq_resetobject(envObj)
+  if SQ_FAILED(sq_getstackobj(v, 1, envObj)):
+    return sq_throwerror(v, "Couldn't get environment from stack")
+
+  # create thread and store it on the stack
+  discard sq_newthread(gVm.v, 1024)
+  var threadObj: HSQOBJECT
+  sq_resetobject(threadObj)
+  if SQ_FAILED(sq_getstackobj(gVm.v, -1, threadObj)):
+    return sq_throwerror(v, "failed to get coroutine thread from stack")
+
+  # get the closure
+  var closure: HSQOBJECT
+  sq_resetobject(closure)
+  if SQ_FAILED(sq_getstackobj(v, 2, closure)):
+    return sq_throwerror(v, "failed to get cutscene closure")
+
+  # get the cutscene override closure
+  var closureOverride: HSQOBJECT
+  sq_resetobject(closureOverride)
+  if nArgs == 3:
+    if SQ_FAILED(sq_getstackobj(v, 3, closureOverride)):
+      return sq_throwerror(v, "failed to get cutscene override closure")
+
+  let cutscene = newCutscene(v, threadObj, closure, closureOverride, envObj)
+  gEngine.cutscene = cutscene
+
+  # call the closure in the thread
+  discard cutscene.update(0f)
+  breakwhilecutscene(v)
+
+proc cutsceneOverride(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  warn "cutsceneOverride not implemented"
+  0
+
 proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "exCommand not implemented"
   0
@@ -280,6 +320,7 @@ proc inputOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.showCursor = false
 
 proc inputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  info "inputOn"
   gEngine.inputState.inputActive = true
   gEngine.inputState.showCursor = true
 
@@ -304,6 +345,7 @@ proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var on: bool
   if SQ_FAILED(get(v, 2, on)):
     return sq_throwerror(v, "failed to get isActive")
+  info fmt"inputVerbs: {on}"
   gEngine.inputState.inputVerbsActive = on
   1
 
@@ -525,6 +567,8 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilesound, "breakwhilesound")
   v.regGblFun(breakwhiletalking, "breakwhiletalking")
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
+  v.regGblFun(fcutscene, "cutscene")
+  v.regGblFun(cutsceneOverride, "cutsceneOverride")
   v.regGblFun(exCommand, "exCommand")
   v.regGblFun(gameTime, "gameTime")
   v.regGblFun(sysInclude, "include")

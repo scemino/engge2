@@ -3,8 +3,10 @@ import std/strformat
 import sqnim
 import ../script/vm
 import ../script/squtils
-import ../game/ids
-import ../game/thread
+import ids
+import thread
+import inputstate
+import engine
 
 type 
   CutsceneState = enum
@@ -20,10 +22,14 @@ type
     threadObj, closure, closureOverride, envObj: HSQOBJECT
     state: CutsceneState
     stopped: bool
+    inputState: InputStateFlag
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
   result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId())
-  info fmt"Create cutscene {result.id}"
+  result.inputState = gEngine.inputState.getState()
+  info fmt"Create cutscene {result.id} with input: {result.inputState.int:X}"
+  gEngine.inputState.inputActive = false
+  gEngine.inputState.inputVerbsActive = false
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
@@ -85,8 +91,9 @@ proc checkEndCutsceneOverride(self: Cutscene) =
 method stop*(self: Cutscene) =
   self.state = csQuit
   debug "End cutscene"
-  # m_engine.setInputState(m_inputState)
-  # m_engine.follow(m_engine.getCurrentActor())
+  gEngine.inputState.setState(self.inputState)
+  info fmt"Restore cutscene input: {self.inputState}"
+  gEngine.follow = gEngine.actor
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())

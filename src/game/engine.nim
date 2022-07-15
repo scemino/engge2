@@ -600,7 +600,7 @@ proc update(self: Engine) =
     else:
       self.inputState.setCursorShape(CursorShape.Normal)
 
-  self.hud.visible = self.inputState.inputHUD
+  self.hud.visible = self.inputState.inputVerbsActive
 
   # call clickedAt if any button down
   let btns = mouseBtns()

@@ -225,45 +225,6 @@ proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, s)
   1
 
-proc fcutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  let nArgs = sq_gettop(v)
-
-  var envObj: HSQOBJECT
-  sq_resetobject(envObj)
-  if SQ_FAILED(sq_getstackobj(v, 1, envObj)):
-    return sq_throwerror(v, "Couldn't get environment from stack")
-
-  # create thread and store it on the stack
-  discard sq_newthread(gVm.v, 1024)
-  var threadObj: HSQOBJECT
-  sq_resetobject(threadObj)
-  if SQ_FAILED(sq_getstackobj(gVm.v, -1, threadObj)):
-    return sq_throwerror(v, "failed to get coroutine thread from stack")
-
-  # get the closure
-  var closure: HSQOBJECT
-  sq_resetobject(closure)
-  if SQ_FAILED(sq_getstackobj(v, 2, closure)):
-    return sq_throwerror(v, "failed to get cutscene closure")
-
-  # get the cutscene override closure
-  var closureOverride: HSQOBJECT
-  sq_resetobject(closureOverride)
-  if nArgs == 3:
-    if SQ_FAILED(sq_getstackobj(v, 3, closureOverride)):
-      return sq_throwerror(v, "failed to get cutscene override closure")
-
-  let cutscene = newCutscene(v, threadObj, closure, closureOverride, envObj)
-  gEngine.cutscene = cutscene
-
-  # call the closure in the thread
-  discard cutscene.update(0f)
-  0
-
-proc cutsceneOverride(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "cutsceneOverride not implemented"
-  0
-
 proc distance(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "distance not implemented"
   0
@@ -696,8 +657,6 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(sqChr, "chr")
   v.regGblFun(cursorPosX, "cursorPosX")
   v.regGblFun(cursorPosY, "cursorPosY")
-  v.regGblFun(fcutscene, "cutscene")
-  v.regGblFun(cutsceneOverride, "cutsceneOverride")
   v.regGblFun(distance, "distance")
   v.regGblFun(findScreenPosition, "findScreenPosition")
   v.regGblFun(frameCounter, "frameCounter")
