@@ -27,7 +27,7 @@
   * [x] inventory
   * [x] mouse cursor
 * [ ] triggers
-  * [ ] room trigger should be called in a thread (to be breakable)
+  * [x] room trigger should be called in a thread (to be breakable)
 * [ ] pause game
 * [ ] savegames
 * [ ] achievements
@@ -83,6 +83,8 @@
   * [ ] ref counting with resource management
 * [x] test object hierarchy: scene graph ?
 * [x] text
+  * [x] horizontal alignment
+  * [x] vertical alignment
 
 ## Functions
 

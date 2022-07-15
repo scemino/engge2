@@ -451,18 +451,35 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
 
 proc callTrigger(self: Engine, trigger: HSQOBJECT) =
   if trigger.objType != OT_NULL:
+    # get environment object
+    sq_pushthread(gVm.v, gVm.v)
+    var env_obj: HSQOBJECT
+    sq_resetobject(env_obj)
+    if SQ_FAILED(sq_getstackobj(gVm.v, -1, env_obj)):
+      error "Couldn't get coroutine environment object from stack"
+      return
+
+    # create trigger thread
+    discard sq_newthread(gVm.v, 1024)
+    var thread_obj: HSQOBJECT
+    sq_resetobject(thread_obj)
+    if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
+      error "Couldn't get coroutine thread from stack"
+      return
+
+    # create args
     var nParams, nfreevars: int
     sq_pushobject(gVm.v, trigger)
     discard sq_getclosureinfo(gVm.v, -1, nParams, nfreevars)
-    if nParams == 2:
-      sq_pushobject(gVm.v, trigger)
-      sq_pushobject(gVm.v, self.room.trigger.table)
-      sq_pushobject(gVm.v, self.actor.table)
-    elif nParams == 1:
-      sq_pushobject(gVm.v, trigger)
-      sq_pushobject(gVm.v, self.room.trigger.table)
-    if SQ_FAILED(sq_call(gVm.v, nParams, SQFalse, SQTrue)):
-      error fmt"failed to call room {self.room.name} trigger"
+    let args = if nParams == 2: @[self.actor.table] else: @[]
+    
+    let thread = newThread("Trigger", false, gVm.v, thread_obj, env_obj, trigger, args)
+    info fmt"create triggerthread id: {thread.getId()} v={cast[int](thread.v.unsafeAddr)}"
+    gEngine.threads.add(thread)
+
+    # call the closure in the thread
+    if not thread.call():
+      error "trigger call failed"
 
 proc updateTriggers(self: Engine) =
   if not self.actor.isNil:
