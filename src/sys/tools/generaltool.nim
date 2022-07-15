@@ -61,11 +61,17 @@ method render*(self: GeneralTool) =
   igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
   igSeparator()
 
+  igCheckbox("HUD", gEngine.inputState.inputHUD.addr)
+  igCheckbox("Input", gEngine.inputState.inputActive.addr)
+  igCheckbox("Cursor", gEngine.inputState.showCursor.addr)
+  igCheckbox("Verbs", gEngine.inputState.inputVerbsActive.addr)
+  igSeparator()
+
   let room = gEngine.room
   var index = gEngine.rooms.find(room).int32
   if igCombo("Room", index.addr, getRoom, nil, gEngine.rooms.len.int32, -1'i32):
     gEngine.setRoom(gEngine.rooms[index])
-  
+
   if not room.isNil:
     igText("Sheet: %s", room.sheet[0].addr)
     igText("Size: %d x %d", room.roomSize.x, room.roomSize.y)

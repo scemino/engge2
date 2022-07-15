@@ -422,7 +422,7 @@ proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
 
 proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
   # TODO: WIP
-  if not self.room.isNil:
+  if not self.room.isNil and self.inputState.inputActive:
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.findObjAt(roomPos)
 
@@ -582,6 +582,8 @@ proc update(self: Engine) =
         self.inputState.setCursorShape(CursorShape.Normal)
     else:
       self.inputState.setCursorShape(CursorShape.Normal)
+
+  self.hud.visible = self.inputState.inputHUD
 
   # call clickedAt if any button down
   let btns = mouseBtns()
