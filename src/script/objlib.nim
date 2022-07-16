@@ -811,7 +811,7 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## .. code-block:: Squirrel
   ## pickupObject(Dime)
   var actor: Object
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     var o: HSQOBJECT
     discard sq_getstackobj(v, 2, o)
@@ -825,6 +825,7 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if actor.isNil:
     actor = gEngine.actor
   actor.pickupObject(obj)
+  gEngine.hud.updateInventory()
   0
 
 proc pickupReplacementObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
