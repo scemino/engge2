@@ -352,6 +352,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
   if verbId == VERB_USE and noun2.isNil:
     self.useFlag = noun1.useFlag()
     if self.useFlag != ufNone:
+      self.noun1 = noun1
       return
 
   if noun2.isNil:
@@ -361,7 +362,10 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
 
   # TODO: finish this
 
+  info "reset nouns"
   gEngine.noun1 = nil
+  gEngine.noun2 = nil
+  gEngine.useFlag = ufNone
 
 import actor
 
@@ -458,6 +462,7 @@ proc callTrigger(self: Engine, trigger: HSQOBJECT) =
     if SQ_FAILED(sq_getstackobj(gVm.v, -1, env_obj)):
       error "Couldn't get coroutine environment object from stack"
       return
+    sq_pop(gVm.v, 1)
 
     # create trigger thread
     discard sq_newthread(gVm.v, 1024)
@@ -466,12 +471,15 @@ proc callTrigger(self: Engine, trigger: HSQOBJECT) =
     if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
       error "Couldn't get coroutine thread from stack"
       return
+    sq_addref(gVm.v, thread_obj)
+    sq_pop(gVm.v, 1)
 
     # create args
     var nParams, nfreevars: int
     sq_pushobject(gVm.v, trigger)
     discard sq_getclosureinfo(gVm.v, -1, nParams, nfreevars)
     let args = if nParams == 2: @[self.actor.table] else: @[]
+    sq_pop(gVm.v, 1)
     
     let thread = newThread("Trigger", false, gVm.v, thread_obj, env_obj, trigger, args)
     info fmt"create triggerthread id: {thread.getId()} v={cast[int](thread.v.unsafeAddr)}"

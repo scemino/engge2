@@ -5,6 +5,7 @@ import ../../game/ids
 import ../../libs/imgui
 import ../../script/vm
 import ../../script/squtils
+import ../../util/utils
 
 type 
   StackTool = ref object of DebugTool
@@ -48,7 +49,12 @@ proc typeToStr(obj: var HSQOBJECT): string =
   of OT_STRING:
     result = fmt"{sq_objtostring(obj)} (string)"
   of OT_THREAD:
-    result = "thread"
+    let v = cast[HSQUIRRELVM](obj.value.pThread)
+    let t = thread(v)
+    if not t.isNil:
+      result = fmt"thread '{t.name}'"
+    else:
+      result = "thread"
   else:
     result = fmt"{obj.objType:X}"
 
@@ -57,9 +63,10 @@ method render*(self: StackTool) =
   igBegin("Stack")
   igBeginChild("ScrollingRegion")
   let size = sq_gettop(gVm.v)
+  igText(fmt"size: {size}".cstring)
   var obj: HSQOBJECT
   for i in 1..size:
     discard sq_getstackobj(gVm.v, -i, obj)
-    igText(fmt"obj type: {typeToStr(obj)}")
+    igText(fmt"obj type: {typeToStr(obj)}".cstring)
   igEndChild()
   igEnd()

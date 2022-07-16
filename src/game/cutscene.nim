@@ -25,9 +25,9 @@ type
     inputState: InputStateFlag
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
-  result = Cutscene(v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId())
+  result = Cutscene(name: "cutscene", v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId())
   result.inputState = gEngine.inputState.getState()
-  info fmt"Create cutscene {result.id} with input: {result.inputState.int:X}"
+  info fmt"Create cutscene {result.id} with input: 0x{result.inputState.int:X}"
   gEngine.inputState.inputActive = false
   gEngine.inputState.inputVerbsActive = false
   sq_addref(gVm.v, result.threadObj)

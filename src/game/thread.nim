@@ -5,6 +5,7 @@ import ids
 
 type
   ThreadBase* = ref object of RootObj
+    name*: string
     global*: bool
     numFrames*: int
     waitTime*: float
@@ -12,7 +13,6 @@ type
     stopRequest: bool
   Thread* = ref object of ThreadBase
     id: int
-    name: string
     v*: HSQUIRRELVM
     threadObj*, envObj*, closureObj*: HSQOBJECT
     args*: seq[HSQOBJECT]

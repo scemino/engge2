@@ -109,7 +109,7 @@ proc thread*(id: int): ThreadBase =
   if not gEngine.cutscene.isNil:
     if gEngine.cutscene.getId() == id:
       return gEngine.cutscene
-  var threads = gEngine.threads.toSeq
+  let threads = gEngine.threads.toSeq
   for t in threads:
     if t.getId() == id:
       return t
