@@ -43,7 +43,7 @@ proc push*(v: HSQUIRRELVM, value: HSQOBJECT) {.inline.} =
   sq_pushobject(v, value)
 
 proc push*(v: HSQUIRRELVM, pos: Vec2i) {.inline.} =
-  sq_newtable(gVm.v)
+  sq_newtable(v)
   sq_pushstring(v, "x", -1)
   sq_pushinteger(v, pos.x)
   discard sq_newslot(v, -3, SQFalse)

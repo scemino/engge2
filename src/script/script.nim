@@ -26,10 +26,6 @@ proc register_vars(v: HSQUIRRELVM) =
   sq_pushinteger(v, value)
   discard sq_newslot(v, -3, SQFalse)
 
-  sq_pushstring(v, "Void", -1)
-  sq_pushnull(v)
-  discard sq_newslot(v, -3, SQFalse)
-
 #public methods
 proc register_gamelib*(v: HSQUIRRELVM) =
   v.register_vars()

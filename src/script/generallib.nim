@@ -4,6 +4,7 @@ import std/strformat
 import std/streams
 import std/strutils
 import std/parseutils
+import std/tables
 import sqnim
 import glm
 import squtils
@@ -13,7 +14,7 @@ import ../game/ids
 import ../game/motors/motor
 import ../game/motors/campanto
 import ../game/room
-import ../game/cutscene
+import ../game/resmanager
 import ../util/utils
 import ../util/easing
 import ../util/crc
@@ -230,12 +231,37 @@ proc distance(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "findScreenPosition not implemented"
-  0
+  if sq_gettype(v, 2) == OT_INTEGER:
+    var verb: int
+    if SQ_FAILED(get(v, 2, verb)):
+      return sq_throwerror(v, "failed to get verb")
+    let actorSlot = gEngine.hud.actorSlot(gEngine.actor)
+    for i in 1..<actorSlot.verbs.len:
+      let vb = actorSlot.verbs[i]
+      if vb.id.int == verb:
+        let verbSheet = gResMgr.spritesheet("VerbSheet")
+        let verbFrame = verbSheet.frames[fmt"{vb.image}_en"]
+        let pos = vec2(verbFrame.spriteSourceSize.x.float32 + verbFrame.frame.size.x.float32/2f, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32  + verbFrame.frame.size.y.float32/2f)
+        info fmt"findScreenPosition({verb}) => {pos}"
+        push(v, pos)
+        return 1
+    return sq_throwerror(v, "failed to find verb")
+  else:
+    let obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object or actor")
+    if obj.inInventory():
+      return sq_throwerror(v, "findScreenPosition not implemented")
+    else:
+      let rPos = gEngine.room.roomToScreen(obj.node.pos)
+      let pos = vec2(rPos.x + obj.node.size.x/2f, rPos.y + obj.node.size.y/2f)
+      info fmt"findScreenPosition({obj.name}) => {pos}"
+      push(v, pos)
+      result = 1
 
 proc frameCounter(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "frameCounter not implemented"
-  0
+  push(v, gEngine.frameCounter)
+  1
 
 proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var name: string
@@ -277,7 +303,7 @@ proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     result = 1
 
 proc incutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  push(v, gEngine.cutscene.isNil)
+  push(v, not gEngine.cutscene.isNil)
   1
 
 proc indialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =

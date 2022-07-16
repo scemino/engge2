@@ -132,7 +132,7 @@ proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get x")
   if SQ_FAILED(get(v, 3, y)):
     return sq_throwerror(v, "failed to get y")
-  var obj = gEngine.findObjAt(vec2(x.float32,y.float32))
+  let obj = gEngine.findObjAt(vec2(x.float32,y.float32))
   if obj.isNil:
     sq_pushnull(v)
   else:
@@ -140,8 +140,20 @@ proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc isInventoryOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "isInventoryOnScreen not implemented"
-  0
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  if obj.owner.isNil or obj.owner != gEngine.actor:
+    info fmt"Is '{obj.name}({obj.key})' in inventory: no"
+    push(v, false)
+    result = 1
+  else:
+    let offset = obj.owner.inventoryOffset
+    let index = obj.owner.inventory.find obj
+    let res = index >= offset * 4 and index < (offset * 4 + 8)
+    info fmt"Is '{obj.name}({obj.key})' in inventory: {res}"
+    push(v, res)
+    result = 1
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the object is actually an object and not something else. 
@@ -159,7 +171,7 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc jiggleInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   var enabled: bool

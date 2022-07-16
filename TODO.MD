@@ -168,7 +168,7 @@
 - [ ] exCommand EX_RESTART
 - [ ] exCommand EX_SHOW_OPTIONS
 - [ ] findScreenPosition
-- [ ] frameCounter
+- [x] frameCounter
 - [ ] getPrivatePref
 - [x] getUserPref
 - [ ] in_array
@@ -292,7 +292,7 @@
 - [x] deleteObject
 - [x] findObjectAt
 - [x] is_object
-- [ ] isInventoryOnScreen
+- [x] isInventoryOnScreen
 - [x] isObject
 - [ ] jiggleInventory
 - [ ] jiggleObject

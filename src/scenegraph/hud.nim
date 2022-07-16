@@ -46,7 +46,7 @@ type
     mode*: set[ActorSlotSelectableMode]
     backingItems, inventory: Node
     scrollUp, scrollDn: SpriteNode
-    verbNodes: array[9, SpriteNode]
+    verbNodes*: array[9, SpriteNode]
     inventoryNodes: array[8, SpriteNode]
     act*: Object
     slot*: ActorSlot

@@ -113,7 +113,7 @@ proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
     return sq_throwerror(v, "Current thread should be created with startthread")
   
   info "curThread.id: " & $curThread.getId()
-  info fmt"add breakwhilecond pid={curThread.getId()}"
+  info fmt"add breakwhilecond name={name} pid={curThread.getId()}"
   gEngine.tasks.add newBreakWhileCond(curThread.getId(), name, pred)
   return -666
 
@@ -143,7 +143,7 @@ proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a cutscene is running.
   ## Once the thread finishes execution, the method will continue running.
   ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
-  breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.isNil)
+  breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.cutscene.isNil)
 
 proc breakwhiledialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "breakwhiledialog not implemented"

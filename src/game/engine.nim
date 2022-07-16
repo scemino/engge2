@@ -72,6 +72,7 @@ type
     walkFastState: bool
     walkboxNode*: WalkboxNode
     bounds*: Recti
+    frameCounter*: int
 
 var gEngine*: Engine
 
@@ -676,6 +677,7 @@ proc cameraPos*(self: Engine): Vec2f =
 
 proc render*(self: Engine) =
   self.update()
+  self.frameCounter += 1
   
   # draw scene
   gfxClear(Gray)
