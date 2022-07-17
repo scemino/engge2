@@ -12,6 +12,7 @@ import ../game/room
 import ../game/verb
 import ../game/screen
 import ../game/motors/shake
+import ../script/squtils
 
 type
   ActorSlotSelectableMode* = enum
@@ -203,6 +204,17 @@ proc updateInventory*(self: Hud) =
         self.inventoryNodes[i].addButton(onInventoryObject, self.invRects[i].addr)
       else:
         warn fmt"Icon '{icon}' for object {obj.name}({obj.key}) not found in InventoryItems spritesheet"
+
+proc getPos*(self: Hud, inv: Object): Vec2f =
+  if not self.act.isNil:
+    let itemsSheet = gResMgr.spritesheet("InventoryItems")
+    let count = self.act.inventory.len - self.act.inventoryOffset * 4
+    for i in 0..<min(8, count):
+      let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
+      if obj.table.getId() == inv.table.getId():
+        let icon = obj.getIcon()
+        if itemsSheet.frames.hasKey(icon):
+          return self.inventoryNodes[i].pos + self.inventoryNodes[i].size/2f
 
 proc `actor=`*(self: Hud, actor: Object) =
   let actorSlot = self.actorSlot(actor)

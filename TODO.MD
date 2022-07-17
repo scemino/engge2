@@ -167,7 +167,7 @@
 - [ ] exCommand EX_OPTIONS_MUSIC
 - [ ] exCommand EX_RESTART
 - [ ] exCommand EX_SHOW_OPTIONS
-- [ ] findScreenPosition
+- [x] findScreenPosition
 - [x] frameCounter
 - [ ] getPrivatePref
 - [x] getUserPref

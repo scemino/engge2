@@ -251,7 +251,8 @@ proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if obj.isNil:
       return sq_throwerror(v, "failed to get object or actor")
     if obj.inInventory():
-      return sq_throwerror(v, "findScreenPosition not implemented")
+      push(v, gEngine.hud.getPos(obj))
+      result = 1
     else:
       let rPos = gEngine.room.roomToScreen(obj.node.pos)
       let pos = vec2(rPos.x + obj.node.size.x/2f, rPos.y + obj.node.size.y/2f)
