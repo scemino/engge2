@@ -9,6 +9,8 @@ import io/textdb
 import game/eventmanager
 import game/gameeventmanager
 import game/resmanager
+import scenegraph/node
+import scenegraph/pathnode
 import sys/debugtool
 import sys/tools
 
@@ -23,6 +25,7 @@ proc render() =
 proc runVm() =
   var vm = vm.newVM()
   discard newEngine(vm.v)
+  gEngine.screen.addChild newPathNode()
 
   sq_pushroottable(vm.v)
 

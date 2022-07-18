@@ -1,4 +1,7 @@
 import std/algorithm
+import std/logging
+import std/strformat
+import std/sequtils
 import glm
 import walkbox
 import ../util/indprioqueue
@@ -264,7 +267,24 @@ proc calculatePath*(self: var PathFinder, start1, to1: Vec2f): seq[Vec2f] =
     if self.graph.isNil:
       self.graph = self.createGraph()
 
+    # find the walkbox where the actor is
     var walkgraph = self.graph
+    for i in 0..<self.walkboxes.len:
+      let wb = self.walkboxes[i]
+      if wb.inside(start1):
+        swap(self.walkboxes[0], self.walkboxes[i])
+        break
+
+    # if no walkbox has been found => find the nearest walkbox
+    if not self.walkboxes[0].inside(start1):
+      var dists = newSeq[float](self.walkboxes.len)
+      for i in 0..<self.walkboxes.len:
+        let wb = self.walkboxes[i]
+        dists[i] = distance(wb.getClosestPointOnEdge(start1), start1)
+
+      let index = minIndex(dists)
+      swap(self.walkboxes[0], self.walkboxes[index])
+
     # create new node on start position
     var start = start1
     var to = to1
@@ -289,7 +309,7 @@ proc calculatePath*(self: var PathFinder, start1, to1: Vec2f): seq[Vec2f] =
         walkgraph.addEdge(newGraphEdge(startNodeIndex, i, distance(start, c)))
 
     # create new node on end position
-    var endNodeIndex = walkgraph.nodes.len
+    let endNodeIndex = walkgraph.nodes.len
     walkgraph.addNode(to)
 
     for i in 0..<walkgraph.concaveVertices.len:

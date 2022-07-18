@@ -14,9 +14,9 @@ const
   MIN_USE_DIST  = 5
   MIN_TALK_DIST = 60
 
-type WalkTo = ref object of Motor
+type WalkTo* = ref object of Motor
     obj: Object
-    path: seq[Vec2f]
+    path*: seq[Vec2f]
     facing: Option[Facing]
 
 proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =

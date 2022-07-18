@@ -452,7 +452,7 @@ proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
-  for obj in self.objects.mitems:
+  for obj in self.objects:
     obj.update(elapsedSec)
 
 # Room
@@ -736,7 +736,7 @@ proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
 proc update*(self: Room, elapsedSec: float) = 
   self.overlayTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
-  for layer in self.layers.mitems:
+  for layer in self.layers:
     layer.update(elapsedSec)
 
 proc createLight*(self: Room, color: Color, pos: Vec2i): Light = 
