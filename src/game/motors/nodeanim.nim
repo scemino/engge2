@@ -30,8 +30,8 @@ proc getFrames(self: Object, frames: seq[string]): seq[SpriteFrame] =
     for frame in frames:
       if frame == "null":
         result.add(newSpritesheetFrame(texture, SpriteSheetFrame()))
-      elif not ss.isNil and ss.frames.contains(frame):
-        result.add(newSpritesheetFrame(texture, ss.frames[frame]))
+      elif not ss.isNil and ss.frameTable.contains(frame):
+        result.add(newSpritesheetFrame(texture, ss.frame(frame)))
 
 proc getFps(fps, animFps: float32): float32 =
   if fps != 0.0f:

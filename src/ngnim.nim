@@ -8,6 +8,7 @@ import io/ggpackmanager
 import io/textdb
 import game/eventmanager
 import game/gameeventmanager
+import game/prefs
 import game/resmanager
 import scenegraph/node
 import scenegraph/pathnode
@@ -69,6 +70,7 @@ proc main() =
   # init app
   app.init(title = "engge II")
   app.setKeyCallback(onKey)
+  initPrefs()
 
   # check if we have game assets
   if fileExists("ThimbleweedPark.ggpack1"):

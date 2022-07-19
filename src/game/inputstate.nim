@@ -40,7 +40,7 @@ proc newInputState*(): InputState =
   result = InputState(showCursor: true)
   let gameSheet = gResMgr.spritesheet("GameSheet")
   let texture = gResMgr.texture(gameSheet.meta.image)
-  let frame = gameSheet.frames["cursor"]
+  let frame = gameSheet.frame("cursor")
   result.node = newNode("input")
   result.node.zOrder = -100
   result.cursorNode = newSpriteNode(texture, frame)
@@ -74,7 +74,7 @@ proc setCursorShape*(self: var InputState, shape: CursorShape) =
       name = "cursor_back"
     of Pause:
       name = "cursor_pause"
-    self.cursorNode.setFrame(gResMgr.spritesheet("GameSheet").frames[name])
+    self.cursorNode.setFrame(gResMgr.spritesheet("GameSheet").frame(name))
 
 proc setState*(self: var InputState, state: InputStateFlag) =
   if (UI_INPUT_ON.cint and state.cint) == UI_INPUT_ON.cint:

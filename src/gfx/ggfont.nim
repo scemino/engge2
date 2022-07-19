@@ -20,7 +20,7 @@ proc parseGGFont*(stream: Stream, path: string): GGFont =
   result.path = path
   var spritesheet = loadSpriteSheet(path)
   var lineHeight = 0
-  for (k,frame) in spritesheet.frames.pairs:
+  for (k,frame) in spritesheet.frameTable.pairs:
     var glyph: Glyph
     glyph.advance = max(frame.sourceSize.x - frame.spriteSourceSize.topLeft.x - 4, 0)
     glyph.bounds = rect(frame.spriteSourceSize.x, frame.sourceSize.y - frame.spriteSourceSize.h - frame.spriteSourceSize.y, frame.spriteSourceSize.w, frame.spriteSourceSize.h)

@@ -79,7 +79,7 @@ proc newHud*(): Hud =
 
   # UI backing
   let gameSheet = gResMgr.spritesheet("GameSheet")
-  let frame = gameSheet.frames["ui_backing"]
+  let frame = gameSheet.frame("ui_backing")
   let texture = gResMgr.texture(gameSheet.meta.image)
   let backing = newSpriteNode(texture, frame)
   backing.name = "uiBacking"
@@ -95,7 +95,7 @@ proc newHud*(): Hud =
   # draw verbs
   let verbSheet = gResMgr.spritesheet("VerbSheet")
   let verbTexture = gResMgr.texture(verbSheet.meta.image)
-  let verbFrame = verbSheet.frames["lookat_en"]
+  let verbFrame = verbSheet.frame("lookat_en")
   for i in 0..<9:
     result.verbRects[i] = VerbRect(hud: result, index: i)
     result.verbNodes[i] = newSpriteNode(verbTexture, verbFrame)
@@ -105,7 +105,7 @@ proc newHud*(): Hud =
     backingItems.addChild result.verbNodes[i]
 
   # draw scroll up
-  let scUpFrame = gameSheet.frames["scroll_up"]
+  let scUpFrame = gameSheet.frame("scroll_up")
   let scrollUp = newSpriteNode(texture, scUpFrame)
   scrollUp.name = "scroll_up"
   scrollUp.pos = vec2(ScreenWidth/2f, scUpFrame.sourceSize.y.float32)
@@ -116,7 +116,7 @@ proc newHud*(): Hud =
   backingItems.addChild scrollUp
 
   # draw scroll down
-  let scDnFrame = gameSheet.frames["scroll_down"]
+  let scDnFrame = gameSheet.frame("scroll_down")
   let scrollDn = newSpriteNode(texture, scDnFrame)
   scrollDn.name = "scroll_down"
   scrollDn.pos = vec2(ScreenWidth/2f, 0'f32)
@@ -135,7 +135,7 @@ proc newHud*(): Hud =
 
   let startOffsetX = ScreenWidth/2f + scDnFrame.sourceSize.x.float32 + 4f
   var offsetX = startOffsetX
-  let inventoryFrame = gameSheet.frames["inventory_background"]
+  let inventoryFrame = gameSheet.frame("inventory_background")
   
   # draw first inventory row
   for i in 1..4:
@@ -158,7 +158,7 @@ proc newHud*(): Hud =
   offsetX = startOffsetX + scDnFrame.sourceSize.x.float32 / 2f
   let itemsSheet = gResMgr.spritesheet("InventoryItems")
   let inventoryItemsTexture = gResMgr.texture(itemsSheet.meta.image)
-  let inventoryItemsFrame = itemsSheet.frames["background"]
+  let inventoryItemsFrame = itemsSheet.frame("background")
   for i in 0..7:
     var node = newSpriteNode(inventoryItemsTexture, inventoryItemsFrame)
     node.pos = vec2f(offsetX, 0f)
@@ -193,8 +193,8 @@ proc updateInventory*(self: Hud) =
     for i in 0..<min(8, count):
       let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
       let icon = obj.getIcon()
-      if itemsSheet.frames.hasKey(icon):
-        let itemFrame = itemsSheet.frames[icon]
+      if itemsSheet.frameTable.hasKey(icon):
+        let itemFrame = itemsSheet.frame(icon)
         self.invRects[i] = InventoryRect(hud: self, index: self.act.inventoryOffset * 4 + i)
         self.inventoryNodes[i].color = White
         self.inventoryNodes[i].pos = vec2(startOffsetX + ((i mod 4)*(137+7)).float32, startOffsetY - ((i div 4)*75).float32)
@@ -213,7 +213,7 @@ proc getPos*(self: Hud, inv: Object): Vec2f =
       let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
       if obj.table.getId() == inv.table.getId():
         let icon = obj.getIcon()
-        if itemsSheet.frames.hasKey(icon):
+        if itemsSheet.frameTable.hasKey(icon):
           return self.inventoryNodes[i].pos + self.inventoryNodes[i].size/2f
 
 proc `actor=`*(self: Hud, actor: Object) =
@@ -226,7 +226,7 @@ proc `actor=`*(self: Hud, actor: Object) =
   for i in 1..<actorSlot.verbs.len:
     let verb = actorSlot.verbs[i]
     if verb.image.len > 0:
-      let verbFrame = verbSheet.frames[fmt"{verb.image}_en"]
+      let verbFrame = verbSheet.frame(fmt"{verb.image}_en")
       self.verbNodes[i-1].pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
       self.verbNodes[i-1].setFrame(verbFrame)
       self.verbNodes[i-1].setAnchorNorm(vec2f(0f, 0f))

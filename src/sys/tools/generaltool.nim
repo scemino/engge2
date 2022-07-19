@@ -6,6 +6,7 @@ import ../../gfx/recti
 import ../../game/engine
 import ../../game/prefs
 import ../../game/room
+import ../../game/walkbox
 import ../../game/motors/motor
 import ../../game/shaders
 import ../../scenegraph/walkboxnode
@@ -58,7 +59,7 @@ method render*(self: GeneralTool) =
 
   igText("VM stack top: %d", sq_gettop(gVm.v))
   igSeparator()
-  igDragFloat("Game speed factor", gEngine.prefs.tmp.gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
+  igDragFloat("Game speed factor", tmpPrefs().gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
   igSeparator()
 
   igCheckbox("HUD", gEngine.inputState.inputHUD.addr)
@@ -92,6 +93,13 @@ method render*(self: GeneralTool) =
     igDragFloat3("shadows", gShaderParams.shadows.arr, 0.01f, -1f, 1f)
     igDragFloat3("midtones", gShaderParams.midtones.arr, 0.01f, -1f, 1f)
     igDragFloat3("highlights", gShaderParams.highlights.arr, 0.01f, -1f, 1f)
+
+    igSeparator()
+    for wb in room.mergedPolygon.mitems:
+      igCheckbox("enabled", wb.visible.addr)
+      igSameLine()
+      let c = not gEngine.actor.isNil and wb.contains(gEngine.actor.node.pos)
+      igText(fmt"{wb.name}: {c}".cstring)
 
     igSeparator()
     for layer in room.layers:

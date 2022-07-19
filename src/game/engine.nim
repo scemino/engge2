@@ -1,4 +1,4 @@
-import std/[random, streams, tables, sequtils, logging, strformat, times]
+import std/[random, streams, sequtils, logging, strformat, times]
 import sqnim
 import glm
 import room
@@ -60,7 +60,6 @@ type
     noun1*: Object
     noun2*: Object
     useFlag: UseFlag
-    prefs*: Preferences
     defaultObj*: HSQOBJECT
     hud*: Hud
     inventory*: seq[Object]
@@ -92,7 +91,6 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.seedWithTime()
   result.inputState = newInputState()
   result.screen.addChild result.inputState.node
-  result.prefs.init()
   sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
@@ -151,7 +149,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       # create layer node
       var frames: seq[SpriteSheetFrame]
       for name in layer.names:
-        frames.add(result.spriteSheet.frames[name])
+        frames.add(result.spriteSheet.frame(name))
       var layerNode = newParallaxNode(layer.parallax, result.texture, frames)
       layerNode.zOrder = layer.zSort
       layerNode.name = fmt"Layer {layer.zSort}"
@@ -550,7 +548,7 @@ proc walkFast(self: Engine, state = true) =
       sqCall(self.actor.table, "run", [state])
 
 proc update(self: Engine) =
-  let elapsed = self.prefs.tmp.gameSpeedFactor / 60'f32
+  let elapsed = tmpPrefs().gameSpeedFactor / 60'f32
   self.time += elapsed
 
   # update camera
@@ -601,7 +599,7 @@ proc update(self: Engine) =
       elif flags.hasFlag(DOOR_RIGHT):
         self.inputState.setCursorShape(CursorShape.Right)
       elif flags.hasFlag(DOOR_FRONT):
-          self.inputState.setCursorShape(CursorShape.Front)
+        self.inputState.setCursorShape(CursorShape.Front)
       elif flags.hasFlag(DOOR_BACK):
         self.inputState.setCursorShape(CursorShape.Back)
       else:
@@ -665,7 +663,7 @@ proc update(self: Engine) =
     self.room.update(elapsed)
 
   # update actors
-  for actor in self.actors.mitems:
+  for actor in self.actors:
     actor.update(elapsed)
 
   self.updateTriggers()

@@ -81,6 +81,7 @@
   * [x] change thread management in order to use only 1 thread
 * [ ] resource management
   * [ ] ref counting with resource management
+  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
 * [x] test object hierarchy: scene graph ?
 * [x] text
   * [x] horizontal alignment

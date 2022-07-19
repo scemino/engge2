@@ -13,6 +13,7 @@ import ../game/verb
 import ../game/ids
 import ../game/motors/motor
 import ../game/motors/campanto
+import ../game/prefs
 import ../game/room
 import ../game/resmanager
 import ../util/utils
@@ -20,6 +21,7 @@ import ../util/easing
 import ../util/crc
 import ../game/engine
 import ../gfx/graphics
+import ../gfx/spritesheet
 import ../gfx/recti
 import ../scenegraph/node
 import ../scenegraph/hud
@@ -240,7 +242,7 @@ proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       let vb = actorSlot.verbs[i]
       if vb.id.int == verb:
         let verbSheet = gResMgr.spritesheet("VerbSheet")
-        let verbFrame = verbSheet.frames[fmt"{vb.image}_en"]
+        let verbFrame = verbSheet.frame(fmt"{vb.image}_en")
         let pos = vec2(verbFrame.spriteSourceSize.x.float32 + verbFrame.frame.size.x.float32/2f, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32  + verbFrame.frame.size.y.float32/2f)
         info fmt"findScreenPosition({verb}) => {pos}"
         push(v, pos)
@@ -295,8 +297,8 @@ proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var key: string
   if SQ_FAILED(get(v, 2, key)):
     result = sq_throwerror(v, "failed to get key")
-  elif gEngine.prefs.node.hasKey(key):
-    result = push(v, gEngine.prefs.node[key])
+  elif hasPrefs(key):
+    result = push(v, prefsAsJson(key))
   elif sq_gettop(v) == 3:
     var obj: HSQOBJECT
     discard sq_getstackobj(v, 3, obj)  
@@ -351,6 +353,7 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var filename: string
   if SQ_FAILED(get(v, 2, filename)):
     return sq_throwerror(v, "failed to get filename")
+  filename = getKey(filename)
   info fmt"loadArray: {filename}"
   let content = gGGPackMgr.loadStream(filename).readAll
   sq_newarray(v, 0)

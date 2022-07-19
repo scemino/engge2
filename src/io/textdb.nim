@@ -4,6 +4,7 @@ import std/streams
 import std/parseutils
 import std/tables
 import ggpackmanager
+import ../game/prefs
 
 type TextDb = object
   texts: OrderedTable[int, string]
@@ -32,7 +33,8 @@ proc getText(self: TextDb, id: int): string =
     error fmt"Text {id} not found in {self.texts}"
 
 proc initTextDb*() =
-  gTextDb.read("ThimbleweedText_en.tsv")
+  let lang = prefs(Lang, LangDefValue)
+  gTextDb.read(fmt"ThimbleweedText_{lang}.tsv")
 
 proc getText*(id: int): string =
   gTextDb.getText(id)

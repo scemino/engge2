@@ -8,6 +8,7 @@ import ../gfx/ggfont
 import ../gfx/image
 import ../gfx/texture
 import ../gfx/spritesheet
+import ../game/prefs
 
 type
   ResManager* = ref object of RootObj
@@ -46,6 +47,7 @@ proc loadTexture(self: ResManager, name: string) =
   self.textures[name] = newTexture(newImage(name))
 
 proc texture*(self: ResManager, name: string): Texture =
+  let name = getKey(name)
   if not self.textures.contains(name):
     self.loadTexture(name)
   self.textures[name]

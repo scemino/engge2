@@ -3,6 +3,7 @@ import json
 import glm
 import recti
 import ../io/ggpackmanager
+import ../game/prefs
 
 type SpriteSheetFrame* = object
   name*: string
@@ -20,8 +21,11 @@ type SpriteSheetMetadata = object
   smartupdate*: string
 
 type SpriteSheet* = ref object of RootObj
-  frames*: Table[string, SpriteSheetFrame]
+  frameTable*: Table[string, SpriteSheetFrame]
   meta*: SpriteSheetMetadata
+
+proc frame*(self: SpriteSheet, key: string): SpriteSheetFrame =
+  self.frameTable[getKey(key)]
 
 proc parseSize(node: JsonNode): Vec2i =
   let w = node["w"].getInt
@@ -43,7 +47,7 @@ proc parseSpriteSheetMetadata(node: JsonNode): SpriteSheetMetadata =
 proc parseSpriteSheet*(node: JsonNode): SpriteSheet =
   new(result)
   for k,v in node["frames"]:
-    result.frames[k] = parseFrame(k, v)  
+    result.frameTable[k] = parseFrame(k, v)  
   result.meta = parseSpriteSheetMetadata(node["meta"])
 
 proc parseSpriteSheet*(buffer: string): SpriteSheet =
