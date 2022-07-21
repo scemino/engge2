@@ -75,13 +75,14 @@ proc createLight(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var color: int
   if SQ_FAILED(get(v, 2, color)):
     return sq_throwerror(v, "failed to get color")
-  var x: int
+  var x: int32
   if SQ_FAILED(get(v, 3, x)):
     return sq_throwerror(v, "failed to get x")
-  var y: int
+  var y: int32
   if SQ_FAILED(get(v, 4, y)):
     return sq_throwerror(v, "failed to get y")
-  let light = gEngine.room.createLight(rgba(color), vec2(x.int32, y.int32))
+  let light = gEngine.room.createLight(rgba(color), vec2(x, y))
+  info fmt"createLight({color}) -> {light.id}"
   push(v, light.id)
   1
 
@@ -107,91 +108,77 @@ proc enterRoomFromDoor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc lightBrightness(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var brightness: float
-  if SQ_FAILED(get(v, 3, brightness)):
-    return sq_throwerror(v, "failed to get brightness")
-
-  light.brightness = brightness
+  if not light.isNil:
+    var brightness: float
+    if SQ_FAILED(get(v, 3, brightness)):
+      return sq_throwerror(v, "failed to get brightness")
+    light.brightness = brightness
   0
 
 proc lightConeDirection(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var direction: float
-  if SQ_FAILED(get(v, 3, direction)):
-    return sq_throwerror(v, "failed to get direction")
-
-  light.coneDirection = direction
+  if not light.isNil:
+    var direction: float
+    if SQ_FAILED(get(v, 3, direction)):
+      return sq_throwerror(v, "failed to get direction")
+    light.coneDirection = direction
   0
 
 proc lightConeAngle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var angle: float
-  if SQ_FAILED(get(v, 3, angle)):
-    return sq_throwerror(v, "failed to get angle")
-
-  light.coneAngle = angle
+  if not light.isNil:
+    var angle: float
+    if SQ_FAILED(get(v, 3, angle)):
+      return sq_throwerror(v, "failed to get angle")
+    light.coneAngle = angle
   0
 
 proc lightConeFalloff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var falloff: float
-  if SQ_FAILED(get(v, 3, falloff)):
-    return sq_throwerror(v, "failed to get falloff")
-
-  light.coneFalloff = falloff
+  if not light.isNil:
+    var falloff: float
+    if SQ_FAILED(get(v, 3, falloff)):
+      return sq_throwerror(v, "failed to get falloff")
+    light.coneFalloff = falloff
   0
 
 proc lightCutOffRadius(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var cutOffRadius: float
-  if SQ_FAILED(get(v, 3, cutOffRadius)):
-    return sq_throwerror(v, "failed to get cutOffRadius")
-
-  light.cutOffRadius = cutOffRadius
+  if not light.isNil:
+    var cutOffRadius: float
+    if SQ_FAILED(get(v, 3, cutOffRadius)):
+      return sq_throwerror(v, "failed to get cutOffRadius")
+    light.cutOffRadius = cutOffRadius
   0
 
 proc lightHalfRadius(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var halfRadius: float
-  if SQ_FAILED(get(v, 3, halfRadius)):
-    return sq_throwerror(v, "failed to get halfRadius")
-
-  light.halfRadius = halfRadius
+  if not light.isNil:
+    var halfRadius: float
+    if SQ_FAILED(get(v, 3, halfRadius)):
+      return sq_throwerror(v, "failed to get halfRadius")
+    light.halfRadius = halfRadius
   0
 
 proc lightTurnOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var on: bool
-  if SQ_FAILED(get(v, 3, on)):
-    return sq_throwerror(v, "failed to get on")
+  if not light.isNil:
+    var on: bool
+    if SQ_FAILED(get(v, 3, on)):
+      return sq_throwerror(v, "failed to get on")
 
-  light.on = on
+    light.on = on
   0
 
 proc lightZRange(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let light = light(v, 2)
-  if light.isNil:
-    return sq_throwerror(v, "failed to get light")
-  var nearY, farY: int
-  if SQ_FAILED(get(v, 3, nearY)):
-    return sq_throwerror(v, "failed to get nearY")
-  if SQ_FAILED(get(v, 4, farY)):
-    return sq_throwerror(v, "failed to get farY")
-  warn "lightZRange not implemented"
+  if not light.isNil:
+    var nearY, farY: int
+    if SQ_FAILED(get(v, 3, nearY)):
+      return sq_throwerror(v, "failed to get nearY")
+    if SQ_FAILED(get(v, 4, farY)):
+      return sq_throwerror(v, "failed to get farY")
+    warn "lightZRange not implemented"
   0
 
 proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
