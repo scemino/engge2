@@ -95,7 +95,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     of 0x0000000001000000:
       tvAlign = tvBottom
     else:
-      return sq_throwerror(v, "failed to get valign")
+      tvAlign = tvCenter
   info fmt"Create text {thAlign}, {tvAlign}, max={maxWidth}, text={text}"
   let obj = gEngine.room.createTextObject(fontName, text, thAlign, tvAlign, maxWidth)
   push(v, obj.table)
