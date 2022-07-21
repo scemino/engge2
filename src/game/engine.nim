@@ -160,9 +160,6 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
         sq_resetobject(obj.table)
         result.table.getf(obj.key, obj.table)
 
-        # set room as delegate
-        obj.table.setdelegate(table)
-        
         # check if the object exists in Squirrel VM
         if obj.table.objType == OT_NULL:
           # this object does not exist, so create it
@@ -203,6 +200,9 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
             obj.setState(0, true)
           obj.setRoom(result)
 
+        # set room as delegate
+        obj.table.setdelegate(table)
+        
         layerNode.addChild obj.node
 
     # assign parent node
@@ -274,6 +274,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   debug fmt"call enter room function of {room.name}"
   self.room = room
   self.scene = room.scene
+  self.room.numLights = 0
 
   # call actor enter function and objects enter function
   self.actorEnter()
