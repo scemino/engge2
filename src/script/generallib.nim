@@ -4,7 +4,6 @@ import std/strformat
 import std/streams
 import std/strutils
 import std/parseutils
-import std/tables
 import sqnim
 import glm
 import squtils
@@ -350,12 +349,12 @@ proc is_table(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the lines of the given `filename`. 
-  var filename: string
-  if SQ_FAILED(get(v, 2, filename)):
+  var orgFilename: string
+  if SQ_FAILED(get(v, 2, orgFilename)):
     return sq_throwerror(v, "failed to get filename")
-  filename = getKey(filename)
-  info fmt"loadArray: {filename}"
-  let content = gGGPackMgr.loadStream(filename).readAll
+  info fmt"loadArray: {orgFilename}"
+  let filename = getKey(orgFilename)
+  let content = gGGPackMgr.loadStream(if gGGPackMgr.assetExists(filename): filename else: orgFilename).readAll
   sq_newarray(v, 0)
   for line in content.splitLines:
     sq_pushstring(v, line.cstring, -1)
