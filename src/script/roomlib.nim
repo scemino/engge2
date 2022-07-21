@@ -291,9 +291,8 @@ proc removeTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get object")
     let i = gEngine.room.triggers.find(obj)
     if i != -1:
+      info fmt"Remove room trigger: {obj.name}({obj.key})"
       gEngine.room.triggers.del gEngine.room.triggers.find(obj)
-    else:
-      warn fmt"Failed to find room trigger: {obj.name}({obj.key})"
     return 0
 
 proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =

@@ -208,7 +208,7 @@ proc update*(self: Text) =
         if tok.id == tiColor:
           var iColor: int
           discard parseHex(reader.substr(tok), iColor, 1)
-          color = rgba(iColor or 0xFF000000'i32)
+          color = rgbaf(rgb(iColor and 0x00FFFFFF'i32), color.a)
         else:
           for c in runes(reader.substr(tok)):
             let glyph = self.font.getGlyph(c)

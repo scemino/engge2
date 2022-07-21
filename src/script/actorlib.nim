@@ -6,6 +6,7 @@ import squtils
 import vm
 import ../game/engine
 import ../game/actor
+import ../game/ids
 import ../scenegraph/hud
 import ../game/walkbox
 import ../util/utils
@@ -76,24 +77,25 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let numArgs = sq_gettop(v)
   case numArgs:
   of 3:
-    var actor = actor(v, 2)
+    let actor = actor(v, 2)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
-    info fmt"actorAt {actor.name}"
-    var spot = obj(v, 3)
+    let spot = obj(v, 3)
     if not spot.isNil:
       let pos = spot.node.pos + spot.usePos
       actor.room = spot.room
+      info fmt"actorAt {actor.name} at {spot.name}, room '{spot.room.name}'"
       actor.node.pos = pos
       actor.setFacing(getFacing(spot.useDir.SQInteger, actor.getFacing))
     else:
-      var room = room(v, 3)
+      let room = room(v, 3)
       if room.isNil:
         return sq_throwerror(v, "failed to get spot or room")
+      info fmt"actorAt {actor.name} room '{room.name}'"
       actor.room = room
     0
   of 4:
-    var actor = actor(v, 2)
+    let actor = actor(v, 2)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
     var x, y: int
@@ -101,13 +103,14 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
+    info fmt"actorAt {actor.name} room {x}, {y}"
     actor.node.pos = vec2f(x.float32, y.float32)
     0
   of 5, 6:
-    var actor = actor(v, 2)
+    let actor = actor(v, 2)
     if actor.isNil:
       return sq_throwerror(v, "failed to get actor")
-    var room = room(v, 3)
+    let room = room(v, 3)
     if room.isNil:
       return sq_throwerror(v, "failed to get room")
     var x, y: int
@@ -677,12 +680,13 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) != OT_TABLE:
     return sq_throwerror(v, "failed to get a table")
   
-  var actor = newActor()
+  let actor = newActor()
   sq_resetobject(actor.table)
   discard sq_getstackobj(v, 2, actor.table)
   sq_addref(v, actor.table)
+  actor.table.setId newActorId()
 
-  info "Create actor " &  actor.getName()
+  info fmt"Create actor {actor.getName()} {actor.table.getId()}"
   actor.node = newNode(actor.name)
   actor.node.zOrderFunc = proc (): int32 = actor.node.pos.y.int32
   actor.node.scaleFunc = proc (): float32 = actor.room.getScaling(actor.node.pos.y)

@@ -452,7 +452,7 @@ proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
-  for obj in self.objects:
+  for obj in self.objects.toSeq:
     obj.update(elapsedSec)
 
 # Room
@@ -507,7 +507,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   result = obj
 
 proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAlign = tvCenter, maxWidth = 0.0f): Object =
-  var obj = newObject()
+  let obj = newObject()
   obj.temporary = true
   
   # create a table for this object
@@ -521,10 +521,10 @@ proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAli
   info fmt"Create object with new table: {obj.name} #{obj.id}"
   obj.name = fmt"text#{obj.id}: {text}"
 
-  var font = gResMgr.font(fontName)
-  var text = newText(font, text, hAlign, vAlign, maxWidth, White)
+  let font = gResMgr.font(fontName)
+  let text = newText(font, text, hAlign, vAlign, maxWidth, White)
 
-  var node = newTextNode(text)
+  let node = newTextNode(text)
   var v = 0.5f
   case vAlign:
   of tvTop:

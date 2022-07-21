@@ -1,5 +1,3 @@
-import std/logging
-import std/strformat
 import motor
 import ../room
 import ../../gfx/color

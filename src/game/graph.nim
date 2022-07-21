@@ -1,6 +1,4 @@
 import std/algorithm
-import std/logging
-import std/strformat
 import std/sequtils
 import glm
 import walkbox

@@ -40,8 +40,8 @@ proc setHeadIndex*(self: Object, head: int) =
 
 proc newActor*(): Object =
   result = newObject()
+  result.touchable = true
   result.facing = FACE_FRONT
-  result.table.setId newActorId()
   result.showLayer("blink", false)
   result.showLayer("eyes_left", false)
   result.showLayer("eyes_right", false)

@@ -1,4 +1,4 @@
-import std/[streams, os, tables, json, sequtils, logging, strutils, strformat, algorithm]
+import std/[streams, os, tables, json, sequtils, logging, strutils, strformat]
 import nimyggpack
 
 type

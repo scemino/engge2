@@ -25,6 +25,7 @@ var
   state: State
   vsrc: string = """
 #version 330 core
+precision mediump float;
 layout (location = 0) in vec2 a_position;
 layout (location = 1) in vec4 a_color;
 layout (location = 2) in vec2 a_texCoords;
@@ -39,12 +40,14 @@ void main() {
   """
   fsrc: string = """
 #version 330 core
+precision mediump float;
 out vec4 FragColor;
 in vec4 v_color;
 in vec2 v_texCoords;
-uniform sampler2D ourTexture;
+uniform sampler2D u_texture;
 void main() {
-  FragColor = v_color * texture(ourTexture, v_texCoords);
+  vec4 color = texture(u_texture, v_texCoords);
+  FragColor = v_color * color;
 }
   """
   quadIndices = [

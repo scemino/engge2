@@ -1,5 +1,4 @@
 
-import std/tables
 import glm
 import resmanager
 import ../gfx/spritesheet

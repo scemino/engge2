@@ -253,7 +253,7 @@ proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## objectAlpha(cloud, 0.5)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if not obj.isNil:
     var alpha = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, alpha)):
@@ -268,19 +268,20 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## If an interpolationMethod is used, the change will follow the rules of the easing method, e.g. LINEAR, EASE_INOUT.
   ## See also stopObjectMotors. 
-  var obj = obj(v, 2)
-  if not obj.isNil:
-    var alpha = 0.0
-    if SQ_FAILED(get(v, 3, alpha)):
-      return sq_throwerror(v, "failed to get alpha")
-    alpha = clamp(alpha, 0.0, 1.0);
-    var t = 0.0
-    if SQ_FAILED(get(v, 4, t)):
-      return sq_throwerror(v, "failed to get time")
-    var interpolation = 0
-    if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
-      interpolation = 0
-    obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation)
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var alpha = 0.0
+  if SQ_FAILED(get(v, 3, alpha)):
+    return sq_throwerror(v, "failed to get alpha")
+  alpha = clamp(alpha, 0.0, 1.0);
+  var t = 0.0
+  if SQ_FAILED(get(v, 4, t)):
+    return sq_throwerror(v, "failed to get time")
+  var interpolation = 0
+  if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
+    interpolation = 0
+  obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation)
   0
 
 proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =

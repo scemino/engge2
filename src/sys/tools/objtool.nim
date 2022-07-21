@@ -1,8 +1,10 @@
 import std/strformat
+import glm
 import sqnim
 import ../debugtool
 import ../../game/engine
 import ../../game/room
+import ../../gfx/color
 import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb
@@ -48,7 +50,10 @@ proc showProperties() =
       gObject.play(gObject.anims[animIdx].name)
     igSeparator()
     igCheckbox("Touchable", gObject.touchable.addr)
-    igColorEdit4("Color", gObject.node.nodeColor.arr)
+    var color = gObject.node.realColor
+    if igColorEdit4("Color", color.arr):
+      gObject.node.color = color
+      gObject.node.alpha = color[3]
     igText("Room: %s", objRoom.cstring)
     igText("Layer: %d", gObject.layer.zsort)
     igText("Facing: %d", gObject.facing)
@@ -78,7 +83,7 @@ method render*(self: ObjectTool) =
         igPushID(obj.table.getId().int32)
         igCheckbox("", addr obj.node.visible)
         igSameLine()
-        let name = if obj.key == "": obj.name else: fmt"{obj.name}({obj.key})"
+        let name = if obj.key == "": obj.name else: fmt"{obj.name}({obj.key}) {obj.table.getId()}"
         if igSelectable(name.cstring, selected):
           gObject = obj
         igPopID()

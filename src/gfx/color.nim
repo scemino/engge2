@@ -40,7 +40,7 @@ const
   Transparent* = rgbaf(0, 0, 0, 0)
 
 proc `*`*(f: float, c: Color): Color =
-  rgbaf(f*c.r, f*c.g,f*c.b, f*c.a)
+  rgbaf(f*c.r, f*c.g, f*c.b, f*c.a)
 
 proc `-`*(c1: Color, c2: Color): Color =
   rgbaf(c1.r-c2.r, c1.g-c2.g, c1.b-c2.b, c1.a-c2.a)
