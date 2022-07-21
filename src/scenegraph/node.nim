@@ -20,7 +20,9 @@ type
     anchor: Vec2f
     size*: Vec2f
     visible*: bool
-    nodeColor*: Color
+    isCascadeAlphaEnabled, isCascadeColorEnabled: bool
+    clr: Color                    # color of the node
+    nodeColor: Color              # color to display (depends on parent node's color)
     zOrderFunc*: proc (): int32
     scaleFunc*: proc (): float32
     buttons*: seq[Button]
@@ -41,10 +43,11 @@ proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
   let button = Button(callback: callback, tag: tag)
   self.buttons.add button
 
-method init*(self: Node; visible = true; scale = vec2(1.0f, 1.0f); color = White) {.base.} =
+method init*(self: Node, visible = true, scale = vec2(1.0f, 1.0f), color = White) {.base.} =
   self.visible = visible
   self.scale = scale
   self.nodeColor = color
+  self.clr = color
 
 proc getZSort*(self: Node): int32 =
   if self.zOrderFunc.isNil: self.zOrder else: self.zOrderFunc()
@@ -56,28 +59,55 @@ proc getScale*(self: Node): Vec2f =
     let scale = self.scaleFunc() 
     vec2(scale, scale)
 
-method updateColor(self: Node, color: Color) {.base.} =
-  self.nodeColor = rgbaf(color, self.nodeColor.a)
-
 proc newNode*(name: string): Node =
   result.new()
   result.name = name
   result.init()
 
-proc updateChildrenColor(self: Node) =
+method colorUpdated(self: Node, color: Color) {.base.} =
+  discard
+
+proc updateColor(self: Node, parentColor: Color) =
+  self.nodeColor[0] = self.clr[0] * parentColor[0]
+  self.nodeColor[1] = self.clr[1] * parentColor[1]
+  self.nodeColor[2] = self.clr[2] * parentColor[2]
+  self.colorUpdated(self.nodeColor)
   for child in self.children:
-    child.nodeColor = self.nodeColor
+    child.updateColor(self.nodeColor)
+
+proc updateColor(self: Node) =
+  let parentColor = if self.parent.isNil: White else: self.parent.nodeColor
+  self.updateColor(parentColor)
 
 proc `color=`*(self: Node, color: Color) =
-  self.updateColor(color)
-  self.updateChildrenColor()
+  self.clr[0] = color[0]
+  self.clr[1] = color[1]
+  self.clr[2] = color[2]
+  self.nodeColor[0] = color[0]
+  self.nodeColor[1] = color[1]
+  self.nodeColor[2] = color[2]
+  self.updateColor()
 
 proc `color`*(self: Node): Color =
   self.nodeColor
 
+proc `realColor`*(self: Node): Color =
+  self.clr
+
+proc updateAlpha(self: Node, parentAlpha: float32) =
+  self.nodeColor[3] = self.clr[3] * parentAlpha
+  self.colorUpdated(self.nodeColor)
+  for child in self.children:
+    child.updateAlpha(self.nodeColor[3])
+
+proc updateAlpha(self: Node) =
+  let parentOpacity = if self.parent.isNil: 1'f32 else: self.parent.nodeColor[3]
+  self.updateAlpha(parentOpacity)
+
 proc `alpha=`*(self: Node, alpha: float) =
-  self.nodeColor[3] = clamp(alpha, 0.0f, 1.0f)
-  self.updateChildrenColor()
+  self.clr[3] = alpha
+  self.nodeColor[3] = alpha
+  self.updateAlpha()
 
 proc `alpha`*(self: Node): float =
   self.nodeColor[3]

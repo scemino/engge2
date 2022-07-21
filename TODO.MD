@@ -18,10 +18,11 @@
   * [ ] sentence
     * [x] use flag: with, in, on
     * [ ] use flag: giveto
+    * [ ] use lookat verb for inventory object 
   * [ ] scroll inventory
   * [ ] fade
   * [ ] mouse text repositioned
-  * [ ] mouse zsort
+  * [x] mouse zsort
   * [ ] actor selection
   * [x] verbs
   * [x] inventory
@@ -64,7 +65,7 @@
     * [x] walkboxes
   * [x] actor blink
   * [x] actor talking
-    * [ ] actor lips movement
+    * [x] actor lips movement
     * [x] change state if in {}
     * [x] replace \" by "
     * [x] ignore text if in ()

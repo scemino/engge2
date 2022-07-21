@@ -84,13 +84,14 @@ proc newHud*(): Hud =
   let backing = newSpriteNode(texture, frame)
   backing.name = "uiBacking"
   backing.setAnchorNorm(vec2(0f, 0f))
-  backing.nodeColor = rgbaf(Black, 0.33f)
+  backing.color = Black
+  backing.alpha = 0.33f
   result.addChild backing
 
   let backingItems = Node()
   backingItems.init()
   result.backingItems = backingItems
-  backing.addChild backingItems
+  result.addChild backingItems
 
   # draw verbs
   let verbSheet = gResMgr.spritesheet("VerbSheet")
@@ -165,7 +166,7 @@ proc newHud*(): Hud =
     node.setAnchorNorm(vec2(0.5f, 1f))
     node.scale = vec2(4f, 4f)
     result.inventoryNodes[i] = node
-    backing.addChild node
+    result.addChild node
     offsetX += frame.sourceSize.x.float32 + 4f
 
 proc actorSlot*(self: Hud, actor: Object): ActorSlot =

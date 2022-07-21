@@ -1,3 +1,5 @@
+import std/logging
+import std/strformat
 import glm
 import node
 import ../gfx/text
@@ -15,9 +17,8 @@ proc newTextNode*(text: Text): TextNode =
 proc updateBounds*(self: TextNode) =
   self.setSize(self.text.bounds)
 
-method updateColor(self: TextNode, color: Color) =
-  self.nodeColor = rgbaf(color, self.nodeColor.a)
-  self.text.color = self.nodeColor
+method colorUpdated(self: TextNode, color: Color) =
+  self.text.color = color
 
 method drawCore(self: TextNode, transf: Mat4f) =
   self.text.draw(transf)

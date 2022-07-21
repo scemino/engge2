@@ -68,4 +68,4 @@ proc newSpriteNode*(texture: Texture): SpriteNode =
   result.setAnchorNorm(vec2(0.5f,0.5f))
 
 method drawCore(self: SpriteNode, transf: Mat4f) =
-  gfxDrawSprite(self.rect / self.texture.size, self.texture, self.nodeColor, transf, self.flipX)
+  gfxDrawSprite(self.rect / self.texture.size, self.texture, self.color, transf, self.flipX)
