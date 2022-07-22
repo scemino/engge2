@@ -4,7 +4,6 @@ import sqnim
 import ../debugtool
 import ../../game/engine
 import ../../game/room
-import ../../gfx/color
 import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb

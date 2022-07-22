@@ -1,10 +1,8 @@
 import std/strformat
-import std/logging
 import glm
 import ../debugtool
 import ../../game/engine
 import ../../game/room
-import ../../game/actor
 import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb

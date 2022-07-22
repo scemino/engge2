@@ -113,7 +113,8 @@ proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.follow = actor
   let pos = actor.node.pos
   let oldRoom = gEngine.room
-  gEngine.setRoom(actor.room)
+  if not actor.room.isNil:
+    gEngine.setRoom(actor.room)
   if oldRoom != actor.room:
     gEngine.cameraAt(pos)
   0

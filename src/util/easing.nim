@@ -46,4 +46,3 @@ proc easing*(self: InterpolationMethod): easing_func =
   of ikEaseOut: easeOut
   of ikSlowEaseIn: easeIn
   of ikSlowEaseOut: easeOut
-  else: linear

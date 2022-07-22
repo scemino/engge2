@@ -7,7 +7,6 @@ import sqnim
 import nimyggpack
 import room
 import engine
-import ids
 import ../script/squtils
 import ../io/ggpackmanager
 import ../gfx/color

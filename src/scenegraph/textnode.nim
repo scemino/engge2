@@ -1,5 +1,3 @@
-import std/logging
-import std/strformat
 import glm
 import node
 import ../gfx/text

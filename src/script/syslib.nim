@@ -446,7 +446,7 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
     discard sq_getstring(v, -1, name)
 
   let threadName = if not name.isNil: name else: "anonymous"
-  var thread = newThread($threadName, global, gVm.v, thread_obj, env_obj, closureObj, args)
+  let thread = newThread($threadName, global, gVm.v, thread_obj, env_obj, closureObj, args)
   sq_pop(gVm.v, 1)
   info("create thread (" & $threadName & ")" & " id: " & $thread.getId() & " v=" & $(cast[int](thread.v.unsafeAddr)))
   if not name.isNil:
