@@ -419,11 +419,7 @@ proc setState*(self: Object, state: int, instant = false) =
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
   let graphState = if state == GONE: 1 else: state
-  if self.state != state:
-    self.play(graphState, false, instant)
-  else:
-    # TODO: I should set the last frame of the animation
-    discard
+  self.play(graphState, false, instant)
   self.node.visible = state != GONE
   if state == GONE:
     self.touchable = false
