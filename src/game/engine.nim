@@ -202,6 +202,10 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
 
         # set room as delegate
         obj.table.setdelegate(table)
+
+        # declare flags if does not exist
+        if not obj.table.rawexists("flags"):
+          obj.table.setf("flags", 0)
         
         layerNode.addChild obj.node
 
