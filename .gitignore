@@ -1,0 +1,12 @@
+# vscode stuff
+.vscode/
+
+# cimgui
+cimgui.dylib
+imgui.ini
+
+# game
+ngnim
+Prefs.json
+*.ggpack*
+*.log*
