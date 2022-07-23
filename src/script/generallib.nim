@@ -229,8 +229,26 @@ proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc distance(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "distance not implemented"
-  0
+  if sq_gettype(v, 2) == OT_INTEGER:
+    var num1: int32
+    if SQ_FAILED(get(v, 2, num1)):
+      return sq_throwerror(v, "failed to get num1")
+    var num2: int32
+    if SQ_FAILED(get(v, 3, num2)):
+      return sq_throwerror(v, "failed to get num2");
+    let d = abs(num1 - num2)
+    push(v, d)
+    return 1
+  else:
+    let obj1 = obj(v, 2);
+    if obj1.isNil:
+      return sq_throwerror(v, "failed to get object1 or actor1")
+    let obj2 = obj(v, 3)
+    if obj2.isNil:
+      return sq_throwerror(v, "failed to get object2 or actor2")
+    let d = obj1.node.pos - obj2.node.pos
+    push(v, sqrt(d.x*d.x+d.y*d.y))
+    return 1
 
 proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) == OT_INTEGER:

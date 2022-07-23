@@ -157,7 +157,7 @@
 - [x] chr
 - [x] cursorPosX
 - [x] cursorPosY
-- [ ] distance
+- [x] distance
 - [ ] exCommand EX_ALLOW_SAVEGAMES
 - [ ] exCommand EX_POP_CHARACTER_SELECTION
 - [ ] exCommand EX_AUTOSAVE
