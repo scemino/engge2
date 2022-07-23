@@ -173,7 +173,7 @@
 - [x] frameCounter
 - [ ] getPrivatePref
 - [x] getUserPref
-- [ ] in_array
+- [x] in_array
 - [x] incutscene
 - [ ] indialog
 - [x] inputVerbs

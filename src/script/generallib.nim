@@ -351,8 +351,36 @@ proc is_oftype(v: HSQUIRRELVM, types: openArray[SQ_ObjectType]): SQInteger =
   1
 
 proc in_array(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "in_array not implemented"
-  0
+  var obj: HSQOBJECT
+  sq_resetobject(obj)
+  if SQ_FAILED(get(v, 2, obj)):
+    return sq_throwerror(v, "Failed to get object")
+  var arr: HSQOBJECT
+  sq_resetobject(arr)
+  if SQ_FAILED(get(v, 3, arr)):
+    return sq_throwerror(v, "Failed to get array")
+
+  var objs: seq[HSQOBJECT]
+  sq_pushobject(v, arr)
+  sq_pushnull(v) # null iterator
+  while SQ_SUCCEEDED(sq_next(v, -2)):
+    var tmp: HSQOBJECT
+    discard sq_getstackobj(v, -1, tmp)
+    objs.add(tmp)
+    sq_pop(v, 2)  # pops key and val before the nex iteration
+  sq_pop(v, 1)    # pops the null iterator
+
+  for o in objs:
+    sq_pushobject(v, obj)
+    sq_pushobject(v, o)
+    if sq_cmp(v) == 0:
+      sq_pop(v, 2)
+      push(v, 1)
+      return 1
+    sq_pop(v, 2)
+
+  sq_pushinteger(v, 0)
+  return 1
 
 proc is_array(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   is_oftype(v, [OT_ARRAY])
