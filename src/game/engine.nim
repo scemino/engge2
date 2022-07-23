@@ -145,14 +145,14 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
     result = parseRoom(table, content)
     result.name = name
     for i in 0..<result.layers.len:
-      var layer = result.layers[i]
+      let layer = result.layers[i]
       # create layer node
       var frames: seq[SpriteSheetFrame]
       for name in layer.names:
         frames.add(result.spriteSheet.frame(name))
       var layerNode = newParallaxNode(layer.parallax, result.texture, frames)
       layerNode.zOrder = layer.zSort
-      layerNode.name = fmt"Layer {layer.zSort}"
+      layerNode.name = fmt"Layer {layer.names}({layer.zSort})"
       layer.node = layerNode
       result.scene.addChild layerNode
 

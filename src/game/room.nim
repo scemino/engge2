@@ -445,6 +445,7 @@ proc delObject*(self: Object) =
 
 # Layer
 proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
+  info fmt"Create layer {names}, {parallax}, {zsort}"
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
@@ -586,13 +587,17 @@ proc close*(self: var RoomParser) {.inline.} =
   self.input.close()
 
 proc parseParallax(node: JsonNode): Vec2f =
-  if node.kind == JFloat:
-    return vec2(node.getFloat.float32, 1f)
-  let s = node.getStr
-  var x, y: float
-  let o = parseFloat(s, x, 1)
-  discard parseFloat(s, y, 2 + o)
-  return vec2(x.float32, y.float32)
+  case node.kind:
+  of JInt, JFloat:
+    result = vec2(node.getFloat.float32, 1f)
+  of JString:
+    let s = node.getStr
+    var x, y: float
+    let o = parseFloat(s, x, 1)
+    discard parseFloat(s, y, 2 + o)
+    result = vec2(x.float32, y.float32)
+  else:
+    error fmt"parseParallax expected a float, int or string, not a {node.kind}"
 
 proc getNode(node: JsonNode, key: string): Option[JsonNode] =
   if node.hasKey(key): some(node[key]) else: none(JsonNode)
