@@ -325,7 +325,7 @@ proc objectDependentOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var state = 0
   if SQ_FAILED(get(v, 4, state)):
     return sq_throwerror(v, "failed to get state")
-  warn "objectDependentOn not implemented"
+  child.dependentOn(parent, state)
   0
 
 proc objectFPS(v: HSQUIRRELVM): SQInteger {.cdecl.} =

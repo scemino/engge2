@@ -305,7 +305,7 @@
 - [x] objectBumperCycle
 - [x] objectCenter
 - [x] objectColor
-- [ ] objectDependentOn
+- [x] objectDependentOn
 - [x] objectFPS
 - [x] objectHidden
 - [x] objectHotspot

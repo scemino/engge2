@@ -124,6 +124,8 @@ type
     iconFps: int
     enter*, leave*: HSQOBJECT
     sound*: SoundId
+    dependentState: int
+    dependentObj: Object
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -425,11 +427,17 @@ proc setState*(self: Object, state: int, instant = false) =
   if state == GONE:
     self.touchable = false
 
+proc dependentOn*(self, dependentObj: Object, state: int) =
+  self.dependentState = state
+  self.dependentObj = dependentObj
+
 proc updateMotor(self: Motor, elapsedSec: float) =
   if not self.isNil and self.enabled:
     self.update(elapsedSec)
 
 proc update*(self: Object, elapsedSec: float) =
+  if not self.dependentObj.isNil:
+    self.node.visible = self.dependentObj.getState() == self.dependentState
   self.alphaTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
   self.moveTo.updateMotor(elapsedSec)
