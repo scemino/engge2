@@ -420,6 +420,7 @@ proc setState*(self: Object, state: int, instant = false) =
   ## objectTouchable(coin, YES)
   let graphState = if state == GONE: 1 else: state
   self.play(graphState, false, instant)
+  self.state = state
   self.node.visible = state != GONE
   if state == GONE:
     self.touchable = false
