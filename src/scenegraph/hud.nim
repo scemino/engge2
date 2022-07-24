@@ -14,6 +14,9 @@ import ../game/screen
 import ../game/motors/shake
 import ../script/squtils
 
+const
+  NumVerbs = 9
+  NumInventoryObjects = 8
 type
   ActorSlotSelectableMode* = enum
     asOn = 1
@@ -47,12 +50,12 @@ type
     mode*: set[ActorSlotSelectableMode]
     backingItems, inventory: Node
     scrollUp, scrollDn: SpriteNode
-    verbNodes*: array[9, SpriteNode]
-    inventoryNodes: array[8, SpriteNode]
+    verbNodes*: array[NumVerbs, SpriteNode]
+    inventoryNodes: array[NumInventoryObjects, SpriteNode]
     act*: Object
     slot*: ActorSlot
-    verbRects: array[9, VerbRect]
-    invRects: array[8, InventoryRect]
+    verbRects: array[NumVerbs, VerbRect]
+    invRects: array[NumInventoryObjects, InventoryRect]
     scrollRects: array[2, ScrollRect]
     verb*: Verb
     obj*: Object
@@ -97,7 +100,7 @@ proc newHud*(): Hud =
   let verbSheet = gResMgr.spritesheet("VerbSheet")
   let verbTexture = gResMgr.texture(verbSheet.meta.image)
   let verbFrame = verbSheet.frame("lookat_en")
-  for i in 0..<9:
+  for i in 0..<NumVerbs:
     result.verbRects[i] = VerbRect(hud: result, index: i)
     result.verbNodes[i] = newSpriteNode(verbTexture, verbFrame)
     result.verbNodes[i].setAnchorNorm(vec2f(0f, 0f))
@@ -183,7 +186,7 @@ proc hasUpArrow(actor: Object): bool =
   actor.inventoryOffset != 0;
 
 proc hasDownArrow(actor: Object): bool =
-  actor.inventory.len > (actor.inventoryOffset * 4 + 8)
+  actor.inventory.len > (actor.inventoryOffset * 4 + NumInventoryObjects)
 
 proc updateInventory*(self: Hud) =
   if not self.act.isNil:
@@ -191,7 +194,7 @@ proc updateInventory*(self: Hud) =
     let startOffsetY = 4f + 75f
     let itemsSheet = gResMgr.spritesheet("InventoryItems")
     let count = self.act.inventory.len - self.act.inventoryOffset * 4
-    for i in 0..<min(8, count):
+    for i in 0..<min(NumInventoryObjects, count):
       let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
       let icon = obj.getIcon()
       if itemsSheet.frameTable.hasKey(icon):
@@ -210,7 +213,7 @@ proc getPos*(self: Hud, inv: Object): Vec2f =
   if not self.act.isNil:
     let itemsSheet = gResMgr.spritesheet("InventoryItems")
     let count = self.act.inventory.len - self.act.inventoryOffset * 4
-    for i in 0..<min(8, count):
+    for i in 0..<min(NumInventoryObjects, count):
       let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
       if obj.table.getId() == inv.table.getId():
         let icon = obj.getIcon()

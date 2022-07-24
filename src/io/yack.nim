@@ -32,9 +32,10 @@ type
   YackParsingError* = object of ValueError ## is raised for a Yack error
   YackParser = object of BaseLexer
     a*: string
+    filename*: string
     tok*: TokenId
     err: YackError
-  YackVisitor = ref object of RootObj
+  YackVisitor* = ref object of RootObj
   DumpYack = ref object of YackVisitor
     indt: int
   
@@ -78,7 +79,6 @@ type
   YOverride* = ref object of YExp
     node*: string
   YShutup* = ref object of YExp
-    node*: string
   YAllowObjects* = ref object of YExp
     active*: bool
   YLimit* = ref object of YExp
@@ -581,7 +581,7 @@ proc match(p: var YackParser, ids: openArray[TokenId]): bool =
 
 proc filename*(self: YackParser): string {.inline.} =
   ## get the current line the parser has arrived at.
-  result = "TODO"
+  result = self.filename
 
 proc getColumn*(self: YackParser): int {.inline.} =
   ## get the current column the parser has arrived at.
@@ -598,7 +598,7 @@ proc errorMsgExpected*(self: YackParser, e: string, a: string): string =
     self.filename, $getLine(self), $getColumn(self), e & " expected", if a.len>0: "actual is " & a else: a]
 
 proc raiseParseErr*(p: YackParser, msg: string, actual = "") {.noinline, noreturn.} =
-  ## raises an `EJsonParsingError` exception.
+  ## raises an `YackParsingError` exception.
   raise newException(YackParsingError, errorMsgExpected(p, msg, actual))
 
 proc eat*(p: var YackParser, tok: TokenId): string =
@@ -606,7 +606,7 @@ proc eat*(p: var YackParser, tok: TokenId): string =
     result = p.a
     discard getTok(p)
   else: 
-    raiseParseErr(p, tokToStr[tok], tokToStr[p.tok])
+    raiseParseErr(p, tokToStr[tok], tokToStr[p.tok] & "(" & $p.a & ")")
 
 proc parseSayExp(p: var YackParser): YSay =
   result = YSay()
@@ -746,11 +746,12 @@ proc parseYack(p: var YackParser): YCu =
   while not p.match([End]):
     result.labels.add(p.parseLabel())
 
-proc parseYack*(s: Stream, bufLen: int = 8192): YCu =
+proc parseYack*(s: Stream, bufLen: int = 8192, filename = ""): YCu =
   ## Parses from a stream `s` into a `YackNode`. 
   ## This closes the stream `s` after it's done.
   var p: YackParser
   p.open(s, bufLen)
+  p.filename = filename
   try:
     discard getTok(p) # read first token
     result = p.parseYack()
@@ -774,8 +775,8 @@ iterator tokens*(buffer: string): (TokenId,string) =
   for t in tokens(newStringStream(buffer)):
     yield t
 
-proc parseYack*(buffer: string): YCu =
-  result = parseYack(newStringStream(buffer), buffer.len + 1)
+proc parseYack*(buffer, filename: string): YCu =
+  result = parseYack(newStringStream(buffer), buffer.len + 1, filename)
 
 when isMainModule:
   import std/os

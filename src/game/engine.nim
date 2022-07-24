@@ -29,6 +29,7 @@ import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/hud
 import ../scenegraph/walkboxnode
+import ../scenegraph/dialog
 import ../sys/app
 import ../util/common
 
@@ -72,6 +73,7 @@ type
     walkboxNode*: WalkboxNode
     bounds*: Recti
     frameCounter*: int
+    dlg*: Dialog
 
 var gEngine*: Engine
 
@@ -90,7 +92,9 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.hud = newHud()
   result.seedWithTime()
   result.inputState = newInputState()
+  result.dlg = newDialog()
   result.screen.addChild result.inputState.node
+  result.screen.addChild result.dlg
   sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
@@ -633,6 +637,8 @@ proc update(self: Engine) =
   if not self.cutscene.isNil:
     if self.cutscene.update(elapsed):
       self.cutscene = nil
+
+  self.dlg.update(elapsed)
 
   # update nodes
   if not self.scene.isNil:

@@ -24,6 +24,7 @@ import ../gfx/spritesheet
 import ../gfx/recti
 import ../scenegraph/node
 import ../scenegraph/hud
+import ../scenegraph/dialog
 import ../io/json
 import ../io/ggpackmanager
 import ../io/textdb
@@ -618,7 +619,17 @@ proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.hud.actorSlots[actorSlot - 1].verbs[verbSlot] = Verb(id: id.VerbId, image: image, fun: fun, text: text, key: key, flags: flags)
 
 proc startDialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "startDialog not implemented"
+  let nArgs = sq_gettop(v)
+  var dialog: string
+  if SQ_FAILED(get(v, 2, dialog)):
+    return sq_throwerror(v, "failed to get dialog")
+  
+  var node = "start"
+  if nArgs == 3:
+    if SQ_FAILED(get(v, 3, node)):
+      return sq_throwerror(v, "failed to get node")
+  let actor = if gEngine.actor.isNil: "" else: gEngine.actor.key
+  gEngine.dlg.start(actor, dialog, node)
   0
 
 proc stopSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
