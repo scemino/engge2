@@ -3,6 +3,7 @@ import std/[lexbase, streams, strutils, strformat]
 type
   TokenId = enum
     Error,
+    NewLine
     Identifier,
     WaitWhile,
     WaitFor,
@@ -91,6 +92,7 @@ type
 const
   tokToStr: array[TokenId, string] = [
     "invalid token",
+    "newline",
     "identifier",
     "waitwhile",
     "waitfor",
@@ -523,8 +525,11 @@ proc parseIdentifier(self: var YackParser): TokenId =
 
 proc getTokCore(self: var YackParser): TokenId =
   setLen(self.a, 0)
-  skip(self) # skip whitespace, comments
+  self.skip(false) # skip whitespace, comments
   case self.buf[self.bufpos]
+  of '\L':
+    self.bufpos = lexbase.handleLF(self, self.bufpos)
+    result = NewLine
   of '!':
     result = parseCode(self)
   of ':':
@@ -707,7 +712,7 @@ proc parseExp(p: var YackParser): YExp =
   elif p.match([TokenId.Code]):
     result = p.parseCodeExp()
   else:
-    raiseParseErr(p, "expression")
+    raiseParseErr(p, "expression", tokToStr[p.tok] & "(" & $p.a & ")")
 
 proc parseCond(p: var YackParser): YCond =
   let conditionText = p.eat(TokenId.Condition)
@@ -731,10 +736,21 @@ proc parseStat(p: var YackParser): YStatement =
 
 proc parseLabel(p: var YackParser): YLabel =
   result = YLabel()
+
+  # skip new lines
+  while p.match([TokenId.NewLine]):
+    discard p.eat(p.tok)
+
   discard p.eat(TokenId.Colon)
   result.name = p.eat(TokenId.Identifier)
 
+  # skip until new line
+  while not p.match([TokenId.NewLine]):
+    discard p.eat(p.tok)
+
   while true:
+    while p.match([TokenId.NewLine]):
+      discard p.eat(p.tok)
     if p.match([TokenId.Colon]) or p.match([TokenId.End]):
       break
     let stat = p.parseStat()

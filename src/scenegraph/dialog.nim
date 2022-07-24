@@ -46,7 +46,7 @@ proc selectLabel(self: Dialog, name: string) =
   self.lbl = self.label(name)
   self.currentStatement = 0
   self.numSlots = 0
-  self.state = if label.isNil: None else: Active
+  self.state = if self.lbl.isNil: None else: Active
 
 method visit(self: ExpVisitor, node: YCodeExp) =
   info fmt"execute code {node.code}"
@@ -112,10 +112,10 @@ proc acceptConditions(self: Dialog, statmt: YStatement): bool =
   true
 
 proc run(self: Dialog, statmt: YStatement) =
-  # TODO
   if self.acceptConditions(statmt):
     let visitor = ExpVisitor(dialog: self)
     statmt.exp.accept(visitor)
+  self.currentStatement += 1
 
 proc addChoice(self: Dialog, statmt: YStatement) =
   self.addSlot(cast[YChoice](statmt.exp))
@@ -127,7 +127,7 @@ proc running(self: Dialog) =
     self.gotoNextLabel()
   else:
     self.state = Active
-    while self.currentStatement < self.lbl.stmts.len and self.state == Active:
+    while not self.lbl.isNil and self.currentStatement < self.lbl.stmts.len and self.state == Active:
       let statmt = self.lbl.stmts[self.currentStatement]
       if not self.acceptConditions(statmt):
         self.currentStatement += 1
