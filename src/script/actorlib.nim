@@ -686,7 +686,11 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   sq_addref(v, actor.table)
   actor.table.setId newActorId()
 
-  info fmt"Create actor {actor.getName()} {actor.table.getId()}"
+  var key: string
+  actor.table.getf("_key", key)
+  actor.key = key
+
+  info fmt"Create actor {key} {actor.table.getId()}"
   actor.node = newNode(actor.name)
   actor.node.zOrderFunc = proc (): int32 = actor.node.pos.y.int32
   actor.node.scaleFunc = proc (): float32 = actor.room.getScaling(actor.node.pos.y)

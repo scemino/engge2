@@ -2,8 +2,10 @@ import std/logging
 import std/strformat
 import glm
 import node
+import dlgtgt
 import ../scenegraph/textnode
 import ../game/resmanager
+import ../game/motors/motor
 import ../gfx/text
 import ../io/yack
 import ../io/textdb
@@ -20,12 +22,25 @@ type
   DialogContext = object
     actor: string
     dialogName: string
-  DialogState = enum
+  DialogState* = enum
     None,
     Active,
     WaitingForChoice
+  DialogConditionMode = enum
+    Once,
+    ShowOnce,
+    OnceEver,
+    ShowOnceEver,
+    TempOnce
+  DialogConditionState = object
+    mode: DialogConditionMode
+    actorKey, dialog: string
+    line: int
   Dialog* = ref object of Node
-    state: DialogState
+    tgt*: DialogTarget
+    action: Motor
+    state*: DialogState
+    states: seq[DialogConditionState]
     context: DialogContext
     currentStatement: int
     cu: YCu
@@ -35,6 +50,45 @@ type
     numSlots: int
   ExpVisitor = ref object of YackVisitor
     dialog: Dialog
+  CondVisitor = ref object of YackVisitor
+    dialog: Dialog
+    accepted: bool
+
+proc isOnce(self: Dialog, line: int): bool =
+  for state in self.states:
+    if state.mode == Once and state.actorKey == self.context.actor and state.dialog == self.context.dialogName and state.line == line:
+      info fmt"isOnce {line}: false"
+      return false
+  info fmt"isOnce {line}: true"
+  true
+
+proc isShowOnce(self: Dialog, line: int): bool =
+  for state in self.states:
+    if state.mode == ShowOnce and state.actorKey == self.context.actor and state.dialog == self.context.dialogName and state.line == line:
+      info fmt"isShowOnce {line}: false"
+      return false
+  info fmt"isShowOnce {line}: true"
+  true
+
+proc isOnceEver(self: Dialog, line: int): bool =
+  for state in self.states:
+    if state.mode == OnceEver and state.dialog == self.context.dialogName and state.line == line:
+      info fmt"isOnceEver {line}: false"
+      return false
+  info fmt"isOnceEver {line}: true"
+  true
+
+proc isTempOnce(self: Dialog, line: int): bool =
+  for state in self.states:
+    if state.mode == TempOnce and state.actorKey == self.context.actor and state.dialog == self.context.dialogName and state.line == line:
+      info fmt"isTempOnce {line}: false"
+      return false
+  info fmt"isTempOnce {line}: true"
+  true
+
+proc isCond*(self: Dialog, cond: string): bool =
+  result = self.tgt.execCond(cond)
+  info fmt"isCond '{cond}': {result}"
 
 proc label(self: Dialog, name: string): YLabel =
   for label in self.cu.labels:
@@ -48,6 +102,21 @@ proc selectLabel(self: Dialog, name: string) =
   self.numSlots = 0
   self.state = if self.lbl.isNil: None else: Active
 
+method visit(self: CondVisitor, node: YCodeCond) =
+  self.accepted = self.dialog.isCond(node.code)
+
+method visit(self: CondVisitor, node: YOnce) =
+  self.accepted = self.dialog.isOnce(node.line)
+
+method visit(self: CondVisitor, node: YShowOnce) =
+  self.accepted = self.dialog.isShowOnce(node.line)
+
+method visit(self: CondVisitor, node: YOnceEver) =
+  self.accepted = self.dialog.isOnceEver(node.line)
+
+method visit(self: CondVisitor, node: YTempOnce) =
+  self.accepted = self.dialog.isTempOnce(node.line)
+
 method visit(self: ExpVisitor, node: YCodeExp) =
   info fmt"execute code {node.code}"
   gVm.v.execNut("dialog", node.code)
@@ -58,7 +127,6 @@ method visit(self: ExpVisitor, node: YGoto) =
 
 method visit(self: ExpVisitor, node: YShutup) =
   warn fmt"TODO: shutup"
-  #stopTalking()
 
 method visit(self: ExpVisitor, node: YPause) =
   warn fmt"TODO: pause {node.time}"
@@ -85,9 +153,7 @@ method visit(self: ExpVisitor, node: YLimit) =
   warn fmt"TODO: limit"
 
 method visit(self: ExpVisitor, node: YSay) =
-  discard
-  #let actor = actor(node.actor)
-  #actor.say(@[node.text], actor.talkColor)
+  self.dialog.action = self.dialog.tgt.say(node.actor, node.text)
 
 proc addSlot(self: Dialog, choice: YChoice) =
   if self.numSlots < self.slots.len:
@@ -108,7 +174,14 @@ proc choicesReady(self: Dialog): bool =
   self.numSlots > 0
 
 proc acceptConditions(self: Dialog, statmt: YStatement): bool =
-  # TODO
+  info fmt"accept {statmt.conds.len} conditions ?"
+  let vis = CondVisitor(dialog: self)
+  for cond in statmt.conds:
+    cond.accept(vis)
+    if not vis.accepted:
+      info fmt"accept {statmt.conds.len} conditions => no"
+      return false
+  info fmt"accept {statmt.conds.len} conditions => yes"
   true
 
 proc run(self: Dialog, statmt: YStatement) =
@@ -120,7 +193,7 @@ proc run(self: Dialog, statmt: YStatement) =
 proc addChoice(self: Dialog, statmt: YStatement) =
   self.addSlot(cast[YChoice](statmt.exp))
 
-proc running(self: Dialog) =
+proc running(self: Dialog, dt: float) =
   if self.lbl.isNil:
     self.state = None
   elif self.currentStatement == self.lbl.stmts.len:
@@ -136,8 +209,12 @@ proc running(self: Dialog) =
         self.currentStatement += 1
       elif self.choicesReady():
         self.state = WaitingForChoice
+      elif not self.action.isNil and self.action.enabled:
+        self.action.update(dt)
       else:
         self.run(statmt)
+    if self.choicesReady():
+        self.state = WaitingForChoice
 
 proc newDialog*(): Dialog =
   result = Dialog()
@@ -148,7 +225,7 @@ proc update*(self: Dialog, dt: float) =
   of None:
     discard
   of Active:
-    self.running()
+    self.running(dt)
   of WaitingForChoice:
     discard
 

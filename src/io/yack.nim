@@ -933,5 +933,5 @@ sandy: "Have fun on Mêlée Island™."
 """
   for t in tokens(code):
     echo t
-  let yack = parseYack(code)
+  let yack = parseYack(code, "")
   DumpYack().visit(yack)

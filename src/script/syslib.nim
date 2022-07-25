@@ -11,6 +11,7 @@ import ../game/room
 import ../game/inputstate
 import ../game/tasks/breakwhilecond
 import ../game/motors/motor
+import ../scenegraph/dialog
 import ../gfx/color
 import ../util/utils
 
@@ -146,8 +147,10 @@ proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.cutscene.isNil)
 
 proc breakwhiledialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "breakwhiledialog not implemented"
-  0
+  ## Breaks while a dialog is running.
+  ## Once the thread finishes execution, the method will continue running.
+  ## It is an error to call breakwhiledialog in a function that was not started with startthread. 
+  breakwhilecond(v, "breakwhiledialog()", proc (): bool = gEngine.dlg.state != DialogState.None)
 
 proc breakwhileinputoff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while input is not active.

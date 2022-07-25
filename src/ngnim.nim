@@ -12,6 +12,8 @@ import game/prefs
 import game/resmanager
 import scenegraph/node
 import scenegraph/pathnode
+import scenegraph/dlgenginetgt
+import scenegraph/dialog
 import sys/debugtool
 import sys/tools
 
@@ -26,6 +28,7 @@ proc render() =
 proc runVm() =
   var vm = vm.newVM()
   discard newEngine(vm.v)
+  gEngine.dlg.tgt = EngineDialogTarget()
   gEngine.screen.addChild newPathNode()
 
   sq_pushroottable(vm.v)

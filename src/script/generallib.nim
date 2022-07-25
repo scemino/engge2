@@ -329,8 +329,7 @@ proc incutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc indialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "indialog not implemented"
-  push(v, false)
+  push(v, gEngine.dlg.state != DialogState.None)
   1
 
 proc inputVerbs(v: HSQUIRRELVM): SQInteger {.cdecl.} =

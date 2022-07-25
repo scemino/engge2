@@ -12,7 +12,7 @@
   * [ ] cutscene override
   * [ ] cutscene UI (ESC)
 * [ ] dialogs
-  * [ ] yack intepreter
+  * [x] yack intepreter
   * [x] yack parsing
 * [ ] HUD
   * [ ] sentence
@@ -175,7 +175,7 @@
 - [x] getUserPref
 - [x] in_array
 - [x] incutscene
-- [ ] indialog
+- [x] indialog
 - [x] inputVerbs
 - [x] int
 - [x] is_array
@@ -200,7 +200,7 @@
 - [ ] setPrivatePref
 - [ ] setUserPref
 - [x] setVerb
-- [ ] startDialog
+- [x] startDialog
 - [ ] stopSentence
 - [x] strcount
 - [x] strcrc
@@ -257,7 +257,7 @@
 - [x] breakwhileanimating
 - [x] breakwhilecamera
 - [x] breakwhilecutscene
-- [ ] breakwhiledialog
+- [x] breakwhiledialog
 - [x] breakwhileinputoff
 - [x] breakwhilerunning
 - [x] breakwhilesound
