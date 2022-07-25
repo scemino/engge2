@@ -47,7 +47,6 @@ type
     lbl: YLabel
     parrot: bool
     slots: array[MaxDialogSlots, DialogSlot]
-    numSlots: int
   ExpVisitor = ref object of YackVisitor
     dialog: Dialog
   CondVisitor = ref object of YackVisitor
@@ -94,12 +93,23 @@ proc label(self: Dialog, name: string): YLabel =
   for label in self.cu.labels:
     if label.name == name:
       return label
+    
+proc numSlots(self: Dialog): int =
+  for slot in self.slots:
+    if not slot.isNil:
+      result += 1
+
+proc clearSlots(self: Dialog) =
+  for i in 0..<self.slots.len:
+    if not self.slots[i].isNil:
+      self.slots[i].textNode.remove()
+      self.slots[i] = nil
 
 proc selectLabel(self: Dialog, name: string) =
   info fmt"select label {name}"
   self.lbl = self.label(name)
   self.currentStatement = 0
-  self.numSlots = 0
+  self.clearSlots()
   self.state = if self.lbl.isNil: None else: Active
 
 method visit(self: CondVisitor, node: YCodeCond) =
@@ -156,12 +166,11 @@ method visit(self: ExpVisitor, node: YSay) =
   self.dialog.action = self.dialog.tgt.say(node.actor, node.text)
 
 proc addSlot(self: Dialog, choice: YChoice) =
-  if self.numSlots < self.slots.len:
+  if self.slots[choice.number - 1].isNil:
     let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & getText(choice.text), thLeft))
     let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
     textNode.pos = vec2(8'f32, y)
-    self.slots[self.numSlots] = DialogSlot(textNode: textNode, choice: choice)
-    self.numSlots += 1
+    self.slots[choice.number - 1] = DialogSlot(textNode: textNode, choice: choice)
     self.addChild textNode
 
 proc gotoNextLabel(self: Dialog) =
