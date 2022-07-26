@@ -179,12 +179,16 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     discard get(v, 2, id)
   info "breakwhilerunning: " & $id
   
-  var t = thread(id)
+  let t = thread(id)
   if t.isNil:
-    warn "thread not found: " & $id
-    return 0
-
-  breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not thread(id).isNil)
+    let sound = sound(id)
+    if sound.isNil:
+      warn "thread and sound not found: " & $id
+      return 0
+    else:
+      result = breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not sound(id).isNil)
+  else:
+    result = breakwhilecond(v, fmt"breakwhilerunning({id})", proc (): bool = not thread(id).isNil)
 
 proc isSomeoneTalking(): bool =
   ## Returns true if at least 1 actor is talking.
