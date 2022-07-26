@@ -16,10 +16,12 @@
   * [x] yack parsing
   * [x] draw choices
   * [x] allow to choose a sentence
+  * [x] hide choices after having chosen a sentence
+  * [x] disable input during dialog
+  * [x] use actor colors
+  * [x] hide cursor text
   * [ ] choice anim
   * [ ] choice slide when too long
-  * [ ] use actor colors
-  * [x] disable input during dialog
   * [ ] expressions
     * [x] goto
     * [x] code

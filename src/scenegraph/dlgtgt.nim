@@ -1,7 +1,14 @@
 import ../game/motors/motor
+import ../gfx/color
 
 type
   DialogTarget* = ref object of RootObj
+
+method actorColor*(self: DialogTarget, actor: string): Color {.base.} =
+  discard
+
+method actorColorHover*(self: DialogTarget, actor: string): Color {.base.} =
+  discard
 
 method say*(self: DialogTarget, actor, text: string): Motor {.base.} =
   discard

@@ -212,11 +212,10 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let slot = cast[ptr DialogSlot](tag)[]
   case event:
   of Enter:
-    src.color = Yellow
+    src.color = slot.dlg.tgt.actorColorHover(slot.dlg.context.actor)
   of Leave:
-    src.color = White
+    src.color = slot.dlg.tgt.actorColor(slot.dlg.context.actor)
   of Down:
-    info fmt"slot selected"
     for cond in slot.stamt.conds:
       let v = CondStateVisitor(dlg: slot.dlg, mode: DialogSelMode.Choose)
       cond.accept(v)
@@ -224,6 +223,7 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
       slot.dlg.state = DialogState.Active
       slot.dlg.action = newSerialMotors(
         [slot.dlg.tgt.say(slot.dlg.context.actor, slot.choice.text), newActionMotor(proc () = slot.dlg.selectLabel(slot.choice.goto.name))])
+      slot.dlg.clearSlots()
     else:
       slot.dlg.selectLabel(slot.choice.goto.name)
   else:
@@ -233,6 +233,7 @@ proc addSlot(self: Dialog, stamt: YStatement) =
   let choice = stamt.choice
   if self.slots[choice.number - 1].isNil and self.numSlots() < self.context.limit:
     let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & getText(choice.text), thLeft))
+    textNode.color = self.tgt.actorColor(self.context.actor)
     let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
     textNode.pos = vec2(8'f32, y)
     let slot = DialogSlot(textNode: textNode, stamt: stamt, dlg: self)

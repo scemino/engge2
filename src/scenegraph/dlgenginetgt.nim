@@ -3,10 +3,12 @@ import std/strformat
 import sqnim
 import dlgtgt
 import ../script/vm
+import ../gfx/color
 import ../game/engine
 import ../game/room
 import ../game/actor
 import ../game/motors/motor
+import ../scenegraph/hud
 
 type
   EngineDialogTarget* = ref object of DialogTarget
@@ -19,11 +21,22 @@ proc actor(name: string): Object =
     if actor.key == name:
       return actor
 
+proc actorOrCurrent(name: string): Object =
+  result = actor(name)
+  if result.isNil:
+    result = gEngine.actor
+
+method actorColor*(self: EngineDialogTarget, actor: string): Color =
+  let actor = actorOrCurrent(actor)
+  gEngine.hud.actorSlot(actor).verbUiColors.dialogNormal
+
+method actorColorHover*(self: EngineDialogTarget, actor: string): Color =
+  let actor = actorOrCurrent(actor)
+  gEngine.hud.actorSlot(actor).verbUiColors.dialogHighlight
+
 method say*(self: EngineDialogTarget, actor, text: string): Motor =
   info fmt"say {actor}: {text}"
-  var actor = actor(actor)
-  if actor.isNil:
-    actor = gEngine.actor
+  let actor = actorOrCurrent(actor)
   actor.say(@[text], actor.talkColor)
   actor.talking
 

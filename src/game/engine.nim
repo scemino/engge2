@@ -515,7 +515,7 @@ proc updateTriggers(self: Engine) =
 proc update*(self: Node, elapsed: float) =
   if self.buttons.len > 0:
     let scrPos = gEngine.winToScreen(mousePos())
-    for btn in self.buttons:
+    for btn in self.buttons.toSeq:
       # mouse inside button ?
       if self.getRect().contains(scrPos):
         # enter button ?
@@ -556,6 +556,24 @@ proc walkFast(self: Engine, state = true) =
     if not self.actor.isNil:
       sqCall(self.actor.table, "run", [state])
 
+proc cursorText(self: Engine): string =
+  if self.dlg.state == DialogState.None:
+    # give can be used only on inventory and talkto to talkable objects (actors)
+    result = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
+    # add verb if not walk to or if noun1 is present
+    if self.hud.verb.id > 1 or result.len > 0:
+      result = if result.len > 0: fmt"{getText(self.hud.verb.text)} {result}" else: getText(self.hud.verb.text)
+      if self.useFlag == ufUseWith:
+        result = result & " " & getText(10000)
+      elif self.useFlag == ufUseOn:
+        result = result & " " & getText(10001)
+      elif self.useFlag == ufUseIn:
+        result = result & " " & getText(10002)
+      elif self.useFlag == ufGiveTo:
+        result = result & " " & getText(10003)
+      if not self.noun2.isNil:
+        result = result & " " & getText(self.noun2.name)
+
 proc update(self: Engine) =
   let elapsed = tmpPrefs().gameSpeedFactor / 60'f32
   self.time += elapsed
@@ -577,22 +595,7 @@ proc update(self: Engine) =
       self.noun1 = self.findObjAt(roomPos)
       self.useFlag = ufNone
       self.noun2 = nil
-    # give can be used only on inventory and talkto to talkable objects (actors)
-    var txt = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
-    # add verb if not walk to or if noun1 is present
-    if self.hud.verb.id > 1 or txt.len > 0:
-      txt = if txt.len > 0: fmt"{getText(self.hud.verb.text)} {txt}" else: getText(self.hud.verb.text)
-      if self.useFlag == ufUseWith:
-        txt = txt & " " & getText(10000)
-      elif self.useFlag == ufUseOn:
-        txt = txt & " " & getText(10001)
-      elif self.useFlag == ufUseIn:
-        txt = txt & " " & getText(10002)
-      elif self.useFlag == ufGiveTo:
-        txt = txt & " " & getText(10003)
-      if not self.noun2.isNil:
-        txt = txt & " " & getText(self.noun2.name)
-    self.inputState.setText(txt)
+    self.inputState.setText(self.cursorText)
     # update cursor shape
     # if cursor is in the margin of the screen and if camera can move again
     # then show a left arrow or right arrow
