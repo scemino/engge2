@@ -19,7 +19,7 @@
   * [ ] choice anim
   * [ ] choice slide when too long
   * [ ] use actor colors
-  * [ ] disable input during dialog
+  * [x] disable input during dialog
   * [ ] expressions
     * [x] goto
     * [x] code

@@ -616,22 +616,23 @@ proc update(self: Engine) =
     else:
       self.inputState.setCursorShape(CursorShape.Normal)
 
-  self.hud.visible = self.inputState.inputVerbsActive and not self.room.isNil and self.room.fullScreen != 1
+  self.hud.visible = self.inputState.inputVerbsActive and not self.room.isNil and self.room.fullScreen != 1 and self.dlg.state == DialogState.None
 
   # call clickedAt if any button down
-  let btns = mouseBtns()
-  if mbLeft in btns:
-    if mbLeft notin self.buttons:
-      self.mouseDownTime = now()
+  if self.dlg.state == DialogState.None:
+    let btns = mouseBtns()
+    if mbLeft in btns:
+      if mbLeft notin self.buttons:
+        self.mouseDownTime = now()
+      else:
+        let mouseDnDur = now() - self.mouseDownTime
+        if mouseDnDur > initDuration(milliseconds = 500):
+          self.walkFast()
     else:
-      let mouseDnDur = now() - self.mouseDownTime
-      if mouseDnDur > initDuration(milliseconds = 500):
-        self.walkFast()
-  else:
-    self.walkFast(false)
-  self.buttons = btns
-  if btns.len > 0:
-    self.clickedAt(scrPos, btns)
+      self.walkFast(false)
+    self.buttons = btns
+    if btns.len > 0:
+      self.clickedAt(scrPos, btns)
 
   # update cutscene
   if not self.cutscene.isNil:
