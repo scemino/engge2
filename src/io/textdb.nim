@@ -3,6 +3,7 @@ import std/logging
 import std/streams
 import std/parseutils
 import std/tables
+import std/strutils
 import ggpackmanager
 import ../game/prefs
 
@@ -28,6 +29,8 @@ proc read(self: var TextDb, entry: string) =
 proc getText(self: TextDb, id: int): string =
   if self.texts.contains(id):
     result = self.texts[id]
+    if result.endsWith("#M") or result.endsWith("#F"):
+      result = result[0..^3]
   else:
     result = fmt"Text {id} not found"
     error fmt"Text {id} not found in {self.texts}"

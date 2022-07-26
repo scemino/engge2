@@ -97,6 +97,7 @@
     * [x] change state if in {}
     * [x] replace \" by "
     * [x] ignore text if in ()
+    * [x] ignore #M or #F at the end of a text
     * [x] sound
   * [x] actor walk fast
 * [ ] audio
