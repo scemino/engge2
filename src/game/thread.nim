@@ -38,7 +38,7 @@ proc isDead*(self: ThreadBase): bool =
 proc resume*(self: ThreadBase) =
   if not self.isDead and self.isSuspended:
     let state = sq_getvmstate(self.getThread())
-    info fmt"resume thread {self.getId()}, state={state}"
+    # info fmt"resume thread {self.getId()}, state={state}"
     discard sq_wakeupvm(self.getThread(), SQFalse, SQFalse, SQTrue, SQFalse)
 
 proc suspend*(self: ThreadBase) =

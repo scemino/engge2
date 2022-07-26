@@ -536,7 +536,7 @@ proc update*(self: Node, elapsed: float) =
   if not self.shakeMotor.isNil and self.shakeMotor.enabled():
     self.shakeMotor.update(elapsed)
 
-  for node in self.children:
+  for node in self.children.toSeq:
     node.update(elapsed)
 
 proc clampPos(self: Engine, at: Vec2f): Vec2f =

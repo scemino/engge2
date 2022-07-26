@@ -14,6 +14,31 @@
 * [ ] dialogs
   * [x] yack intepreter
   * [x] yack parsing
+  * [x] draw choices
+  * [x] allow to choose a sentence
+  * [ ] choice anim
+  * [ ] choice slide when too long
+  * [ ] use actor colors
+  * [ ] expressions
+    * [x] goto
+    * [x] code
+    * [x] choice
+    * [x] say
+    * [x] pause
+    * [x] dialog
+    * [x] shutup
+    * [x] waitwhile
+    * [ ] waitfor
+    * [ ] allow objects
+    * [ ] limit
+    * [ ] override
+    * [ ] parrot
+  * [ ] conditions
+    * [x] code
+    * [ ] once
+    * [ ] show once
+    * [ ] once ever
+    * [ ] temp once
 * [ ] HUD
   * [ ] sentence
     * [x] use flag: with, in, on

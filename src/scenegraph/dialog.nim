@@ -6,6 +6,7 @@ import dlgtgt
 import ../scenegraph/textnode
 import ../game/resmanager
 import ../game/motors/motor
+import ../gfx/color
 import ../gfx/text
 import ../io/yack
 import ../io/textdb
@@ -19,6 +20,7 @@ type
   DialogSlot = ref object of Node
     textNode: TextNode
     choice: YChoice
+    dlg: Dialog
   DialogContext = object
     actor: string
     dialogName: string
@@ -136,10 +138,12 @@ method visit(self: ExpVisitor, node: YGoto) =
   self.dialog.selectLabel(node.name)
 
 method visit(self: ExpVisitor, node: YShutup) =
-  warn fmt"TODO: shutup"
+  info "shutup"
+  self.dialog.tgt.shutup()
 
 method visit(self: ExpVisitor, node: YPause) =
-  warn fmt"TODO: pause {node.time}"
+  info fmt"pause {node.time}"
+  self.dialog.action = self.dialog.tgt.pause(node.time)
 
 method visit(self: ExpVisitor, node: YWaitFor) =
   warn fmt"TODO: waitFor {node.actor}"
@@ -157,7 +161,8 @@ method visit(self: ExpVisitor, node: YAllowObjects) =
   warn fmt"TODO: allowObjects"
 
 method visit(self: ExpVisitor, node: YWaitWhile) =
-  warn fmt"TODO: wait while"
+  info fmt"wait while"
+  self.dialog.action = self.dialog.tgt.waitWhile(node.cond)
 
 method visit(self: ExpVisitor, node: YLimit) =
   warn fmt"TODO: limit"
@@ -165,13 +170,27 @@ method visit(self: ExpVisitor, node: YLimit) =
 method visit(self: ExpVisitor, node: YSay) =
   self.dialog.action = self.dialog.tgt.say(node.actor, node.text)
 
+proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+  let slot = cast[ptr DialogSlot](tag)
+  case event:
+  of Enter:
+    src.color = Red
+  of Leave:
+    src.color = White
+  of Down:
+    info fmt"slot selected"
+    slot.dlg.selectLabel(slot.choice.goto.name)
+  else:
+    discard
+
 proc addSlot(self: Dialog, choice: YChoice) =
   if self.slots[choice.number - 1].isNil:
     let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & getText(choice.text), thLeft))
     let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
     textNode.pos = vec2(8'f32, y)
-    self.slots[choice.number - 1] = DialogSlot(textNode: textNode, choice: choice)
+    self.slots[choice.number - 1] = DialogSlot(textNode: textNode, choice: choice, dlg: self)
     self.addChild textNode
+    self.slots[choice.number - 1].textNode.addButton(onSlot, self.slots[choice.number - 1].addr)
 
 proc gotoNextLabel(self: Dialog) =
   if not self.lbl.isNil:
@@ -203,7 +222,9 @@ proc addChoice(self: Dialog, statmt: YStatement) =
   self.addSlot(cast[YChoice](statmt.exp))
 
 proc running(self: Dialog, dt: float) =
-  if self.lbl.isNil:
+  if not self.action.isNil and self.action.enabled:
+    self.action.update(dt)
+  elif self.lbl.isNil:
     self.state = None
   elif self.currentStatement == self.lbl.stmts.len:
     self.gotoNextLabel()
@@ -220,6 +241,7 @@ proc running(self: Dialog, dt: float) =
         self.state = WaitingForChoice
       elif not self.action.isNil and self.action.enabled:
         self.action.update(dt)
+        return
       else:
         self.run(statmt)
     if self.choicesReady():

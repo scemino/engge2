@@ -10,6 +10,9 @@ import ../game/motors/motor
 
 type
   EngineDialogTarget* = ref object of DialogTarget
+  WaitWhile* = ref object of Motor
+    cond: string
+    tgt: EngineDialogTarget
 
 proc actor(name: string): Object =
   for actor in gEngine.actors:
@@ -23,6 +26,12 @@ method say*(self: EngineDialogTarget, actor, text: string): Motor =
     actor = gEngine.actor
   actor.say(@[text], actor.talkColor)
   actor.talking
+
+method waitWhile*(self: EngineDialogTarget, cond: string): Motor =
+  WaitWhile(tgt: self, cond: cond)
+
+method shutup*(self: EngineDialogTarget) =
+  stopTalking()
 
 method execCond*(self: EngineDialogTarget, cond: string): bool =
   # check if the condition corresponds to an actor name
@@ -48,3 +57,7 @@ method execCond*(self: EngineDialogTarget, cond: string): bool =
         discard sq_getinteger(gVm.v, -1, condResult)
         result = condResult != 0
         sq_settop(gVm.v, top)
+
+method update*(self: WaitWhile, el: float) =
+  if not self.tgt.execCond(self.cond):
+    self.disable()
