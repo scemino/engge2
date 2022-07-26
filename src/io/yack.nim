@@ -293,13 +293,13 @@ method visit(v: DumpYack, node: YStatement) =
   v.pindent("Statement")
   v.indent()
   node.exp.accept(v)
-  v.unindent()
   if node.conds.len != 0:
     v.pindent("Conditions")
     v.indent()
     for cond in node.conds:
       cond.accept(v)
     v.unindent()
+  v.unindent()
 
 method visit(v: DumpYack, node: YLabel) =
   v.pindent "Label: " & node.name

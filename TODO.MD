@@ -19,6 +19,7 @@
   * [ ] choice anim
   * [ ] choice slide when too long
   * [ ] use actor colors
+  * [ ] disable input during dialog
   * [ ] expressions
     * [x] goto
     * [x] code
@@ -28,17 +29,17 @@
     * [x] dialog
     * [x] shutup
     * [x] waitwhile
+    * [x] limit
     * [ ] waitfor
     * [ ] allow objects
-    * [ ] limit
     * [ ] override
     * [ ] parrot
-  * [ ] conditions
+  * [x] conditions
     * [x] code
-    * [ ] once
-    * [ ] show once
-    * [ ] once ever
-    * [ ] temp once
+    * [x] once
+    * [x] show once
+    * [x] once ever
+    * [x] temp once
 * [ ] HUD
   * [ ] sentence
     * [x] use flag: with, in, on

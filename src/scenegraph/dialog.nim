@@ -1,5 +1,6 @@
 import std/logging
 import std/strformat
+import std/sequtils
 import glm
 import node
 import dlgtgt
@@ -15,15 +16,17 @@ import ../script/vm
 
 const 
   MaxDialogSlots = 9
-  MaxChoices = 5
+  MaxChoices = 6
 type
   DialogSlot = ref object of Node
     textNode: TextNode
-    choice: YChoice
+    stamt: YStatement
     dlg: Dialog
   DialogContext = object
     actor: string
     dialogName: string
+    parrot: bool
+    limit: int
   DialogState* = enum
     None,
     Active,
@@ -34,6 +37,9 @@ type
     OnceEver,
     ShowOnceEver,
     TempOnce
+  DialogSelMode = enum
+    Choose
+    Show
   DialogConditionState = object
     mode: DialogConditionMode
     actorKey, dialog: string
@@ -47,13 +53,15 @@ type
     currentStatement: int
     cu: YCu
     lbl: YLabel
-    parrot: bool
     slots: array[MaxDialogSlots, DialogSlot]
   ExpVisitor = ref object of YackVisitor
     dialog: Dialog
   CondVisitor = ref object of YackVisitor
     dialog: Dialog
     accepted: bool
+  CondStateVisitor = ref object of YackVisitor
+    mode: DialogSelMode
+    dlg: Dialog
 
 proc isOnce(self: Dialog, line: int): bool =
   for state in self.states:
@@ -129,6 +137,27 @@ method visit(self: CondVisitor, node: YOnceEver) =
 method visit(self: CondVisitor, node: YTempOnce) =
   self.accepted = self.dialog.isTempOnce(node.line)
 
+
+proc createState(self: CondStateVisitor, line: int, mode: DialogConditionMode): DialogConditionState =
+  DialogConditionState(mode: mode, line: line, dialog: self.dlg.context.dialogName, actorKey: self.dlg.context.actor)
+
+method visit(self: CondStateVisitor, node: YOnce) =
+  if self.mode == DialogSelMode.Choose:
+    self.dlg.states.add self.createState(node.line, DialogConditionMode.Once)
+
+method visit(self: CondStateVisitor, node: YShowOnce) =
+  if self.mode == DialogSelMode.Show:
+    self.dlg.states.add self.createState(node.line, DialogConditionMode.ShowOnce)
+
+method visit(self: CondStateVisitor, node: YOnceEver) =
+  if self.mode == DialogSelMode.Choose:
+    self.dlg.states.add self.createState(node.line, DialogConditionMode.OnceEver)
+
+method visit(self: CondStateVisitor, node: YTempOnce) =
+  if self.mode == DialogSelMode.Show:
+    self.dlg.states.add self.createState(node.line, DialogConditionMode.TempOnce)
+
+
 method visit(self: ExpVisitor, node: YCodeExp) =
   info fmt"execute code {node.code}"
   gVm.v.execNut("dialog", node.code)
@@ -149,7 +178,7 @@ method visit(self: ExpVisitor, node: YWaitFor) =
   warn fmt"TODO: waitFor {node.actor}"
 
 method visit(self: ExpVisitor, node: YParrot) =
-  self.dialog.parrot = node.active
+  self.dialog.context.parrot = node.active
 
 method visit(self: ExpVisitor, node: YDialog) =
   self.dialog.context.actor = node.actor
@@ -165,13 +194,20 @@ method visit(self: ExpVisitor, node: YWaitWhile) =
   self.dialog.action = self.dialog.tgt.waitWhile(node.cond)
 
 method visit(self: ExpVisitor, node: YLimit) =
-  warn fmt"TODO: limit"
+  info fmt"limit"
+  self.dialog.context.limit = node.max
 
 method visit(self: ExpVisitor, node: YSay) =
   self.dialog.action = self.dialog.tgt.say(node.actor, node.text)
 
+proc choice(self: YStatement): YChoice {.inline.} =
+  cast[YChoice](self.exp)
+
+proc choice(self: DialogSlot): YChoice {.inline.} =
+  choice(self.stamt)
+
 proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let slot = cast[ptr DialogSlot](tag)
+  let slot = cast[ptr DialogSlot](tag)[]
   case event:
   of Enter:
     src.color = Red
@@ -179,18 +215,23 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     src.color = White
   of Down:
     info fmt"slot selected"
+    for cond in slot.stamt.conds:
+      let v = CondStateVisitor(dlg: slot.dlg, mode: DialogSelMode.Choose)
+      cond.accept(v)
     slot.dlg.selectLabel(slot.choice.goto.name)
   else:
     discard
 
-proc addSlot(self: Dialog, choice: YChoice) =
-  if self.slots[choice.number - 1].isNil:
+proc addSlot(self: Dialog, stamt: YStatement) =
+  let choice = stamt.choice
+  if self.slots[choice.number - 1].isNil and self.numSlots() < self.context.limit:
     let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & getText(choice.text), thLeft))
     let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
     textNode.pos = vec2(8'f32, y)
-    self.slots[choice.number - 1] = DialogSlot(textNode: textNode, choice: choice, dlg: self)
+    let slot = DialogSlot(textNode: textNode, stamt: stamt, dlg: self)
+    self.slots[choice.number - 1] = slot
+    slot.textNode.addButton(onSlot, self.slots[choice.number - 1].addr)
     self.addChild textNode
-    self.slots[choice.number - 1].textNode.addButton(onSlot, self.slots[choice.number - 1].addr)
 
 proc gotoNextLabel(self: Dialog) =
   if not self.lbl.isNil:
@@ -202,24 +243,26 @@ proc choicesReady(self: Dialog): bool =
   self.numSlots > 0
 
 proc acceptConditions(self: Dialog, statmt: YStatement): bool =
-  info fmt"accept {statmt.conds.len} conditions ?"
   let vis = CondVisitor(dialog: self)
   for cond in statmt.conds:
     cond.accept(vis)
     if not vis.accepted:
-      info fmt"accept {statmt.conds.len} conditions => no"
       return false
-  info fmt"accept {statmt.conds.len} conditions => yes"
   true
+
+proc updateChoiceStates(self: Dialog) =
+  self.state = WaitingForChoice
+  for slot in self.slots:
+    if not slot.isNil:
+      for cond in slot.stamt.conds:
+        let v = CondStateVisitor(dlg: self, mode: DialogSelMode.Show)
+        cond.accept(v)
 
 proc run(self: Dialog, statmt: YStatement) =
   if self.acceptConditions(statmt):
     let visitor = ExpVisitor(dialog: self)
     statmt.exp.accept(visitor)
   self.currentStatement += 1
-
-proc addChoice(self: Dialog, statmt: YStatement) =
-  self.addSlot(cast[YChoice](statmt.exp))
 
 proc running(self: Dialog, dt: float) =
   if not self.action.isNil and self.action.enabled:
@@ -235,17 +278,17 @@ proc running(self: Dialog, dt: float) =
       if not self.acceptConditions(statmt):
         self.currentStatement += 1
       elif statmt.exp of YChoice:
-        self.addChoice(statmt)
+        self.addSlot(statmt)
         self.currentStatement += 1
       elif self.choicesReady():
-        self.state = WaitingForChoice
+        self.updateChoiceStates()
       elif not self.action.isNil and self.action.enabled:
         self.action.update(dt)
         return
       else:
         self.run(statmt)
     if self.choicesReady():
-        self.state = WaitingForChoice
+        self.updateChoiceStates()
 
 proc newDialog*(): Dialog =
   result = Dialog()
@@ -261,7 +304,8 @@ proc update*(self: Dialog, dt: float) =
     discard
 
 proc start*(self: Dialog, actor, name, node: string) =
-  self.context = DialogContext(actor: actor, dialogName: name)
+  self.context = DialogContext(actor: actor, dialogName: name, parrot: true, limit: MaxChoices)
+  keepIf(self.states, proc(x: DialogConditionState): bool = x.mode != TempOnce)
   let path = name & ".byack"
   info fmt"start dialog {path}"
   let code = gGGPackMgr.loadString(path)
