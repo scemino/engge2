@@ -30,10 +30,10 @@
     * [x] shutup
     * [x] waitwhile
     * [x] limit
+    * [x] parrot
     * [ ] waitfor
     * [ ] allow objects
     * [ ] override
-    * [ ] parrot
   * [x] conditions
     * [x] code
     * [x] once

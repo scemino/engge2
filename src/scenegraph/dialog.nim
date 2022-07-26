@@ -7,6 +7,8 @@ import dlgtgt
 import ../scenegraph/textnode
 import ../game/resmanager
 import ../game/motors/motor
+import ../game/motors/action
+import ../game/motors/serialmotors
 import ../gfx/color
 import ../gfx/text
 import ../io/yack
@@ -210,7 +212,7 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let slot = cast[ptr DialogSlot](tag)[]
   case event:
   of Enter:
-    src.color = Red
+    src.color = Yellow
   of Leave:
     src.color = White
   of Down:
@@ -218,7 +220,12 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     for cond in slot.stamt.conds:
       let v = CondStateVisitor(dlg: slot.dlg, mode: DialogSelMode.Choose)
       cond.accept(v)
-    slot.dlg.selectLabel(slot.choice.goto.name)
+    if slot.dlg.context.parrot:
+      slot.dlg.state = DialogState.Active
+      slot.dlg.action = newSerialMotors(
+        [slot.dlg.tgt.say(slot.dlg.context.actor, slot.choice.text), newActionMotor(proc () = slot.dlg.selectLabel(slot.choice.goto.name))])
+    else:
+      slot.dlg.selectLabel(slot.choice.goto.name)
   else:
     discard
 

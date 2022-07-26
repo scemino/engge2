@@ -28,7 +28,8 @@ method say*(self: EngineDialogTarget, actor, text: string): Motor =
   actor.talking
 
 method waitWhile*(self: EngineDialogTarget, cond: string): Motor =
-  WaitWhile(tgt: self, cond: cond)
+  result = WaitWhile(tgt: self, cond: cond)
+  result.init()
 
 method shutup*(self: EngineDialogTarget) =
   stopTalking()
