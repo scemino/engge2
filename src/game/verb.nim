@@ -1,6 +1,6 @@
 const
   FAR_LOOK* = 8
-  VERB_WALKTO = 1
+  VERB_WALKTO* = 1
   VERB_LOOKAT* = 2
   VERB_TALKTO* = 3
   VERB_PICKUP = 4

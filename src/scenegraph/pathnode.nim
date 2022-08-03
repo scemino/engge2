@@ -15,7 +15,7 @@ proc newPathNode*(): PathNode =
 
 method drawCore(self: PathNode, transf: Mat4f) =
   let actor = gEngine.actor
-  if not actor.isNil:
+  if not actor.isNil and not actor.walkto.isNil:
     let walkTo = cast[WalkTo](actor.walkto)
     let path = walkTo.path
     if path.len > 0:

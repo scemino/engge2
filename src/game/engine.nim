@@ -416,7 +416,7 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
     actor.walk(noun2)
   return true
 
-proc cancelSentence(actor: Object) =
+proc cancelSentence(self: Engine, actor: Object) =
   info("cancelSentence")
   var actor = actor
   if actor.isNil: 
@@ -432,6 +432,12 @@ proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
       if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
         self.actor.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
 
+proc getVerb(self: Engine, id: int): Verb =
+  if not self.actor.isNil:
+    for verb in self.hud.actorSlot(self.actor).verbs:
+      if verb.id == id:
+        return verb  
+
 proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
   # TODO: WIP
   if not self.room.isNil and self.inputState.inputActive:
@@ -442,20 +448,21 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
-        let verb = gEngine.hud.verb
+        let verb = self.hud.verb
         if obj.table.rawexists(verb.fun):
           handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled and not self.clickedAtHandled(roomPos):
+        if not self.actor.isNil and scrPos.y > 172:
+          self.actor.walk(room_pos)
+          self.hud.verb = self.getVerb(VERB_WALKTO)
         # Just clicking on the ground
-        cancelSentence(gEngine.actor)
-        if not gEngine.actor.isNil:
-          gEngine.actor.walk(room_pos)
+        self.cancelSentence(self.actor)
     elif mbRight in btns:
       # button right: execute default verb
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
-        let verbName = gEngine.hud.actorSlot(gEngine.actor).verb(defVerbId.int).fun
+        let verbName = self.hud.actorSlot(self.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
           discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
 

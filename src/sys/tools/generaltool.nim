@@ -9,6 +9,7 @@ import ../../game/room
 import ../../game/walkbox
 import ../../game/motors/motor
 import ../../game/shaders
+import ../../scenegraph/dialog
 import ../../scenegraph/walkboxnode
 import ../../libs/imgui
 import ../../sys/app
@@ -34,6 +35,12 @@ proc getRoom(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.}
   else:
     result = false
 
+proc text(state: DialogState): string =
+  case state:
+  of DialogState.None: result = "no"
+  of DialogState.Active: result = "active"
+  of DialogState.WaitingForChoice: result = "waiting for choice"
+
 method render*(self: GeneralTool) =
   if gEngine.isNil or not gGeneralVisible:
     return
@@ -44,6 +51,8 @@ method render*(self: GeneralTool) =
   let scrPos = gEngine.winToScreen(mousePos())
   let roomPos = if gEngine.room.isNil: vec2f(0f, 0f) else: gEngine.room.screenToRoom(scrPos)
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
+  igText("Dialog: %s", text(gEngine.dlg.state).cstring)
+  igText("Verb: %d", gEngine.hud.verb.id)
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   

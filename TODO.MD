@@ -1,5 +1,10 @@
 # Engge II
 
+## Bugs
+
+* [ ] head is 1 pixel offset
+* [ ] tutorial objects are in background
+
 ## TODO
 
 * [ ] camera
@@ -68,7 +73,7 @@
   * [x] user preferences
   * [x] temp preferences (debug)
 * [ ] sentence
-  * [ ] cursor verb should be reset (walk to) when action is executed or cancelled
+  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
 * [x] debug tools (dear imgui)
   * [x] console
   * [x] general

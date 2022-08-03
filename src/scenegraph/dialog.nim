@@ -9,7 +9,6 @@ import ../game/resmanager
 import ../game/motors/motor
 import ../game/motors/action
 import ../game/motors/serialmotors
-import ../gfx/color
 import ../gfx/text
 import ../io/yack
 import ../io/textdb
