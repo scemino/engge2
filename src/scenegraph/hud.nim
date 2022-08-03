@@ -79,6 +79,7 @@ proc newHud*(): Hud =
   for i in 0..<result.actorSlots.len:
     result.actorSlots[i] = ActorSlot()
   result.init()
+  result.zOrder = 100
 
   # UI backing
   let gameSheet = gResMgr.spritesheet("GameSheet")

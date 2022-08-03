@@ -2,8 +2,10 @@
 
 ## Bugs
 
-* [ ] head is 1 pixel offset
-* [ ] tutorial objects are in background
+* [ ] actor's head is 1 pixel offset
+* [x] tutorial objects are in background
+* [x] cursor text is too big
+* [ ] inventory hotspot is wrong
 
 ## TODO
 

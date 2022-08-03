@@ -46,6 +46,7 @@ proc newInputState*(): InputState =
   result.cursorNode.scale = vec2(2f, 2f)
   result.text = newText(gResMgr.font("sayline"), "", thCenter)
   result.textNode = newTextNode(result.text)
+  result.textNode.scale = vec2(0.8f, 0.8f)
   result.node.addChild result.cursorNode
   result.node.addChild result.textNode
   result.textNode.offset = vec2(0f, frame.sourceSize.y.float32)
