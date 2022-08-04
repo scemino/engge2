@@ -1,4 +1,5 @@
 import std/tables
+import glm
 import ../../gfx/spritesheet
 import ../../scenegraph/node
 import ../../scenegraph/spritenode
@@ -92,7 +93,10 @@ method update(self: NodeAnim, el: float) =
         self.disable()
     self.node.setFrame(self.frames[self.index])
     if self.anim.offsets.len > 0:
-      self.node.pos = vec2f(self.anim.offsets[self.index])
+      var off = self.anim.offsets[self.index]
+      if self.node.flipX:
+        off.x = -off.x
+      self.node.pos = vec2f(off.x.float32, off.y.float32)
   elif self.layers.len != 0:
     var enabled = false
     for layer in self.layers:
