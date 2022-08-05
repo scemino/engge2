@@ -81,6 +81,7 @@ type
     hotspot*: Recti               ## hotspot
     objType*: ObjectType          ## object type: prop, trigger, object, spot
     sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
+    triggerActive*: bool
     nodeAnim*: Motor
     animLoop: bool
     animName*: string
@@ -150,7 +151,6 @@ type
     overlayTo*: Motor
     rotateTo*: Motor
     triggers*: seq[Object]        ## Triggers currently enabled in the room
-    trigger*: Object              ## Trigger where the current actor is
     effect*: RoomEffect
   RoomParser = object
     input: Stream

@@ -43,6 +43,9 @@ proc showProperties() =
     igText("Key: %s", gObject.key.cstring)
     igText("Name: %s", getText(gObject.name()).cstring)
     igText("Type: %s", ($gObject.objType).cstring)
+    if gObject.objType == otTrigger:
+      let state = if gObject.triggerActive: "yes" else: "no"
+      igText("Trigger active: %s", state.cstring)
     igSeparator()
     igText("State: %d", gObject.state)
     if igCombo("Anim", animIdx.addr, getAnim, nil, gObject.anims.len.int32, -1'i32):

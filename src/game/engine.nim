@@ -506,18 +506,15 @@ proc callTrigger(self: Engine, trigger: HSQOBJECT) =
 
 proc updateTriggers(self: Engine) =
   if not self.actor.isNil:
-    if not self.room.trigger.isNil:
-      if not self.room.trigger.contains(self.actor.node.pos):
-        info "call leave trigger " & self.room.trigger.name
-        self.callTrigger(self.room.trigger.leave)
-        self.room.trigger = nil
-    else:
-      for trigger in self.room.triggers:
-        if trigger.contains(self.actor.node.pos):
-          info "call enter trigger " & trigger.name
-          self.room.trigger = trigger
-          self.callTrigger(self.room.trigger.enter)
-          return
+    for trigger in self.room.triggers.toSeq:
+      if not trigger.triggerActive and trigger.contains(self.actor.node.pos):
+        info "call enter trigger " & trigger.name
+        trigger.triggerActive = true
+        self.callTrigger(trigger.enter)
+      elif trigger.triggerActive and not trigger.contains(self.actor.node.pos):
+        info "call leave trigger " & trigger.name
+        trigger.triggerActive = false
+        self.callTrigger(trigger.leave)
 
 proc update*(self: Node, elapsed: float) =
   if self.buttons.len > 0:
