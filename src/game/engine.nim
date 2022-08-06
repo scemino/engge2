@@ -689,8 +689,9 @@ proc update(self: Engine) =
 
 proc cameraPos*(self: Engine): Vec2f =
   ## Returns the camera position: the position of the middle of the screen.
-  let screenSize = self.room.getScreenSize()
-  cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
+  if not self.room.isNil:
+    let screenSize = self.room.getScreenSize()
+    result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
 proc render*(self: Engine) =
   self.update()

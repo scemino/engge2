@@ -254,7 +254,7 @@ proc `room`*(self: Object): Room =
   self.r
 
 proc contains*(self: Object, pos: Vec2f): bool =
-  var p = pos - self.node.pos
+  let p = pos - self.node.pos
   self.hotspot.contains(vec2i(p))
 
 proc layer*(self: Room, layer: int32): Layer =

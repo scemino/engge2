@@ -19,7 +19,7 @@ proc rectFromPositionSize*[T](pos, size: Vec2[T]): Rect[T] =
   rect(pos.x, pos.y, size.x, size.y)
 
 proc rectFromMinMax*[T](min, max: Vec2[T]): Rect[T] =
-  rect(min.x, min.y, max.x - min.x, max.y - min.y)
+  rect(min.x, min.y, max.x - min.x + 1, max.y - min.y + 1)
 
 proc x*[T](r: Rect[T]): T = r.arr[0]
 proc `x=`*[T](r: var Rect[T], x: T) = r.arr[0] = x

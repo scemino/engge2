@@ -12,7 +12,7 @@ proc parseRecti*(text: string): Recti =
   i += parseInt(text, y, i) + 3
   i += parseInt(text, x2, i) + 1
   i += parseInt(text, y2, i)
-  rect(x.int32, y.int32, (x2 - x).int32, (y2 - y).int32)
+  rect(x.int32, y.int32, (x2 - x).int32 + 1, (y2 - y).int32 + 1)
 
 proc parseVec2i*(value: string): Vec2i =
   var x, y: int

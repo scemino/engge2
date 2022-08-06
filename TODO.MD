@@ -2,11 +2,13 @@
 
 ## Bugs
 
-* [x] actor's head is 1 pixel offset
+* [ ] inventory hotspot is wrong
+* [ ] bug use verb mouse down
+* [ ] actor's head is 1 pixel offset
+* [x] layer 1 pixel offset :(
 * [x] tutorial objects are in background
 * [x] cursor text is too big
 * [x] some triggers don't work
-* [ ] inventory hotspot is wrong
 
 ## TODO
 

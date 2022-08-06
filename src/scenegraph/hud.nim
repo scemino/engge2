@@ -164,7 +164,7 @@ proc newHud*(): Hud =
   let itemsSheet = gResMgr.spritesheet("InventoryItems")
   let inventoryItemsTexture = gResMgr.texture(itemsSheet.meta.image)
   let inventoryItemsFrame = itemsSheet.frame("background")
-  for i in 0..7:
+  for i in 0..<NumInventoryObjects:
     var node = newSpriteNode(inventoryItemsTexture, inventoryItemsFrame)
     node.pos = vec2f(offsetX, 0f)
     node.setAnchorNorm(vec2(0.5f, 1f))
