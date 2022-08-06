@@ -444,7 +444,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.findObjAt(roomPos)
 
-    if mbLeft in btns:
+    if mbLeft in btns and mbLeft notin self.buttons:
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
@@ -457,7 +457,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
           self.hud.verb = self.getVerb(VERB_WALKTO)
         # Just clicking on the ground
         self.cancelSentence(self.actor)
-    elif mbRight in btns:
+    elif mbRight in btns and mbRight notin self.buttons:
       # button right: execute default verb
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
@@ -516,32 +516,38 @@ proc updateTriggers(self: Engine) =
         trigger.triggerActive = false
         self.callTrigger(trigger.leave)
 
-proc update*(self: Node, elapsed: float) =
-  if self.buttons.len > 0:
-    let scrPos = gEngine.winToScreen(mousePos())
-    for btn in self.buttons.toSeq:
+proc update*(self: Engine, node: Node, elapsed: float) =
+  let mouseState = mouseBtns()
+  let isMouseDn = mbLeft in mouseState and mbLeft notin self.buttons
+  if node.buttons.len > 0:
+    let scrPos = self.winToScreen(mousePos())
+    for btn in node.buttons.toSeq:
       # mouse inside button ?
-      if self.getRect().contains(scrPos):
+      if node.getRect().contains(scrPos):
         # enter button ?
         if not btn.inside:
           btn.inside = true
-          btn.callback(self, Enter, scrPos, btn.tag)
-        elif not btn.down and mbLeft in mouseBtns():
+          btn.callback(node, Enter, scrPos, btn.tag)
+        # mouse down on button ?
+        elif not btn.down and isMouseDn:
           btn.down = true
-          btn.callback(self, Down, scrPos, btn.tag)
-        elif btn.down and not (mbLeft in mouseBtns()):
+          btn.callback(node, Down, scrPos, btn.tag)
+        # mouse up on button ?
+        elif btn.down and mbLeft notin mouseState:
           btn.down = false
-          btn.callback(self, Up, scrPos, btn.tag)
+          btn.callback(node, Up, scrPos, btn.tag)
+      # mouse leave button ?
+      elif btn.inside:
+        btn.inside = false
+        btn.callback(node, Leave, scrPos, btn.tag)
       else:
-        if btn.inside:
-          btn.inside = false
-          btn.callback(self, Leave, scrPos, btn.tag)
+        btn.down = false
 
-  if not self.shakeMotor.isNil and self.shakeMotor.enabled():
-    self.shakeMotor.update(elapsed)
+  if not node.shakeMotor.isNil and node.shakeMotor.enabled():
+    node.shakeMotor.update(elapsed)
 
-  for node in self.children.toSeq:
-    node.update(elapsed)
+  for node in node.children.toSeq:
+    self.update(node, elapsed)
 
 proc clampPos(self: Engine, at: Vec2f): Vec2f =
   let screenSize = self.room.getScreenSize()
@@ -626,8 +632,8 @@ proc update(self: Engine) =
   self.hud.visible = self.inputState.inputVerbsActive and not self.room.isNil and self.room.fullScreen != 1 and self.dlg.state == DialogState.None
 
   # call clickedAt if any button down
+  let btns = mouseBtns()
   if self.dlg.state == DialogState.None:
-    let btns = mouseBtns()
     if mbLeft in btns:
       if mbLeft notin self.buttons:
         self.mouseDownTime = now()
@@ -637,7 +643,6 @@ proc update(self: Engine) =
           self.walkFast()
     else:
       self.walkFast(false)
-    self.buttons = btns
     if btns.len > 0:
       self.clickedAt(scrPos, btns)
 
@@ -650,9 +655,9 @@ proc update(self: Engine) =
 
   # update nodes
   if not self.scene.isNil:
-    self.scene.update(elapsed)
+    self.update(self.scene, elapsed)
   if not self.screen.isNil:
-    self.screen.update(elapsed)
+    self.update(self.screen, elapsed)
 
   # update threads
   for thread in self.threads.toSeq:
@@ -686,6 +691,7 @@ proc update(self: Engine) =
     actor.update(elapsed)
 
   self.updateTriggers()
+  self.buttons = btns
 
 proc cameraPos*(self: Engine): Vec2f =
   ## Returns the camera position: the position of the middle of the screen.
