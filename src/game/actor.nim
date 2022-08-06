@@ -78,7 +78,8 @@ proc setCostume*(self: Object, name, sheet: string) =
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
   ## Walks an actor to the `pos` or actor `obj` and then faces `dir`.
-  self.play(WalkAnimName, true)
+  if self.walkTo.isNil or not self.walkTo.enabled:
+    self.play(WalkAnimName, true)
   self.walkTo = newWalkTo(self, pos, facing)
 
 proc walk*(self: Object, obj: Object) =
