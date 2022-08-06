@@ -3,7 +3,7 @@
 ## Bugs
 
 * [ ] inventory hotspot is wrong
-* [ ] actor's head is 1 pixel offset
+* [x] actor's head is 1 pixel offset
 * [x] walk fast does not work
 * [x] bug use verb mouse down
 * [x] layer 1 pixel offset :(
