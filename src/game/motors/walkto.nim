@@ -23,6 +23,7 @@ proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   new(result)
   result.obj = obj
   result.path = obj.room.calculatePath(obj.node.pos, dest)
+  #info fmt"path: {result.path}"
   result.facing = facing
   result.init()
 
@@ -70,7 +71,7 @@ proc actorArrived(self: WalkTo) =
       # Did we get close enough?
       let dist = distance(self.obj.node.pos, self.obj.exec.noun1.getUsePos)
       let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun1.min_talk_dist else: self.obj.exec.noun1.min_use_dist
-      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} ?"
+      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.node.pos}, obj: {self.obj.exec.noun1.getUsePos}) ?"
       if not verbNotClose(self.obj.exec.verb) and dist > min_dist.float:
         self.obj.cantReach()
         return
@@ -99,6 +100,7 @@ method update(self: WalkTo, el: float) =
     let delta = dest - self.obj.node.pos
     let walkspeed = self.obj.walkSpeed * el
     var dx, dy: float
+    # arrived at destination ?
     if d < 1.0:
       self.obj.node.pos = self.path[0]
       self.path.delete 0
@@ -106,10 +108,12 @@ method update(self: WalkTo, el: float) =
         self.disable()
         self.actorArrived()
     else:
+      # actor needs to walk to the right
       if delta.x > 0.0:
         dx = min(walkspeed.x, delta.x)
       else:
         dx = -min(walkspeed.x, -delta.x)
+      # actor needs to walk up
       if delta.y > 0.0:
         dy = min(walkspeed.y, delta.y)
       else:

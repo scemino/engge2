@@ -465,7 +465,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
         let verbName = self.hud.actorSlot(self.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
           discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
-    elif mbLeft in btns and not self.actor.isNil and scrPos.y > 172:
+    elif self.walkFastState and mbLeft in btns and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
 
   # TODO: call callbacks

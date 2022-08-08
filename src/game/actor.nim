@@ -1,3 +1,4 @@
+import std/logging
 import std/json
 import std/options
 import std/tables
@@ -78,12 +79,14 @@ proc setCostume*(self: Object, name, sheet: string) =
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
   ## Walks an actor to the `pos` or actor `obj` and then faces `dir`.
+  info fmt"walk to obj {self.key}: {pos}, {facing}"
   if self.walkTo.isNil or not self.walkTo.enabled:
     self.play(WalkAnimName, true)
   self.walkTo = newWalkTo(self, pos, facing)
 
 proc walk*(self: Object, obj: Object) =
   ## Walks an actor to the `obj` and then faces it. 
+  info fmt"walk to obj {obj.key}: {obj.getUsePos}"
   self.walk(obj.getUsePos, some(getFacing(obj.useDir)))
 
 import motors/talking
