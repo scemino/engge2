@@ -1,6 +1,6 @@
 # Engge II
 
-## Bugs
+## Known Bugs
 
 * [ ] inventory hotspot is wrong
 * [x] actor's head is 1 pixel offset
@@ -68,10 +68,13 @@
   * [x] mouse cursor
 * [ ] triggers
   * [x] room trigger should be called in a thread (to be breakable)
-* [ ] pause game
-* [ ] savegames
 * [ ] achievements
 * [ ] UI dialogs
+  * [ ] savegames
+  * [ ] options
+  * [ ] savegames
+  * [ ] pause game
+  * [ ] quit game
 * [ ] shaders
 * [ ] continuous integration
 * [ ] preferences

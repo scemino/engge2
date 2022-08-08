@@ -84,7 +84,7 @@ proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
 
 proc walk*(self: Object, obj: Object) =
   ## Walks an actor to the `obj` and then faces it. 
-  self.walk(obj.node.pos + obj.usePos, some(getFacing(obj.useDir)))
+  self.walk(obj.getUsePos, some(getFacing(obj.useDir)))
 
 import motors/talking
 

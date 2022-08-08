@@ -188,6 +188,18 @@ proc rawexists*(obj: HSQOBJECT, name: string): bool =
   sq_settop(v, top)
   return false
 
+proc exists*(obj: HSQOBJECT, name: string): bool =
+  var v = gVm.v
+  let top = sq_gettop(v)
+  push(v, obj)
+  sq_pushstring(v, name, -1)
+  if SQ_SUCCEEDED(sq_get(v, -2)):
+    let oType = sq_gettype(v, -1)
+    sq_settop(v, top)
+    return oType != OT_NULL
+  sq_settop(v, top)
+  return false
+
 proc getId*(o: HSQOBJECT): int =
   result = 0
   if o.rawexists("_id"):

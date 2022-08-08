@@ -32,17 +32,17 @@ proc min_talk_dist(self: Object): int =
 proc min_use_dist(self: Object): int =
   if self.table.rawexists("useDist"):
     self.table.getf("useDist", result)
-    info fmt"obj {self.name}: {result}"
+    info fmt"useDist obj {self.name}: {result}"
   else:
     result = MIN_USE_DIST
-    info fmt"obj {self.name}: {result}"
+    info fmt"useDist obj {self.name}: {result}"
 
 proc verbNotClose(id: VerbId): bool =
   ## true of you don't have to be close to the object
   id == VERB_LOOKAT
 
 proc cantReach(self: Object) =
-  if self.table.rawexists("verbCantReach"):
+  if self.table.exists("verbCantReach"):
     self.table.call("verbCantReach")
 
 proc actorArrived(self: WalkTo) =
@@ -100,6 +100,7 @@ method update(self: WalkTo, el: float) =
     let walkspeed = self.obj.walkSpeed * el
     var dx, dy: float
     if d < 1.0:
+      self.obj.node.pos = self.path[0]
       self.path.delete 0
       if self.path.len == 0:
         self.disable()
