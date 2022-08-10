@@ -15,6 +15,9 @@ type
   WaitWhile* = ref object of Motor
     cond: string
     tgt: EngineDialogTarget
+  Pause* = ref object of Motor
+    time: float
+    tgt: EngineDialogTarget
 
 proc actor(name: string): Object =
   for actor in gEngine.actors:
@@ -47,6 +50,10 @@ method waitWhile*(self: EngineDialogTarget, cond: string): Motor =
 method shutup*(self: EngineDialogTarget) =
   stopTalking()
 
+method pause*(self: EngineDialogTarget, time: float): Motor =
+  result = Pause(tgt: self, time: time)
+  result.init()
+
 method execCond*(self: EngineDialogTarget, cond: string): bool =
   # check if the condition corresponds to an actor name
   let actor = actor(cond)
@@ -60,7 +67,7 @@ method execCond*(self: EngineDialogTarget, cond: string): bool =
     # compile
     sq_pushroottable(gVm.v)
     let code = "return " & cond
-    if SQ_FAILED(sq_compilebuffer(gVm.v, code, code.len, "condition", SQTrue)):
+    if SQ_FAILED(sq_compilebuffer(gVm.v, code.cstring, code.len, "condition", SQTrue)):
       error fmt"Error executing code {code}"
     else:
       sq_push(gVm.v, -2)
@@ -72,6 +79,11 @@ method execCond*(self: EngineDialogTarget, cond: string): bool =
         result = condResult != 0
         sq_settop(gVm.v, top)
 
-method update*(self: WaitWhile, el: float) =
+method update*(self: WaitWhile, dt: float) =
   if not self.tgt.execCond(self.cond):
+    self.disable()
+
+method update*(self: Pause, dt: float) =
+  self.time -= dt
+  if self.time <= 0:
     self.disable()
