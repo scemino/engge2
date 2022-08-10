@@ -106,7 +106,7 @@ proc blinkRate*(self: Object, slice: HSlice[float, float]) =
     self.blink = newBlink(self, slice)
 
 proc isWalking*(self: Object): bool =
-  self.walkTo.isNil or not self.walkTo.enabled()
+  not self.walkTo.isNil and self.walkTo.enabled()
 
 proc stopWalking*(self: Object) =
   if not self.walkTo.isNil:
