@@ -283,6 +283,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.room = room
   self.scene = room.scene
   self.room.numLights = 0
+  self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
   # call actor enter function and objects enter function
   self.actorEnter()
