@@ -470,17 +470,8 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
 
   # TODO: call callbacks
 
-proc callTrigger(self: Engine, trigger: HSQOBJECT) =
+proc callTrigger(self: Engine, obj: Object, trigger: HSQOBJECT) =
   if trigger.objType != OT_NULL:
-    # get environment object
-    sq_pushthread(gVm.v, gVm.v)
-    var env_obj: HSQOBJECT
-    sq_resetobject(env_obj)
-    if SQ_FAILED(sq_getstackobj(gVm.v, -1, env_obj)):
-      error "Couldn't get coroutine environment object from stack"
-      return
-    sq_pop(gVm.v, 1)
-
     # create trigger thread
     discard sq_newthread(gVm.v, 1024)
     var thread_obj: HSQOBJECT
@@ -498,7 +489,7 @@ proc callTrigger(self: Engine, trigger: HSQOBJECT) =
     let args = if nParams == 2: @[self.actor.table] else: @[]
     sq_pop(gVm.v, 1)
     
-    let thread = newThread("Trigger", false, gVm.v, thread_obj, env_obj, trigger, args)
+    let thread = newThread("Trigger", false, gVm.v, thread_obj, obj.table, trigger, args)
     info fmt"create triggerthread id: {thread.getId()} v={cast[int](thread.v.unsafeAddr)}"
     gEngine.threads.add(thread)
 
@@ -512,11 +503,11 @@ proc updateTriggers(self: Engine) =
       if not trigger.triggerActive and trigger.contains(self.actor.node.pos):
         info "call enter trigger " & trigger.name
         trigger.triggerActive = true
-        self.callTrigger(trigger.enter)
+        self.callTrigger(trigger, trigger.enter)
       elif trigger.triggerActive and not trigger.contains(self.actor.node.pos):
         info "call leave trigger " & trigger.name
         trigger.triggerActive = false
-        self.callTrigger(trigger.leave)
+        self.callTrigger(trigger, trigger.leave)
 
 proc update*(self: Engine, node: Node, elapsed: float) =
   let mouseState = mouseBtns()

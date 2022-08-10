@@ -3,6 +3,7 @@
 ## Known Bugs
 
 * [ ] inventory hotspot is wrong
+* [x] crash with "trying to set 'thread'"
 * [x] actor's head is 1 pixel offset
 * [x] walk fast does not work
 * [x] bug use verb mouse down
