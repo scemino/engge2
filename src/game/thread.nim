@@ -63,6 +63,8 @@ proc newThread*(name: string, global: bool, v: HSQUIRRELVM, threadObj, envObj, c
   result.args = args
   result.pauseable = true
 
+  for arg in result.args.mitems:
+    sq_addref(result.v, arg)  
   sq_addref(result.v, result.threadObj)
   sq_addref(result.v, result.envObj)
   sq_addref(result.v, result.closureObj)
@@ -78,6 +80,8 @@ method getName*(self: Thread): string =
 
 proc destroy*(self: Thread) =
   debug fmt"destroy thread {self.id}"
+  for arg in self.args.mitems:
+    discard sq_release(self.v, arg)  
   discard sq_release(self.v, self.threadObj)
   discard sq_release(self.v, self.envObj)
   discard sq_release(self.v, self.closureObj)
