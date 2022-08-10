@@ -296,6 +296,8 @@ proc running(self: Dialog, dt: float) =
         self.run(statmt)
     if self.choicesReady():
         self.updateChoiceStates()
+    else:
+      self.state = None
 
 proc newDialog*(): Dialog =
   result = Dialog()
