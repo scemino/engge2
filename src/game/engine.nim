@@ -417,6 +417,19 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
 
 import actor
 
+proc preWalk(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object): bool =
+  var n2Table: HSQOBJECT
+  if not noun2.isNil:
+    n2Table = noun2.table
+  else:
+    sq_resetobject(n2Table)
+  if actor.table.rawexists("actorPreWalk"):
+    actor.table.sqCallFunc(result, "actorPreWalk", [verbId.int32, noun1.table, n2Table])
+  if not result:
+    let funcName = if noun1.id.isActor: "actorPreWalk" else: "objectPreWalk"
+    if rawexists(noun1.table, funcName):
+      noun1.table.sqCallFunc(result, funcName, [verbId.int32, noun1.table, n2Table])
+
 proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.
   ## If `actor` is `null` then the selectedActor is assumed.
@@ -443,6 +456,9 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
       discard self.callVerb(actor, verbId, noun1, noun2)
       return true
   
+  if self.preWalk(actor, verbId, noun1, noun2):
+    return true
+
   if verbNoWalkTo(verbId, noun1):
     if not noun1.inInventory: # TODO: test if verb.flags != VERB_INSTANT
       actor.turn(noun1)

@@ -58,6 +58,37 @@ macro sqCall*(name, args): untyped =
   let v = newDotExpr(ident("gVm"), ident("v"))
   result = newStmtList(newCall(ident("sqCall"), v, newCall("rootTbl", v), name, args))
 
+macro sqCallFunc*(v, o, res, name, args): untyped =
+  result = newStmtList()
+  
+  # save top
+  result.add(newLetStmt(ident("top"), newCall(ident("sq_gettop"), v)))
+
+  # push function
+  result.add(newCall(ident("pushFunc"), v, o, name))
+  
+  # push args
+  result.add(newCall(ident("push"), v, o))
+  for arg in args:
+    result.add(newCall(ident("push"), v, arg))
+  
+  # call func
+  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("sq_call"), v, newLit(1 + args.len()), newLit(SQFalse), newLit(SQTrue))))
+  
+  # get result
+  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("get"), v, newLit(-1), res)))
+  
+  # restore top
+  result.add(newCall(ident("sq_settop"), v, ident("top")))
+
+macro sqCallFunc*(o, res, name, args): untyped =
+  let v = newDotExpr(ident("gVm"), ident("v"))
+  result = newStmtList(newCall(ident("sqCallFunc"), v, o, res, name, args))
+
+macro sqCallFunc*(res, name, args): untyped =
+  let v = newDotExpr(ident("gVm"), ident("v"))
+  result = newStmtList(newCall(ident("sqCallFunc"), v, newCall("rootTbl", v), res, name, args))
+
 proc getArr*(v: HSQUIRRELVM, o: HSQOBJECT, arr: var seq[string]) =
   sq_pushobject(v, o)
   sq_pushnull(v)
@@ -240,3 +271,8 @@ iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
     yield (key, obj)
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
+
+when isMainModule:
+  dumpTree:
+    let top = sq_gettop(v)
+    sq_settop(v, top)
