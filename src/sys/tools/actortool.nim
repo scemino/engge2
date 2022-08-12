@@ -52,6 +52,7 @@ proc showProperties() =
     igDragFloat2("Position", gActor.node.pos.arr)
     igDragFloat2("Offset", gActor.node.offset.arr)
     igDragFloat("Volume", addr gActor.volume, 1f, 0f, 1f)
+    igDragInt4("Hotspot", gActor.hotspot.arr)
     igDragFloat2("WalkSpeed", gActor.walkSpeed.arr)
     igSeparator()
     gActor.showNode(gActor.node)

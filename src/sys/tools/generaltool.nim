@@ -35,6 +35,19 @@ proc getRoom(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.}
   else:
     result = false
 
+proc getSelActors(): seq[Object] =
+  for slot in gEngine.hud.actorSlots:
+    if slot.selectable:
+      result.add slot.actor
+
+proc getActor(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.} =
+  let actors = getSelActors()
+  if idx in 0..<actors.len:
+    out_text[] = cast[constChar](actors[idx].key[0].unsafeAddr)
+    result = true
+  else:
+    result = false
+
 proc text(state: DialogState): string =
   case state:
   of DialogState.None: result = "no"
@@ -119,6 +132,10 @@ method render*(self: GeneralTool) =
           igText(fmt"{obj.name} ({obj.key})".cstring)
         igTreePop()
 
+  let actors = getSelActors()
+  var actorIndex = actors.find(gEngine.actor).int32
+  if igCombo("Actor", actorIndex.addr, getActor, nil, actors.len.int32, -1'i32):
+    gEngine.setCurrentActor(actors[actorIndex])
 
   # if I remove this it does not compile, why ???
   if igBeginTable("???", 1, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):

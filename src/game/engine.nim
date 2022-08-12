@@ -324,13 +324,28 @@ proc setRoom*(self: Engine, room: Room) =
 proc inInventory*(obj: Object): bool =
   gEngine.inventory.contains obj
 
-proc findObjAt*(self: Engine, pos: Vec2f): Object =
+iterator objsAt*(self: Engine, pos: Vec2f): Object =
   if not self.hud.obj.isNil:
-    return self.hud.obj
+    yield self.hud.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects:
       if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
-        return obj
+        yield obj
+
+proc objAt*(self: Engine, pos: Vec2f): Object =
+  for obj in self.objsAt(pos):
+    return obj
+
+proc objAt*(self: Engine, pos: Vec2f, pred: proc(x: Object): bool): Object =
+  for obj in self.objsAt(pos):
+    if pred(obj):
+      return obj
+
+proc objAt*(self: Engine, pos: Vec2f, flags: int): Object =
+  self.objAt(pos, proc (x: Object): bool = x.getFlags().hasFlag(flags))
+
+proc inventoryAt*(self: Engine, pos: Vec2f): Object =
+  self.objAt(pos, proc (x: Object): bool = x.inInventory())
 
 proc winToScreen*(self: Engine, pos: Vec2f): Vec2f =
   result = (pos / vec2f(appGetWindowSize())) * vec2(1280f, 720f)
@@ -340,6 +355,13 @@ proc verbNoWalkTo(verbId: VerbId, noun1: Object): bool =
   if verbId == VERB_LOOKAT:
     result = (noun1.flags and FAR_LOOK) != 0
 
+proc giveTo(actor1, actor2, obj: Object) =
+  obj.owner = actor2
+  actor2.inventory.add obj
+  let index = actor1.inventory.find obj
+  if index != -1:
+    actor1.inventory.del index
+  
 proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
   # Called after the actor has walked to the object.
   let name = if actor.isNil: "currentActor" else: actor.name
@@ -363,6 +385,23 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
     if self.useFlag != ufNone:
       self.noun1 = noun1
       return
+
+  if verbId == VERB_GIVE:
+    if noun2.isNil:
+      info "set use flag to ufGiveTo"
+      self.useFlag = ufGiveTo
+      self.noun1 = noun1
+    else:
+      var handled: bool
+      if noun2.table.rawExists(verbFuncName):
+        info fmt"call {verbFuncName} on actor {noun2.key}"
+        noun2.table.callFunc(handled, verbFuncName, [noun1.table])
+      if not handled:
+        info "call objectGive"
+        call("objectGive", [noun1.table, self.actor.table, noun2.table])
+        self.actor.giveTo(noun2, noun1)
+        self.hud.updateInventory()
+    return
 
   if noun2.isNil:
     call(noun1.table, verbFuncName)
@@ -443,14 +482,14 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
   # TODO: WIP
   if not self.room.isNil and self.inputState.inputActive:
     let roomPos = self.room.screenToRoom(scrPos)
-    let obj = self.findObjAt(roomPos)
+    let obj = self.objAt(roomPos)
 
     if mbLeft in btns and mbLeft notin self.buttons:
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
         let verb = self.hud.verb
-        if obj.table.rawexists(verb.fun):
+        if obj.table.exists(verb.fun) or verb.id == VERB_GIVE:
           handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled and not self.clickedAtHandled(roomPos):
         if not self.actor.isNil and scrPos.y > 172:
@@ -594,9 +633,18 @@ proc update(self: Engine) =
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
     if self.hud.verb.id == VERB_USE and self.useFlag != ufNone:
-      self.noun2 = self.findObjAt(roomPos)
+      self.noun2 = self.objAt(roomPos)
+    elif self.hud.verb.id == VERB_GIVE:
+      if self.useFlag != ufGiveTo:
+        self.noun1 = self.inventoryAt(roomPos)
+        self.useFlag = ufNone
+        self.noun2 = nil
+      else:
+        self.noun2 = self.objAt(roomPos, GIVEABLE)
+        if not self.noun2.isNil:
+          info fmt"Give '{self.noun1.key}' to '{self.noun2.key}'"
     else:
-      self.noun1 = self.findObjAt(roomPos)
+      self.noun1 = self.objAt(roomPos)
       self.useFlag = ufNone
       self.noun2 = nil
     self.inputState.setText(self.cursorText)

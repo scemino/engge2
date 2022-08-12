@@ -1,2 +1,3 @@
 const 
+  GIVEABLE* = 0x1000
   TALKABLE* = 0x2000

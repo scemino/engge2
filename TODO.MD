@@ -57,7 +57,7 @@
 * [ ] HUD
   * [ ] sentence
     * [x] use flag: with, in, on
-    * [ ] use flag: giveto
+    * [x] use flag: giveto
     * [ ] use lookat verb for inventory object 
   * [ ] scroll inventory
   * [ ] fade

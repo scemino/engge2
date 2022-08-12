@@ -132,7 +132,7 @@ proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get x")
   if SQ_FAILED(get(v, 3, y)):
     return sq_throwerror(v, "failed to get y")
-  let obj = gEngine.findObjAt(vec2(x.float32,y.float32))
+  let obj = gEngine.objAt(vec2(x.float32,y.float32))
   if obj.isNil:
     sq_pushnull(v)
   else:
@@ -384,7 +384,7 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get right")
     if SQ_FAILED(get(v, 6, bottom)):
       return sq_throwerror(v, "failed to get bottom")
-    obj.hotspot = rect(left, top, right-left, bottom-top)
+    obj.hotspot = rect(left, top, right - left + 1, bottom - top + 1)
     result = 0
 
 proc objectIcon(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -879,6 +879,7 @@ proc removeInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   obj.removeInventory()
+  gEngine.hud.updateInventory()
   0
 
 proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =

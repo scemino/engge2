@@ -8,6 +8,7 @@ import ../game/resmanager
 import ../gfx/color
 import ../gfx/recti
 import ../gfx/spritesheet
+import ../gfx/graphics
 import ../game/room
 import ../game/verb
 import ../game/screen
@@ -194,8 +195,8 @@ proc updateInventory*(self: Hud) =
     let startOffsetX = 640f + 56f + 137f / 2f
     let startOffsetY = 4f + 75f
     let itemsSheet = gResMgr.spritesheet("InventoryItems")
-    let count = self.act.inventory.len - self.act.inventoryOffset * 4
-    for i in 0..<min(NumInventoryObjects, count):
+    let count = min(NumInventoryObjects, self.act.inventory.len - self.act.inventoryOffset * 4)
+    for i in 0..<count:
       let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
       let icon = obj.getIcon()
       if itemsSheet.frameTable.hasKey(icon):
@@ -206,9 +207,14 @@ proc updateInventory*(self: Hud) =
         self.inventoryNodes[i].setFrame(itemFrame)
         self.inventoryNodes[i].scale = vec2(4f, 4f)
         self.inventoryNodes[i].setAnchorNorm(vec2f(0.5f, 0f))
+        self.inventoryNodes[i].buttons.setLen 0
         self.inventoryNodes[i].addButton(onInventoryObject, self.invRects[i].addr)
       else:
         warn fmt"Icon '{icon}' for object {obj.name}({obj.key}) not found in InventoryItems spritesheet"
+    # reset other slots
+    for i in count..<NumInventoryObjects:
+      self.inventoryNodes[i].setTexture gEmptyTexture
+      self.inventoryNodes[i].buttons.setLen 0
 
 proc getPos*(self: Hud, inv: Object): Vec2f =
   if not self.act.isNil:
@@ -264,12 +270,12 @@ proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
 proc onInventoryObject(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let invRect = cast[ptr InventoryRect](tag)
   let obj = invRect.hud.act.inventory[invRect.index]
-  let name = if obj.isNil: "(none)" else: obj.name
+  let name = if obj.isNil: "(none)" else: obj.key
   info fmt"on inventory object {name}"
   case event:
   of Enter:
     src.shakeMotor = newShake(0.3, src, 1.2f)
-    invRect.hud.obj = invRect.hud.act.inventory[invRect.index]
+    invRect.hud.obj = obj
   of Leave:
     invRect.hud.obj = nil
   of Down:

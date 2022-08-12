@@ -152,6 +152,9 @@ template callFunc*[T](v: HSQUIRRELVM, res: var T, o: HSQOBJECT, name: string; ar
 template callFunc*[T](o: HSQOBJECT, res: var T, name: string; args: openArray[untyped]) =
   gVm.v.callFunc(res, o, name, args)
 
+template callFunc*[T](res: var T, name: string, args: openArray[untyped]) =
+  gVm.v.callFunc(res, rootTbl(gVm.v), name, args)
+
 proc call*(o: HSQOBJECT, name: string) =
   call(gVm.v, o, name)
 

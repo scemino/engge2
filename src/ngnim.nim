@@ -56,7 +56,7 @@ proc runVm() =
 proc main() =
   # create loggers
   addHandler(newConsoleLogger())
-  addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlError))
+  addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn))
   addHandler(newRollingFileLogger("ng.log"))
   let consoleTool = newConsoleTool()
   addHandler(newConsoleToolLogger(consoleTool))
