@@ -1,5 +1,6 @@
 import std/logging
 import std/strformat
+import std/options
 import glm
 import sqnim
 import squtils
@@ -655,13 +656,19 @@ proc actorWalkTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get actor or object")
     else:
       actor.walk(obj)
-  elif nArgs == 4:
+  elif nArgs == 4 or nArgs == 5:
     var x, y: int
     if SQ_FAILED(get(v, 3, x)):
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    actor.walk(vec2(x.float32, y.float32))
+    var facing: Option[Facing]
+    if nArgs == 5:
+      var dir: int
+      if SQ_FAILED(get(v, 5, dir)):
+        return sq_throwerror(v, "failed to get dir")
+      facing = some(dir.Facing)
+    actor.walk(vec2(x.float32, y.float32), facing)
   else:
     return sq_throwerror(v, "invalid number of arguments in actorWalkTo")
   0
