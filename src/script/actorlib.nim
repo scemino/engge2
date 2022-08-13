@@ -515,7 +515,7 @@ proc actorTurnTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     actor.turn(facing.Facing)
   else:
     let obj = obj(v, 3)
-    if not obj.isNil:
+    if obj.isNil:
       return sq_throwerror(v, "failed to get object to face to")
     actor.turn(obj)
   return 0
