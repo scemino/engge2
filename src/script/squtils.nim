@@ -73,7 +73,7 @@ macro sqCallFunc*(v, o, res, name, args): untyped =
     result.add(newCall(ident("push"), v, arg))
   
   # call func
-  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("sq_call"), v, newLit(1 + args.len()), newLit(SQFalse), newLit(SQTrue))))
+  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("sq_call"), v, newLit(1 + args.len()), newLit(SQTrue), newLit(SQTrue))))
   
   # get result
   result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("get"), v, newLit(-1), res)))
