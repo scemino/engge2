@@ -280,10 +280,25 @@ proc actorEnter(self: Engine) =
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
+
+  # exit current room
+  self.fade.enabled = false
+  self.exitRoom(self.room)
+
+  if not room.isNil:
+    # sets the current room for scripts
+    rootTbl(gVm.v).setf("currentRoom", room.table)
+
   self.room = room
   self.scene = room.scene
   self.room.numLights = 0
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
+
+  # move current actor to the new room
+  if not gEngine.actor.isNil:
+    gEngine.actor.room = room
+    if not door.isNil:
+      gEngine.actor.node.pos = door.getUsePos
 
   # call actor enter function and objects enter function
   self.actorEnter()
