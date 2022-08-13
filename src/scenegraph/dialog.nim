@@ -320,3 +320,4 @@ proc start*(self: Dialog, actor, name, node: string) =
   let code = gGGPackMgr.loadString(path)
   self.cu = parseYack(code, path)
   self.selectLabel(node)
+  self.update(0)
