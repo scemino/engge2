@@ -7,8 +7,8 @@
 * [ ] empty inventory icon has 1 white pixel
 * [ ] inventory hotspot is wrong
 * [ ] dialog choice hotspot is wrong
-* [ ] objectAlphaTo can be called with null as argument
 * [ ] wheels are missing in pigeons van
+* [x] objectAlphaTo can be called with null as argument
 * [x] invalid room size
 * [x] when using camera on cadaver, the actor says there is no more film inside
 * [x] an actor can give something to itself

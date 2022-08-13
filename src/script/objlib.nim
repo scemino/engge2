@@ -267,21 +267,22 @@ proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes an object's alpha from its current state to the specified alpha over the time period specified by time.
   ## 
   ## If an interpolationMethod is used, the change will follow the rules of the easing method, e.g. LINEAR, EASE_INOUT.
-  ## See also stopObjectMotors. 
-  let obj = obj(v, 2)
-  if obj.isNil:
-    return sq_throwerror(v, "failed to get object")
-  var alpha = 0.0
-  if SQ_FAILED(get(v, 3, alpha)):
-    return sq_throwerror(v, "failed to get alpha")
-  alpha = clamp(alpha, 0.0, 1.0);
-  var t = 0.0
-  if SQ_FAILED(get(v, 4, t)):
-    return sq_throwerror(v, "failed to get time")
-  var interpolation = 0
-  if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
-    interpolation = 0
-  obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation)
+  ## See also stopObjectMotors.
+  if sq_gettype(v, 2) != OT_NULL:
+    let obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object")
+    var alpha = 0.0
+    if SQ_FAILED(get(v, 3, alpha)):
+      return sq_throwerror(v, "failed to get alpha")
+    alpha = clamp(alpha, 0.0, 1.0);
+    var t = 0.0
+    if SQ_FAILED(get(v, 4, t)):
+      return sq_throwerror(v, "failed to get time")
+    var interpolation = 0
+    if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
+      interpolation = 0
+    obj.alphaTo = newAlphaTo(t, obj, alpha, interpolation)
   0
 
 proc objectBumperCycle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
