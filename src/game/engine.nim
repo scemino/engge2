@@ -285,9 +285,8 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.fade.enabled = false
   self.exitRoom(self.room)
 
-  if not room.isNil:
-    # sets the current room for scripts
-    rootTbl(gVm.v).setf("currentRoom", room.table)
+  # sets the current room for scripts
+  rootTbl(gVm.v).setf("currentRoom", room.table)
 
   self.room = room
   self.scene = room.scene
@@ -434,16 +433,20 @@ import actor
 
 proc preWalk(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object): bool =
   var n2Table: HSQOBJECT
+  var n2Name: string
   if not noun2.isNil:
     n2Table = noun2.table
+    n2Name = fmt"{noun2.name}({noun2.key})"
   else:
     sq_resetobject(n2Table)
   if actor.table.rawexists("actorPreWalk"):
+    info fmt"actorPreWalk {verbId} n1={noun1.name}({noun1.key}) n2={n2Name}"
     actor.table.sqCallFunc(result, "actorPreWalk", [verbId.int32, noun1.table, n2Table])
   if not result:
     let funcName = if noun1.id.isActor: "actorPreWalk" else: "objectPreWalk"
     if rawexists(noun1.table, funcName):
       noun1.table.sqCallFunc(result, funcName, [verbId.int32, noun1.table, n2Table])
+      info fmt"{funcName} {verbId} n1={noun1.name}({noun1.key}) n2={n2Name} -> {result}"
 
 proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.

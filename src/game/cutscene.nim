@@ -3,6 +3,7 @@ import std/strformat
 import sqnim
 import ../script/vm
 import ../script/squtils
+import ../game/room
 import ids
 import thread
 import inputstate
@@ -16,7 +17,7 @@ type
     csCheckOverride
     csEnd
     csQuit
-  Cutscene = ref object of ThreadBase
+  Cutscene* = ref object of ThreadBase
     id: int
     v: HSQUIRRELVM
     threadObj, closure, closureOverride, envObj: HSQOBJECT
@@ -72,6 +73,9 @@ proc checkEndCutscene(self: Cutscene) =
     self.state = csEnd
     debug fmt"end cutscene: {self.getId()}"
 
+proc cutsceneOverride*(self: Cutscene) =
+  self.state = csOverride
+
 proc doCutsceneOverride(self: Cutscene) =
   if not sq_isnull(self.closureOverride):
     self.state = csCheckOverride
@@ -94,6 +98,7 @@ method stop*(self: Cutscene) =
   gEngine.inputState.setState(self.inputState)
   info fmt"Restore cutscene input: {self.inputState}"
   gEngine.follow = gEngine.actor
+  gEngine.setRoom(gEngine.actor.room)
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())

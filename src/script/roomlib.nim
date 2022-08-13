@@ -7,6 +7,7 @@ import ../util/utils
 import ../game/engine
 import ../game/motors/overlayto
 import ../game/motors/rotateto
+import ../game/motors/motor
 import ../game/room
 import ../game/walkbox
 import ../util/tween
@@ -393,6 +394,8 @@ proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getinteger(v, 2, startColor)):
     return sq_throwerror(v, "failed to get startColor")
   let room = gEngine.room
+  if not room.overlayTo.isNil:
+      room.overlayTo.disable()
   room.overlay = rgba(startColor.int)
   if numArgs == 4:
     var endColor: SQInteger
