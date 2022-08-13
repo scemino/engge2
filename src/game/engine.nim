@@ -671,7 +671,7 @@ proc update(self: Engine) =
         self.useFlag = ufNone
         self.noun2 = nil
       else:
-        self.noun2 = self.objAt(roomPos, GIVEABLE)
+        self.noun2 = self.objAt(roomPos, proc (x: Object): bool = x != self.actor and x.getFlags().hasFlag(GIVEABLE))
         if not self.noun2.isNil:
           info fmt"Give '{self.noun1.key}' to '{self.noun2.key}'"
     else:

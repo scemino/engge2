@@ -2,12 +2,12 @@
 
 ## Known Bugs
 
-* [ ] an actor can give something to itself
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
 * [ ] when using camera on cadaver, the actor says there is no more film inside
 * [ ] inventory hotspot is wrong
+* [x] an actor can give something to itself
 * [x] dialog text can contains this \" instead of "
 * [x] when using a door, the actor is no more in the current room
 * [x] crash with "trying to set 'thread'"
