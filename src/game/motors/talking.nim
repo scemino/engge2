@@ -91,9 +91,6 @@ proc say(self: Talking, text: string) =
       self.obj.play(state)
       txt = txt.substr(i + 1)
 
-  # replace \" by "
-  txt = txt.replace("\\\"", "\"")
-
   self.obj.sayNode.remove()
   var text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text

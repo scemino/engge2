@@ -8,6 +8,7 @@
 * [ ] empty inventory icon has 1 white pixel
 * [ ] when using camera on cadaver, the actor says there is no more film inside
 * [ ] inventory hotspot is wrong
+* [x] dialog text can contains this \" instead of "
 * [x] when using a door, the actor is no more in the current room
 * [x] crash with "trying to set 'thread'"
 * [x] actor's head is 1 pixel offset

@@ -31,6 +31,8 @@ proc getText(self: TextDb, id: int): string =
     result = self.texts[id]
     if result.endsWith("#M") or result.endsWith("#F"):
       result = result[0..^3]
+    # replace \" by "
+    result = result.replace("\\\"", "\"")
   else:
     result = fmt"Text {id} not found"
     error fmt"Text {id} not found in {self.texts}"
