@@ -632,16 +632,17 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   result.scene.addChild result.overlayNode
 
   # backgrounds
-  var names: seq[string]
+  var backNames: seq[string]
   if jRoom["background"].kind == JString:
-    names.add(jRoom["background"].getStr)
+    backNames.add(jRoom["background"].getStr)
   else:
-    names.add(jRoom["background"].items().toSeq.mapIt(it.getStr).toSeq)
-  let layer = newLayer(names, vec2(1f, 1f), 0)
+    backNames.add(jRoom["background"].items().toSeq.mapIt(it.getStr).toSeq)
+  let layer = newLayer(backNames, vec2(1f, 1f), 0)
   layer.room = result
   result.layers.add(layer)
 
   # layers
+  var names: seq[string]
   if jRoom.hasKey("layers"):
     for jLayer in jRoom["layers"].items():
       names.setLen(0)
@@ -703,6 +704,13 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   result.spriteSheet = gResMgr.spritesheet(result.sheet)
   result.texture = gResMgr.texture(result.spriteSheet.meta.image)
   result.mergedPolygon = merge(result.walkboxes)
+
+  # Fix room size (why ?)
+  var width = 0'i32
+  for name in backNames:
+    width += result.spriteSheet.frame(name).sourceSize.x
+  result.roomSize.x = width
+  info fmt"roomSize={result.roomSize}"
 
 proc parseRoom*(table: HSQOBJECT, s: Stream, filename: string = ""): Room =
   ## Parses from a stream `s` into a `Room`. `filename` is only needed
