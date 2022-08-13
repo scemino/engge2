@@ -163,7 +163,15 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var pos: Vec2f
   var duration: float
   var interpolation: InterpolationMethod
-  if numArgs == 4:
+  if numArgs == 3:
+    let obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get object/actor")
+    pos = obj.getUsePos
+    if SQ_FAILED(get(v, 3, duration)):
+        return sq_throwerror(v, "failed to get duration")
+    interpolation = ikLinear
+  elif numArgs == 4:
     if sq_gettype(v, 2) == OT_INTEGER:
       var x: int
       if SQ_FAILED(get(v, 2, x)):
