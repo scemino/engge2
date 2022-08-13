@@ -69,10 +69,10 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     result.layers.add newNodeAnim(obj, layer, fps, rootNode, loop, instant)
 
 proc trigSound(self: NodeAnim) =
-  if self.anim.triggers.len > 0:
-      var trigger = self.anim.triggers[self.index]
-      if trigger.len > 0:
-        self.obj.trig(trigger)
+  if self.anim.triggers.len > 0 and self.index < self.anim.triggers.len:
+    let trigger = self.anim.triggers[self.index]
+    if trigger.len > 0:
+      self.obj.trig(trigger)
 
 method update(self: NodeAnim, el: float) =
   if not self.node.isNil:

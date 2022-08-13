@@ -8,6 +8,7 @@
 * [ ] inventory hotspot is wrong
 * [ ] dialog choice hotspot is wrong
 * [ ] wheels are missing in pigeons van
+* [x] sheriff animation flip_coin3 crashs 
 * [x] objectAlphaTo can be called with null as argument
 * [x] invalid room size
 * [x] when using camera on cadaver, the actor says there is no more film inside
