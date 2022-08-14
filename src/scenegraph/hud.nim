@@ -241,6 +241,7 @@ proc `actor=`*(self: Hud, actor: Object) =
       self.verbNodes[i-1].pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
       self.verbNodes[i-1].setFrame(verbFrame)
       self.verbNodes[i-1].setAnchorNorm(vec2f(0f, 0f))
+      self.verbNodes[i-1].color = actorSlot.verbUiColors.verbNormal
 
   # update scroll arrows
   self.scrollDn.alpha = if actor.hasDownArrow(): 1f else: 0f

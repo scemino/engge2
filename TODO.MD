@@ -8,6 +8,7 @@
 * [ ] inventory hotspot is wrong
 * [ ] dialog choice hotspot is wrong
 * [ ] wheels are missing in pigeons van
+* [x] when actor is switched, the verb colors are wrong
 * [x] after a cutscene, the current room is not where the actor is
 * [x] sheriff animation flip_coin3 crashs 
 * [x] objectAlphaTo can be called with null as argument
