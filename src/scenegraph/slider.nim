@@ -17,7 +17,7 @@ type
     value, min, max: float32
     callback: SliderCallback
 
-proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer = nil) =
   let slider = cast[Slider](tag)
   case event:
   of Enter:
@@ -36,10 +36,10 @@ proc newSlider*(id: int, y: float, callback: SliderCallback, value: float, tag: 
   result = Slider(id: id, callback: callback, value: value, tag: tag)
   result.init()
 
-  let titleTxt = newText(gResMgr.font("UIFontSmall"), getText(id), thLeft)
+  let titleTxt = newText(gResMgr.font("UIFontSmall"), getText(id), thCenter)
   let tn = newTextNode(titleTxt)
-  tn.setAnchorNorm(vec2(0f, 0.5f))
-  tn.pos = vec2f(420f, 0f)
+  tn.setAnchorNorm(vec2(0.5f, 0.5f))
+  tn.pos = vec2f(ScreenWidth/2f, 0f)
   result.addChild tn
 
   let sheet = gResMgr.spritesheet("SaveLoadSheet")

@@ -285,10 +285,14 @@ proc soundMixVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc soundVolume(v: HSQUIRRELVM, kind: VolumeKind): SQInteger =
   var volume = 0.0
-  if SQ_FAILED(get(v, 2, volume)):
-    return sq_throwerror(v, "failed to get volume")
-  gEngine.audio.volume(kind, volume)
-  0
+  if sq_gettop(v) == 2:
+    if SQ_FAILED(get(v, 2, volume)):
+      return sq_throwerror(v, "failed to get volume")
+    gEngine.audio.volume(kind, volume)
+    return 0
+  else:
+    push(v, gEngine.audio.volume(kind))
+    return 1
 
 proc soundVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the volume (float from 0 to 1) of an already playing sound.

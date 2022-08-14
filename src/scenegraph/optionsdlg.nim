@@ -12,15 +12,14 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
-import ../sys/app
 import ../script/squtils
 import ../script/vm
+import ../audio/audio
 
 const
   Options = 99913
   SaveGame = 99911
   LoadGame = 99910
-  Sound = 99916
   Video = 99917
   Controls = 99918
   Controller = 99940
@@ -41,6 +40,10 @@ const
   ItalianText = 98005
   GermanText = 98007
   SpanishText = 98009
+  Sound = 99916
+  SoundVolume = 99937
+  MusicVolume = 99938
+  VoiceVolume = 99939
   Help = 99961
   Quit = 99915
   Back = 99904
@@ -52,6 +55,7 @@ type
     sVideo
     sControls
     sTextAndSpeech
+    sSound
 
 var
   gDisabled: seq[int]
@@ -72,6 +76,8 @@ proc onButtonDown(node: Node, id: int) =
     setState(sControls)
   of TextAndSpeech:
     setState(sTextAndSpeech)
+  of Sound:
+    setState(sSound)
   else:
     discard
 
@@ -130,6 +136,17 @@ proc newCheckVar*(id: int, y: float, name: string): Checkbox =
 proc onSwitch(self: Switcher, value: int) =
   discard
 
+proc onSlide(self: Slider, value: float32) =
+  case self.id:
+  of SoundVolume:
+    sqCall("soundMixVolume", [value])
+  of MusicVolume:
+    sqCall("musicMixVolume", [value])
+  of VoiceVolume:
+    sqCall("talkieMixVolume", [value])
+  else:
+    discard
+
 proc update() =
   gSelf.removeAll
   gSelf.addChild newBackground()
@@ -166,6 +183,16 @@ proc update() =
     gSelf.addChild newCheckVar(DisplayText, 400f, "talkiesShowText")
     gSelf.addChild newCheckVar(HearVoice, 340f, "talkiesHearVoice")
     gSelf.addChild newSwitcher(280f, onSwitch, @[EnglishText, FrenchText, ItalianText, GermanText, SpanishText], EnglishText)
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+  of sSound:
+    gSelf.addChild newHeader(Sound)
+    var vol: float32
+    sqCallFunc(vol, "soundMixVolume", [])
+    gSelf.addChild newSlider(SoundVolume, 540f, onSlide, vol)
+    sqCallFunc(vol, "musicMixVolume", [])
+    gSelf.addChild newSlider(MusicVolume, 440f, onSlide, vol)
+    sqCallFunc(vol, "talkieMixVolume", [])
+    gSelf.addChild newSlider(VoiceVolume, 340f, onSlide, vol)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
 
 proc setState(state: State) =
