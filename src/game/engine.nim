@@ -605,12 +605,17 @@ proc update*(self: Engine, node: Node, elapsed: float) =
         elif btn.down and mbLeft notin mouseState:
           btn.down = false
           btn.callback(node, Up, scrPos, btn.tag)
+        elif btn.down and mbLeft in mouseState:
+          btn.callback(node, Drag, scrPos, btn.tag)
       # mouse leave button ?
       elif btn.inside:
         btn.inside = false
         btn.callback(node, Leave, scrPos, btn.tag)
-      else:
+      elif btn.down and mbLeft notin mouseState:
         btn.down = false
+        btn.callback(node, Up, scrPos, btn.tag)
+      elif btn.down and mbLeft in mouseState:
+        btn.callback(node, Drag, scrPos, btn.tag)
 
   if not node.shakeMotor.isNil and node.shakeMotor.enabled():
     node.shakeMotor.update(elapsed)

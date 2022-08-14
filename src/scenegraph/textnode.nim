@@ -5,7 +5,7 @@ import ../gfx/color
 
 type
   TextNode* = ref object of Node
-    text: Text
+    text*: Text
 
 proc newTextNode*(text: Text): TextNode =
   result = TextNode(text: text)

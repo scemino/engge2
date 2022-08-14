@@ -3,6 +3,8 @@ import node
 import textnode
 import spritenode
 import checkbox
+import slider
+import switcher
 import sqnim
 import ../gfx/color
 import ../gfx/text
@@ -27,10 +29,18 @@ const
   RetroFonts = 99933
   RetroVerbs = 99934
   ClassicSentence = 99935
-  TextAndSpeech = 99919
   Fullscreen = 99927
   ToiletPaperOver = 99965
   AnnoyingInJokes = 99971
+  TextAndSpeech = 99919
+  TextSpeed = 99941
+  DisplayText = 99942
+  HearVoice = 99943
+  EnglishText = 98001
+  FrenchText = 98003
+  ItalianText = 98005
+  GermanText = 98007
+  SpanishText = 98009
   Help = 99961
   Quit = 99915
   Back = 99904
@@ -38,9 +48,10 @@ const
 type
   OptionsDialog* = ref object of Node
   State = enum
-    sOptions,
+    sOptions
     sVideo
     sControls
+    sTextAndSpeech
 
 var
   gDisabled: seq[int]
@@ -59,6 +70,8 @@ proc onButtonDown(node: Node, id: int) =
     setState(sVideo)
   of Controls:
     setState(sControls)
+  of TextAndSpeech:
+    setState(sTextAndSpeech)
   else:
     discard
 
@@ -100,10 +113,22 @@ proc onCheckVar(self: Checkbox, state: bool) =
   sqCall("setSettingVar", [name, if state: 1 else: 0])
   self.check(state)
 
+proc onSliderVar(self: Slider, value: float32) =
+  let name = cast[string](self.tag)
+  sqCall("setSettingVar", [name, value])
+
+proc newSliderVar*(id: int, y: float, name: string): Slider =
+  var value: float32
+  sqCallFunc(value, "getSettingVar", [name])
+  newSlider(id, y, onSliderVar, value)
+
 proc newCheckVar*(id: int, y: float, name: string): Checkbox =
   var value: bool
   sqCallFunc(value, "getSettingVar", [name])
   newCheckbox(id, y, onCheckVar, value)
+
+proc onSwitch(self: Switcher, value: int) =
+  discard
 
 proc update() =
   gSelf.removeAll
@@ -134,6 +159,13 @@ proc update() =
     gSelf.addChild newCheckVar(RetroFonts, 340f, "retroFonts")
     gSelf.addChild newCheckVar(RetroVerbs, 280f, "retroVerbs")
     gSelf.addChild newCheckVar(ClassicSentence, 220f, "hudSentence")
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+  of sTextAndSpeech:
+    gSelf.addChild newHeader(TextAndSpeech)
+    gSelf.addChild newSliderVar(TextSpeed, 540f, "sayLineSpeed")
+    gSelf.addChild newCheckVar(DisplayText, 400f, "talkiesShowText")
+    gSelf.addChild newCheckVar(HearVoice, 340f, "talkiesHearVoice")
+    gSelf.addChild newSwitcher(280f, onSwitch, @[EnglishText, FrenchText, ItalianText, GermanText, SpanishText], EnglishText)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
 
 proc setState(state: State) =

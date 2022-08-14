@@ -37,7 +37,8 @@ type
     Enter,
     Leave,
     Up,
-    Down
+    Down,
+    Drag
 
 proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
   let button = Button(callback: callback, tag: tag)
