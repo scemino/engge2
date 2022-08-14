@@ -287,7 +287,8 @@ proc fcutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   breakwhilecutscene(v)
 
 proc cutsceneOverride(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "cutsceneOverride not implemented"
+  info "cutsceneOverride"
+  cast[Cutscene](gEngine.cutscene).cutsceneOverride()
   0
 
 proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =

@@ -322,7 +322,7 @@
 - [x] breakwhiletalking
 - [x] breakwhilewalking
 - [x] cutscene
-- [ ] cutsceneOverride
+- [x] cutsceneOverride
 - [x] dumpvar
 - [x] gameTime
 - [x] include
