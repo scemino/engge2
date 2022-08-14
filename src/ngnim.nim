@@ -49,8 +49,7 @@ proc runVm() =
     vm.v.execBnutEntry("Boot.bnut")
     let duration = getTime() - time
     info fmt"Boot ended in {duration}"
-    # vm.v.execNut("ng", "cameraInRoom(StartScreen)")
-    vm.v.execNut("ng", "start(true)")
+    vm.v.execNut("ng", "cameraInRoom(StartScreen)")
   sq_pop(vm.v, 1)
 
 proc main() =

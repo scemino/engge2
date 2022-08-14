@@ -30,6 +30,7 @@ import ../scenegraph/parallaxnode
 import ../scenegraph/hud
 import ../scenegraph/walkboxnode
 import ../scenegraph/dialog
+import ../scenegraph/startscreen
 import ../sys/app
 import ../util/common
 
@@ -95,6 +96,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.dlg = newDialog()
   result.screen.addChild result.inputState.node
   result.screen.addChild result.dlg
+  result.screen.addChild newStartScreen()
   sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
