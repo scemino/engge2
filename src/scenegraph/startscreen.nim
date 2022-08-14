@@ -9,6 +9,7 @@ import ../game/screen
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
+import optionsdlg
 
 const
   LoadGame = 99910
@@ -25,6 +26,9 @@ proc onButtonDown(node: Node, id: int) =
   of NewGame:
     node.remove()
     sqCall("start", [1])
+  of Options:
+    node.getParent().addChild newOptionsDialog()
+    node.remove()
   of Quit:
     quit()
   else:
