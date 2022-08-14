@@ -67,6 +67,9 @@ proc init*(title = "", size = vec2(ScreenWidth, ScreenHeight)) =
   glGetDrawableSize(w, wi, he)
   glViewport(0.GLint, 0.GLint, wi.GLsizei, he.GLsizei)
 
+proc setFullscreen*(state: bool) =
+  discard w.setFullscreen(if state: 1'u32 else: 0'u32)
+
 proc toInputKey(key: cint): InputKey =
   cast[InputKey](key)
 

@@ -59,27 +59,29 @@ macro sqCall*(name, args): untyped =
   result = newStmtList(newCall(ident("sqCall"), v, newCall("rootTbl", v), name, args))
 
 macro sqCallFunc*(v, o, res, name, args): untyped =
-  result = newStmtList()
+  let stms = newStmtList()
   
   # save top
-  result.add(newLetStmt(ident("top"), newCall(ident("sq_gettop"), v)))
+  stms.add(newLetStmt(ident("top"), newCall(ident("sq_gettop"), v)))
 
   # push function
-  result.add(newCall(ident("pushFunc"), v, o, name))
+  stms.add(newCall(ident("pushFunc"), v, o, name))
   
   # push args
-  result.add(newCall(ident("push"), v, o))
+  stms.add(newCall(ident("push"), v, o))
   for arg in args:
-    result.add(newCall(ident("push"), v, arg))
+    stms.add(newCall(ident("push"), v, arg))
   
   # call func
-  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("sq_call"), v, newLit(1 + args.len()), newLit(SQTrue), newLit(SQTrue))))
+  stms.add(newNimNode(nnkDiscardStmt).add(newCall(ident("sq_call"), v, newLit(1 + args.len()), newLit(SQTrue), newLit(SQTrue))))
   
   # get result
-  result.add(newNimNode(nnkDiscardStmt).add(newCall(ident("get"), v, newLit(-1), res)))
+  stms.add(newNimNode(nnkDiscardStmt).add(newCall(ident("get"), v, newLit(-1), res)))
   
   # restore top
-  result.add(newCall(ident("sq_settop"), v, ident("top")))
+  stms.add(newCall(ident("sq_settop"), v, ident("top")))
+
+  result = newBlockStmt(stms)
 
 macro sqCallFunc*(o, res, name, args): untyped =
   let v = newDotExpr(ident("gVm"), ident("v"))

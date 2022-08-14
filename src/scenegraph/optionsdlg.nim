@@ -2,12 +2,17 @@ import glm
 import node
 import textnode
 import spritenode
+import checkbox
+import sqnim
 import ../gfx/color
 import ../gfx/text
 import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
+import ../sys/app
+import ../script/squtils
+import ../script/vm
 
 const
   Options = 99913
@@ -16,21 +21,44 @@ const
   Sound = 99916
   Video = 99917
   Controls = 99918
+  Controller = 99940
+  ScrollSyncCursor = 99960
+  InvertVerbColors = 99964
+  RetroFonts = 99933
+  RetroVerbs = 99934
+  ClassicSentence = 99935
   TextAndSpeech = 99919
+  Fullscreen = 99927
+  ToiletPaperOver = 99965
+  AnnoyingInJokes = 99971
   Help = 99961
   Quit = 99915
   Back = 99904
 
 type
   OptionsDialog* = ref object of Node
+  State = enum
+    sOptions,
+    sVideo
+    sControls
 
 var
   gDisabled: seq[int]
+  gState: State
+  gSelf: OptionsDialog
+
+proc setState(state: State)
 
 proc onButtonDown(node: Node, id: int) =
   case id:
   of Quit:
     quit()
+  of Back:
+    setState(sOptions)
+  of Video:
+    setState(sVideo)
+  of Controls:
+    setState(sControls)
   else:
     discard
 
@@ -47,7 +75,14 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   else:
     discard
 
-proc newLabel(id: int, y: float, font = "UIFontLarge"): TextNode =
+proc newHeader(id: int): TextNode =
+  let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)
+  result = newTextNode(titleTxt)
+  result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, 680f)
+  result.alpha = if gDisabled.contains(id): 0.5f else: 1f
+  result.addButton(onButton, cast[pointer](id))
+
+proc newButton(id: int, y: float, font = "UIFontLarge"): TextNode =
   let titleTxt = newText(gResMgr.font(font), getText(id), thCenter)
   result = newTextNode(titleTxt)
   result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, y)
@@ -60,20 +95,55 @@ proc newBackground(): SpriteNode =
   result.scale = vec2(4f, 4f)
   result.pos = vec2(ScreenWidth/2f, ScreenHeight/2f)
 
+proc onCheckVar(self: Checkbox, state: bool) =
+  let name = cast[string](self.tag)
+  sqCall("setSettingVar", [name, if state: 1 else: 0])
+  self.check(state)
+
+proc newCheckVar*(id: int, y: float, name: string): Checkbox =
+  var value: bool
+  sqCallFunc(value, "getSettingVar", [name])
+  newCheckbox(id, y, onCheckVar, value)
+
+proc update() =
+  gSelf.removeAll
+  gSelf.addChild newBackground()
+  case gState:
+  of sOptions:
+    gSelf.addChild newHeader(Options)
+    gSelf.addChild newButton(SaveGame, 600f)
+    gSelf.addChild newButton(LoadGame, 540f)
+    gSelf.addChild newButton(Sound, 480f)
+    gSelf.addChild newButton(Video, 420f)
+    gSelf.addChild newButton(Controls, 360f)
+    gSelf.addChild newButton(TextAndSpeech, 300f)
+    gSelf.addChild newButton(Help, 240f)
+    gSelf.addChild newButton(Quit, 180f)
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+  of sVideo:
+    gSelf.addChild newHeader(Video)
+    gSelf.addChild newCheckVar(Fullscreen, 420f, "windowFullscreen")
+    gSelf.addChild newCheckVar(ToiletPaperOver, 360f, "toilet_paper_over")
+    gSelf.addChild newCheckVar(AnnoyingInJokes, 300f, "annoying_injokes")
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+  of sControls:
+    gSelf.addChild newHeader(Controls)
+    gSelf.addChild newCheckVar(Controller, 540f, "controller")
+    gSelf.addChild newCheckVar(ScrollSyncCursor, 480f, "controllerScollLockCursor")
+    gSelf.addChild newCheckVar(InvertVerbColors, 400f, "invertVerbHighlight")
+    gSelf.addChild newCheckVar(RetroFonts, 340f, "retroFonts")
+    gSelf.addChild newCheckVar(RetroVerbs, 280f, "retroVerbs")
+    gSelf.addChild newCheckVar(ClassicSentence, 220f, "hudSentence")
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+
+proc setState(state: State) =
+  gState = state
+  update()
+
 proc newOptionsDialog*(): OptionsDialog =
-  result = OptionsDialog()
+  gSelf = OptionsDialog()
+  result = gSelf
   result.init()
 
   gDisabled.add SaveGame
-  
-  result.addChild newBackground()
-  result.addChild newLabel(Options, 680f, "HeadingFont")
-  result.addChild newLabel(SaveGame, 600f)
-  result.addChild newLabel(LoadGame, 540f)
-  result.addChild newLabel(Sound, 480f)
-  result.addChild newLabel(Video, 420f)
-  result.addChild newLabel(Controls, 360f)
-  result.addChild newLabel(TextAndSpeech, 300f)
-  result.addChild newLabel(Help, 240f)
-  result.addChild newLabel(Quit, 180f)
-  result.addChild newLabel(Back, 100f, "UIFontMedium")
+  update()
