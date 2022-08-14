@@ -9,6 +9,7 @@ import ../game/motors/overlayto
 import ../game/motors/rotateto
 import ../game/motors/motor
 import ../game/room
+import ../game/shaders
 import ../game/walkbox
 import ../util/tween
 import ../util/easing
@@ -304,30 +305,23 @@ proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc roomEffect(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var effect = 0
-  # let count = sq_gettop(v)
   if SQ_FAILED(get(v, 2, effect)):
     return sq_throwerror(v, "failed to get effect")
-  let room = gEngine.room
-  if room.isNil:
-    return 0
   warn "roomEffect not implemented"
-  # if count == 14:
-  #   var unused = 0
-  #   get(v, 3, gEngine.roomEffect.iFade)
-  #   get(v, 4, gEngine.roomEffect.wobbleIntensity)
-  #   get(v, 5, unused)
-  #   get(v, 6, gEngine.roomEffect.shadows.r)
-  #   get(v, 7, gEngine.roomEffect.shadows.g)
-  #   get(v, 8, gEngine.roomEffect.shadows.b)
-  #   get(v, 9, gEngine.roomEffect.midtones.r)
-  #   get(v, 10, gEngine.roomEffect.midtones.g)
-  #   get(v, 11, gEngine.roomEffect.midtones.b)
-  #   get(v, 12, gEngine.roomEffect.highlights.r)
-  #   get(v, 13, gEngine.roomEffect.highlights.g)
-  #   get(v, 14, gEngine.roomEffect.highlights.b)
-  # else:
-  #   gEngine.roomEffect.reset()
-  # room.effect = effect
+  let nArgs = sq_gettop(v)
+  if nArgs == 14:
+    discard get(v, 3, gShaderParams.iFade)
+    discard get(v, 4, gShaderParams.wobbleIntensity)
+    discard get(v, 6, gShaderParams.shadows.r)
+    discard get(v, 7, gShaderParams.shadows.g)
+    discard get(v, 8, gShaderParams.shadows.b)
+    discard get(v, 9, gShaderParams.midtones.r)
+    discard get(v, 10, gShaderParams.midtones.g)
+    discard get(v, 11, gShaderParams.midtones.b)
+    discard get(v, 12, gShaderParams.highlights.r)
+    discard get(v, 13, gShaderParams.highlights.g)
+    discard get(v, 14, gShaderParams.highlights.b)
+  gEngine.room.effect = effect.RoomEffect
   0
 
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =

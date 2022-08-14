@@ -122,6 +122,9 @@ proc get(v: HSQUIRRELVM, i: int, value: var float): SQRESULT =
   result = sq_getfloat(v, i, val)
   value = val.float
 
+proc get(v: HSQUIRRELVM, i: int, value: var float32): SQRESULT =
+  result = sq_getfloat(v, i, value)
+
 proc get(v: HSQUIRRELVM, i: int, value: var string): SQRESULT =
   var val: SQString
   result = sq_getstring(v, i, val)
