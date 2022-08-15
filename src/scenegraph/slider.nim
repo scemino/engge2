@@ -16,18 +16,22 @@ type
     tag*: pointer
     value, min, max: float32
     callback: SliderCallback
+    slider, handle: SpriteNode
+    text: TextNode
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer = nil) =
   let slider = cast[Slider](tag)
   case event:
   of Enter:
-    src.color = Yellow
+    slider.text.color = Yellow
+    slider.slider.color = Yellow
   of Leave:
-    src.color = White
+    slider.text.color = White
+    slider.slider.color = White
   of Drag:
     let x = clamp(pos.x, slider.min, slider.max)
     let value = (x - slider.min) / (slider.max - slider.min)
-    src.pos = vec2(x, src.pos.y)
+    slider.handle.pos = vec2(x, src.pos.y)
     slider.callback(slider, value)
   else:
     discard
@@ -46,6 +50,7 @@ proc newSlider*(id: int, y: float, callback: SliderCallback, value: float, tag: 
   let slider = newSpriteNode(gResMgr.texture(sheet.meta.image), sheet.frame("slider"))
   slider.scale = vec2(4f, 4f)
   slider.pos = vec2(ScreenWidth/2f, -titleTxt.bounds.y)
+  slider.addButton(onButton, cast[pointer](result))
   result.addChild slider
 
   result.min = ScreenWidth/2f-4f*slider.size.x/2f
@@ -57,4 +62,7 @@ proc newSlider*(id: int, y: float, callback: SliderCallback, value: float, tag: 
   handle.addButton(onButton, cast[pointer](result))
   result.addChild handle
 
+  result.text = tn
+  result.slider = slider
+  result.handle = handle
   result.pos.y = y
