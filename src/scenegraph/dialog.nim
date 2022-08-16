@@ -32,7 +32,7 @@ type
     None,
     Active,
     WaitingForChoice
-  DialogConditionMode = enum
+  DialogConditionMode* = enum
     Once,
     ShowOnce,
     OnceEver,
@@ -41,15 +41,15 @@ type
   DialogSelMode = enum
     Choose
     Show
-  DialogConditionState = object
-    mode: DialogConditionMode
-    actorKey, dialog: string
-    line: int
+  DialogConditionState* = object
+    mode*: DialogConditionMode
+    actorKey*, dialog*: string
+    line*: int
   Dialog* = ref object of Node
     tgt*: DialogTarget
     action: Motor
     state*: DialogState
-    states: seq[DialogConditionState]
+    states*: seq[DialogConditionState]
     context: DialogContext
     currentStatement: int
     cu: YCu

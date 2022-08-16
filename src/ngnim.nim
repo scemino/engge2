@@ -10,6 +10,8 @@ import game/eventmanager
 import game/gameeventmanager
 import game/prefs
 import game/resmanager
+import game/gameloader
+import game/savegame
 import scenegraph/node
 import scenegraph/pathnode
 import scenegraph/dlgenginetgt
@@ -80,6 +82,7 @@ proc main() =
     gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
     gResMgr = newResManager()
     gEventMgr = newGameEventManager()
+    gGameLoader = newEngineGameLoader()
     initTextDb()
     runVm()
     app.run(render)

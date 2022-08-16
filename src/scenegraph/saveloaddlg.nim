@@ -1,5 +1,6 @@
 import std/strformat
 import std/os
+import std/logging
 import std/times
 import std/json
 import glm
@@ -14,6 +15,7 @@ import ../gfx/texture
 import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
+import ../game/gameloader
 import ../io/textdb
 import ../util/strutils
 import ../util/time
@@ -24,6 +26,7 @@ const
 
 type
   SaveLoadDialog* = ref object of Node
+    savegames: array[9, Savegame]
 
 proc newHeader(id: int): TextNode =
   let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)
@@ -82,6 +85,15 @@ proc fmtGameTime(timeInSec: float): string =
     discard snprintf(buf, 120, getText(format), hour, min)
   $buf
 
+proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+  let data = cast[JsonNode](tag)
+  case event:
+  of Down:
+    src.getParent().remove()
+    loadGame(data)
+  else:
+    discard
+
 proc newSaveLoadDialog*(): SaveLoadDialog =
   result = SaveLoadDialog()
   result.addChild newBackground()
@@ -98,6 +110,7 @@ proc newSaveLoadDialog*(): SaveLoadDialog =
     if fileExists(path) and fileExists(savePath):
       # load savegame data
       let savegame = loadSaveGame(savePath)
+      result.savegames[i] = savegame
       let easyMode = savegame.data["easy_mode"].getInt() != 0
       let gameTime = savegame.data["gameTime"].getFloat()
       var saveTimeText = if i==0: getText(99901) else: fmtTime(savegame.time)
@@ -109,6 +122,7 @@ proc newSaveLoadDialog*(): SaveLoadDialog =
       sn.scale = scale
       sn.setAnchorNorm(vec2(0.5f, 0.5f))
       sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
+      sn.addButton(onButton, cast[pointer](result.savegames[i].data))
       result.addChild sn
 
       # game time text

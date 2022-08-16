@@ -7,6 +7,7 @@ import ../game/thread
 import ../game/callback
 import ../game/cutscene
 import ../game/engine
+import ../game/ids
 import ../game/room
 import ../game/inputstate
 import ../game/tasks/breakwhilecond
@@ -58,7 +59,7 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, fmt"failed to get argument {i}".cstring)
     args.add(arg)
 
-  let callback = newCallback(duration, methodName, args)
+  let callback = newCallback(newCallbackId(), duration, methodName, args)
   gEngine.callbacks.add(callback)
 
   push(v, callback.id)

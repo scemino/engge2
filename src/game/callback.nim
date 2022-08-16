@@ -9,8 +9,8 @@ type Callback* = ref object of RootObj
   duration: float
   elapsed: float
 
-proc newCallback*(duration: float, name: string, args: seq[HSQOBJECT]): Callback =
-  result = Callback(id: newCallbackId(), name: name, args: args, duration: duration)
+proc newCallback*(id: int, duration: float, name: string, args: seq[HSQOBJECT]): Callback =
+  result = Callback(id: id, name: name, args: args, duration: duration)
 
 proc call(self: Callback) =
   call(self.name, self.args)

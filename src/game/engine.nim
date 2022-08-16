@@ -242,6 +242,7 @@ proc actorExit(self: Engine) =
       call(self.v, self.room.table, "actorExit", [self.currentActor.table])
 
 proc exitRoom(self: Engine, nextRoom: Room) =
+  self.audio.stopAll()
   if not self.room.isNil:
     self.room.triggers.setLen 0
 
@@ -325,11 +326,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
 
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
-    self.fade.enabled = false
-    self.exitRoom(self.room)
-    if not room.isNil:
-      # sets the current room for scripts
-      rootTbl(gVm.v).setf("currentRoom", room.table)
     self.enterRoom(room)
     if not self.walkboxNode.isNil:
       self.walkboxNode.remove()
