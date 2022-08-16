@@ -10,3 +10,5 @@ ngnim
 Prefs.json
 *.ggpack*
 *.log*
+*.png
+*.save

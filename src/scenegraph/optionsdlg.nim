@@ -5,6 +5,7 @@ import spritenode
 import checkbox
 import slider
 import switcher
+import saveloaddlg
 import sqnim
 import ../gfx/color
 import ../gfx/text
@@ -78,6 +79,9 @@ proc onButtonDown(node: Node, id: int) =
     setState(sTextAndSpeech)
   of Sound:
     setState(sSound)
+  of LoadGame:
+    node.getParent().addChild newSaveLoadDialog()
+    node.remove()
   else:
     discard
 

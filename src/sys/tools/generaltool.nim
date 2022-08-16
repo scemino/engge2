@@ -77,7 +77,7 @@ method render*(self: GeneralTool) =
     gEngine.follow = nil
     let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
     gEngine.cameraAt(camPos - halfScreenSize)
-  igText("Bounds: (%d, %d, %d, %d)", gEngine.bounds.x, gEngine.bounds.y, gEngine.bounds.w, gEngine.bounds.h)
+  igDragInt4("Bounds", gEngine.bounds.arr)
 
   igText("VM stack top: %d", sq_gettop(gVm.v))
   igSeparator()

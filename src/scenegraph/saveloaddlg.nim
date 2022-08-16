@@ -1,0 +1,135 @@
+import std/strformat
+import std/os
+import std/times
+import std/json
+import glm
+import node
+import textnode
+import spritenode
+import nimyggpack
+import ../gfx/text
+import ../gfx/image
+import ../gfx/recti
+import ../gfx/texture
+import ../gfx/spritesheet
+import ../game/resmanager
+import ../game/screen
+import ../io/textdb
+import ../util/strutils
+import ../util/time
+
+const
+  LoadGame = 99910
+  Back = 99904
+
+type
+  SaveLoadDialog* = ref object of Node
+
+proc newHeader(id: int): TextNode =
+  let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)
+  result = newTextNode(titleTxt)
+  result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, 690f)
+
+proc newButton(id: int, y: float, font = "UIFontLarge"): TextNode =
+  let titleTxt = newText(gResMgr.font(font), getText(id), thCenter)
+  result = newTextNode(titleTxt)
+  result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, y)
+
+proc newBackground(): SpriteNode =
+  let sheet = gResMgr.spritesheet("SaveLoadSheet")
+  result = newSpriteNode(gResMgr.texture(sheet.meta.image), sheet.frame("saveload"))
+  result.scale = vec2(4f, 4f)
+  result.pos = vec2(ScreenWidth/2f, ScreenHeight/2f)
+
+proc loadTexture(file: string): Texture =
+  let f = open(file, fmRead)
+  let size = f.getFileSize
+  var buff = newSeq[byte](size)
+  discard f.readBytes(buff, 0, size)
+  f.close
+  newTexture(newImage(buff))
+
+proc fmtTime(time: Time): string =
+  # time format: "%b %d at %H:%M"
+  fmtTimeLikeC(time, getText(99944))
+
+proc fmtGameTime(timeInSec: float): string =
+  var buffer: array[120, char]
+  var buf = cast[cstring](buffer[0].addr)
+  var min = timeInSec.int div 60
+  if min < 2:
+    # "%d minute"
+    discard snprintf(buf, 120, getText(99945), min)
+  elif min < 60:
+    # "%d minutes"
+    discard snprintf(buf, 120, getText(99946), min)
+  else:
+    var format: int
+    var hour = min div 60
+    min = min mod 60
+    if hour < 2 and min < 2:
+      # "%d hour %d minute"
+      format = 99947
+    elif hour < 2 and min >= 2:
+      # "%d hour %d minutes"
+      format = 99948;
+    elif hour >= 2 and min < 2:
+      # "%d hours %d minute"
+      format = 99949;
+    else:
+      # "%d hours %d minutes";
+      format = 99950
+    discard snprintf(buf, 120, getText(format), hour, min)
+  $buf
+
+proc newSaveLoadDialog*(): SaveLoadDialog =
+  result = SaveLoadDialog()
+  result.addChild newBackground()
+  result.addChild newHeader(LoadGame)
+
+  let sheet = gResMgr.spritesheet("SaveLoadSheet")
+  let slotFrame = sheet.frame("saveload_slot_frame")
+  let scale = vec2(4f*slotFrame.frame.w.float32/320f, 4f*slotFrame.frame.h.float32/180f)
+  let fontSmallBold = gResMgr.font("UIFontSmallBold")
+  
+  for i in 0..<9:
+    let path = fmt"Savegame{i+1}.png"
+    let savePath = changeFileExt(path, "save")
+    if fileExists(path) and fileExists(savePath):
+      # load savegame data
+      let savegame = loadSaveGame(savePath)
+      let easyMode = savegame.data["easy_mode"].getInt() != 0
+      let gameTime = savegame.data["gameTime"].getFloat()
+      var saveTimeText = if i==0: getText(99901) else: fmtTime(savegame.time)
+      if easyMode:
+        saveTimeText &= ' ' & getText(99955)
+
+      # thumbnail
+      let sn = newSpriteNode(loadTexture(path))
+      sn.scale = scale
+      sn.setAnchorNorm(vec2(0.5f, 0.5f))
+      sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
+      result.addChild sn
+
+      # game time text
+      let gtt = newTextNode(newText(fontSmallBold, fmtGameTime(gameTime), thCenter))
+      gtt.setAnchorNorm(vec2(0.5f, 0.5f))
+      gtt.pos = vec2(310f + 320f*(i mod 3).float32, 240f + 180*((8-i) div 3).float32)
+      result.addChild gtt
+
+      # save time text
+      let stt = newTextNode(newText(fontSmallBold, saveTimeText, thCenter))
+      stt.setAnchorNorm(vec2(0.5f, 0.5f))
+      stt.pos = vec2(310f + 320f*(i mod 3).float32, 110f + 180*((8-i) div 3).float32)
+      result.addChild stt
+
+    # frame
+    let sn = newSpriteNode(gResMgr.texture(sheet.meta.image), slotFrame)
+    sn.scale = vec2(4f, 4f)
+    sn.setAnchorNorm(vec2(0.5f, 0.5f))
+    sn.pos = vec2f((1f + (i mod 3).float32) * 4f * (sn.size.x + 1f), 4f * (i div 3).float32 * (sn.size.y + 1f))
+    result.addChild sn
+
+  result.addChild newButton(Back, 80f, "UIFontMedium")
+
+  result.init()
