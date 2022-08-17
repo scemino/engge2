@@ -1,6 +1,5 @@
 import std/strformat
 import std/os
-import std/logging
 import std/times
 import std/json
 import glm
@@ -8,6 +7,7 @@ import node
 import textnode
 import spritenode
 import nimyggpack
+import ../gfx/color
 import ../gfx/text
 import ../gfx/image
 import ../gfx/recti
@@ -33,10 +33,20 @@ proc newHeader(id: int): TextNode =
   result = newTextNode(titleTxt)
   result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, 690f)
 
+proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+  case event:
+  of Enter:
+    src.color = Yellow
+  of Leave:
+    src.color = White
+  else:
+    discard
+
 proc newButton(id: int, y: float, font = "UIFontLarge"): TextNode =
   let titleTxt = newText(gResMgr.font(font), getText(id), thCenter)
   result = newTextNode(titleTxt)
   result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, y)
+  result.addButton(onButton, cast[pointer](result))
 
 proc newBackground(): SpriteNode =
   let sheet = gResMgr.spritesheet("SaveLoadSheet")
@@ -85,7 +95,7 @@ proc fmtGameTime(timeInSec: float): string =
     discard snprintf(buf, 120, getText(format), hour, min)
   $buf
 
-proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let data = cast[JsonNode](tag)
   case event:
   of Down:
@@ -122,7 +132,7 @@ proc newSaveLoadDialog*(): SaveLoadDialog =
       sn.scale = scale
       sn.setAnchorNorm(vec2(0.5f, 0.5f))
       sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
-      sn.addButton(onButton, cast[pointer](result.savegames[i].data))
+      sn.addButton(onGameButton, cast[pointer](result.savegames[i].data))
       result.addChild sn
 
       # game time text

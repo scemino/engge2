@@ -3,38 +3,42 @@ import std/json
 import std/tables
 import std/strformat
 import std/strutils
+import std/sets
 import std/logging
 import sqnim
 import ../script/squtils
 import ../script/vm
 import ../io/ggpackmanager
 import ../scenegraph/dialog
+import ../scenegraph/node
+import ../scenegraph/hud
 import ../game/callback
+import ../game/prefs
 import ../game/room
 import ../game/actor
 import ../game/engine
 import ../game/ids
 import ../game/gameloader
 import ../game/inputstate
-import ../scenegraph/node
 import ../gfx/color
 import ../util/jsonutil
 
+proc actor(key: string): Object =
+  for a in gEngine.actors:
+    if a.key == key:
+      return a
+
 proc loadGameScene(json: JsonNode) =
-  warn("loadGameScene not implemented")
-  discard
-  # let actorsSelectable = json["actorsSelectable"].getInt()
-  # let actorsTempUnselectable = json["actorsTempUnselectable"].getInt()
-  # let mode = if actorsSelectable: ActorSlotSelectableMode.On else: ActorSlotSelectableMode.Off
-  # if actorsTempUnselectable:
-  #   mode |= ActorSlotSelectableMode::TemporaryUnselectable;
-  # setActorSlotSelectable(mode)
-  # let forceTalkieText = json["forceTalkieText"].getInt() != 0
-  # setTempPreference(TempPreferenceNames::ForceTalkieText, forceTalkieText)
-  # for selectableActor in json["selectableActors"]:
-  #   let actor = getActor(selectableActor[actorKey].getString())
-  #   let selectable = selectableActor["selectable"].getInt() != 0
-  #   actorSlotSelectable(pActor, selectable)
+  var mode: set[ActorSlotSelectableMode]
+  if json["actorsSelectable"].getInt() != 0:
+    mode.incl asOn
+  if json["actorsTempUnselectable"].getInt() != 0:
+    mode.incl asTemporaryUnselectable
+  gEngine.hud.mode = mode
+  tmpPrefs().forceTalkieText = json["forceTalkieText"].getInt() != 0
+  for jSelectableActor in json["selectableActors"]:
+    let actor = actor(jSelectableActor["_actorKey"].getStr())
+    gEngine.hud.actorSlot(actor).selectable = jSelectableActor["selectable"].getInt() != 0
 
 proc parseMode(mode: char): DialogConditionMode =
   case mode:
@@ -52,28 +56,21 @@ proc parseMode(mode: char): DialogConditionMode =
     warn fmt"Invalid dialog condition mode: {mode}"
 
 proc parseState(dialog: string): DialogConditionState =
-  debug "parseState " & dialog
-  
   var dialogName: string
   var i = 1
   while i < dialog.len and not isDigit(dialog[i]):
     dialogName.add dialog[i]
     inc i
   
-  debug "parseState dialogName:" & dialogName
   while not gGGPackMgr.assetExists(dialogName & ".byack") and i < dialog.len:
     dialogName.add dialog[i]
     inc i
-
-  debug "parseState dialogName:" & dialogName
 
   var num: string
   while i < dialog.len and isDigit(dialog[i]):
     num.add dialog[i]
     inc i
 
-  debug "parseState num:" & num
-  
   result.mode = parseMode(dialog[0])
   result.dialog = dialogName
   result.line = parseInt(num)
@@ -200,7 +197,7 @@ proc loadActor(actor: Object, json: JsonNode) =
     elif not k.startsWith('_'):
       actor.table.setf(k, toSquirrel(v))
     else:
-      warn fmt"load actor: key '{k}' is unknown"
+      warn fmt"load actor: key '{k}' is unknown: {v}"
   
   if actor.table.rawexists("postLoad"):
     sqCall(actor.table, "postLoad", [])

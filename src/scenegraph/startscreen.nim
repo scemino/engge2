@@ -10,6 +10,7 @@ import ../io/textdb
 import ../script/squtils
 import ../script/vm
 import optionsdlg
+import saveloaddlg
 
 const
   LoadGame = 99910
@@ -28,6 +29,9 @@ proc onButtonDown(node: Node, id: int) =
     sqCall("start", [1])
   of Options:
     node.getParent().addChild newOptionsDialog()
+    node.remove()
+  of LoadGame:
+    node.getParent().addChild newSaveLoadDialog()
     node.remove()
   of Quit:
     quit()

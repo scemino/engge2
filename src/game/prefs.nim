@@ -10,6 +10,7 @@ const
 type
   TempPref = object
     gameSpeedFactor*: float32
+    forceTalkieText*: bool
   Preferences* = object
     node*: JsonNode
     tmp*: TempPref

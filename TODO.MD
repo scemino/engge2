@@ -85,7 +85,7 @@
   * [x] room trigger should be called in a thread (to be breakable)
 * [ ] achievements
 * [ ] UI dialogs
-  * [ ] main menu
+  * [x] main menu
   * [ ] options
     * [ ] Save game
     * [x] Load game
