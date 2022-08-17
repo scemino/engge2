@@ -94,8 +94,8 @@
     * [x] Controls
     * [x] Text & Speech
     * [ ] Help
-  * [ ] pause game
-  * [ ] quit game
+  * [x] pause game
+  * [x] quit game
 * [ ] shaders
 * [ ] continuous integration
 * [ ] preferences

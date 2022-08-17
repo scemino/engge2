@@ -11,6 +11,7 @@ import ../script/squtils
 import ../script/vm
 import optionsdlg
 import saveloaddlg
+import quitdlg
 
 const
   LoadGame = 99910
@@ -34,7 +35,8 @@ proc onButtonDown(node: Node, id: int) =
     node.getParent().addChild newSaveLoadDialog()
     node.remove()
   of Quit:
-    quit()
+    node.getParent().addChild newQuitDialog()
+    node.remove()
   else:
     discard
 
