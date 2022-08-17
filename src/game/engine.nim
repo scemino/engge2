@@ -230,7 +230,10 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
     if v.objType == OT_TABLE and v.rawexists("icon"):
       info fmt"Add {k} to inventory"
       setf(rootTbl(gVm.v), k, v)
-      gEngine.inventory.add Object(table: v)
+      # declare flags if does not exist
+      if not v.rawexists("flags"):
+        v.setf("flags", 0)
+      gEngine.inventory.add Object(table: v, key: k)
 
   # declare the room in the root table
   result.table.setId(newRoomId())

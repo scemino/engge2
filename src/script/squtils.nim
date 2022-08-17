@@ -244,6 +244,14 @@ proc getId*(o: HSQOBJECT): int =
   if o.rawexists("_id"):
     getf(gVm.v, o, "_id", result)
 
+template newf*[T](o: HSQOBJECT, key: string, obj: T) =
+  let top = sq_gettop(gVm.v)
+  sq_pushobject(gVm.v, o)
+  sq_pushstring(gVm.v, key.cstring, -1)
+  push(gVm.v, obj)
+  discard sq_newslot(gVm.v, -3, SQFalse)
+  sq_settop(gVm.v, top)
+
 template setf*[T](o: HSQOBJECT, key: string, obj: T) =
   let top = sq_gettop(gVm.v)
   sq_pushobject(gVm.v, o)
