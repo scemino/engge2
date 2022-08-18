@@ -400,7 +400,7 @@
 - [x] objectValidUsePos
 - [x] objectValidVerb
 - [x] pickupObject
-- [ ] pickupReplacementObject
+- [x] pickupReplacementObject
 - [x] playObjectState
 - [ ] popInventory
 - [x] removeInventory

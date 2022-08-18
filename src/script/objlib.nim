@@ -547,7 +547,7 @@ proc objectParallaxLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectParent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get child")
   var parent = obj(v, 3)
@@ -843,7 +843,27 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc pickupReplacementObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "pickupReplacementObject not implemented"
+  let obj1 = obj(v, 2)
+  if obj1.isNil:
+    return sq_throwerror(v, "failed to get object 1")
+  let obj2 = obj(v, 3)
+  if obj2.isNil:
+    return sq_throwerror(v, "failed to get object 2")
+  assert not obj2.owner.isNil
+
+  # remove obj1 from inventory's owner
+  if not obj1.owner.isNil:
+    let index = obj1.owner.inventory.find obj1
+    obj1.owner.inventory.del index
+    obj1.owner = nil
+
+  # replace obj2 by obj1
+  let owner = obj2.owner
+  let index = obj2.owner.inventory.find obj2
+  assert index != -1
+  owner.inventory[index] = obj1
+  obj1.owner = owner
+  obj2.owner = nil
   0
 
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -852,7 +872,7 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## playObjectState(Mansion.windowShutters, OPEN)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   if sq_gettype(v, 3) == OT_INTEGER:
