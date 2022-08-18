@@ -54,8 +54,14 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
 
   var rootNode = node
   if node.isNil:
-    obj.node.removeAll()
-    rootNode = obj.node
+    for c in obj.node.children:
+      if c.name == "#anim":
+        rootNode = c
+        rootNode.removeAll()
+        break
+    if rootNode.isNil:
+      rootNode = newNode("#anim")
+      obj.node.addChild rootNode
 
   if frames.len > 0:
     result.node = newSpriteNode(if instant: frames[frames.len-1] else: frames[0])

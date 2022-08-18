@@ -20,7 +20,6 @@ type
     anchor: Vec2f
     size*: Vec2f
     visible*: bool
-    isCascadeAlphaEnabled, isCascadeColorEnabled: bool
     clr: Color                    # color of the node
     nodeColor: Color              # color to display (depends on parent node's color)
     zOrderFunc*: proc (): int32
