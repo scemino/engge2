@@ -305,7 +305,7 @@ proc loadRoom(room: Room, json: JsonNode) =
       if not k.startsWith('_'):
         room.table.setf(k, toSquirrel(v))
       else:
-        warn fmt"load room: key '{k}' is unknown"
+        warn fmt"Load room: key '{k}' is unknown"
   
   if room.table.rawexists("postLoad"):
     sqCall(room.table, "postLoad", [])

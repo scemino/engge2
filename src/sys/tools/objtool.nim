@@ -47,7 +47,9 @@ proc showProperties() =
       let state = if gObject.triggerActive: "yes" else: "no"
       igText("Trigger active: %s", state.cstring)
     igSeparator()
-    igText("State: %d", gObject.state)
+    var state = gObject.state.int32
+    if igInputInt("State", state.addr):
+      gObject.setState(state.int)
     if igCombo("Anim", animIdx.addr, getAnim, nil, gObject.anims.len.int32, -1'i32):
       gObject.play(gObject.anims[animIdx].name)
     igSeparator()

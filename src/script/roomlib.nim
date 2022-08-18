@@ -197,7 +197,7 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if name.len == 0:
     v.getf(table, "background", name)
   var room = defineRoom(name, table)
-  info fmt"define room: {name}"
+  info fmt"Define room: {name}"
   gEngine.rooms.add room
   push(v, room.table)
   1
@@ -224,7 +224,7 @@ proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get room table")
   
   var room = defineRoom(name, table)
-  info fmt"define room: {name}"
+  info fmt"Define room: {name}"
   gEngine.rooms.add room
   push(v, room.table)
   1

@@ -15,7 +15,6 @@ import ../game/screen
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
-import ../audio/audio
 
 const
   Options = 99913

@@ -62,6 +62,8 @@ proc main() =
   let consoleTool = newConsoleTool()
   addHandler(newConsoleToolLogger(consoleTool))
   info("# Welcome to ngnim")
+  info fmt"Host: {hostCPU} / {hostOS}"
+  info fmt"Nim: {NimVersion}"
   addDebugTool(consoleTool)
   addDebugTool(newThreadTool())
   addDebugTool(newSoundTool())

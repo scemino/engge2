@@ -376,7 +376,7 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
     let anim = self.anims[i]
     if anim.name == state:
       self.animFlags = anim.flags
-      info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}, instant={instant}"
+      # info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}, instant={instant}"
       self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop, instant)
       return true
 
@@ -456,7 +456,7 @@ proc delObject*(self: Object) =
 
 # Layer
 proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
-  info fmt"Create layer {names}, {parallax}, {zsort}"
+  # info fmt"Create layer {names}, {parallax}, {zsort}"
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
 proc update*(self: Layer, elapsedSec: float) = 
@@ -712,7 +712,7 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   for name in backNames:
     width += result.spriteSheet.frame(name).sourceSize.x
   result.roomSize.x = width
-  info fmt"roomSize={result.roomSize}"
+  # info fmt"roomSize={result.roomSize}"
 
 proc parseRoom*(table: HSQOBJECT, s: Stream, filename: string = ""): Room =
   ## Parses from a stream `s` into a `Room`. `filename` is only needed
