@@ -5,8 +5,9 @@
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
-* [ ] inventory hotspot is wrong
-* [ ] dialog choice hotspot is wrong
+* [x] menu hotspot is wrong
+* [x] inventory hotspot is wrong
+* [x] dialog choice hotspot is wrong
 * [x] invalid talk offset (with pigeon brothers for example)
 * [x] wheels are missing in pigeons van
 * [x] when actor is switched, the verb colors are wrong

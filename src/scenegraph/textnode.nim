@@ -2,6 +2,7 @@ import glm
 import node
 import ../gfx/text
 import ../gfx/color
+import ../gfx/recti
 
 type
   TextNode* = ref object of Node
@@ -20,3 +21,7 @@ method colorUpdated(self: TextNode, color: Color) =
 
 method drawCore(self: TextNode, transf: Mat4f) =
   self.text.draw(transf)
+
+method getRect*(self: TextNode): Rectf =
+  let size = self.size * self.scale
+  rectFromPositionSize(self.absolutePosition() - vec2f(0f, size.y), size)

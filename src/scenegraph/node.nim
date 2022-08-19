@@ -2,6 +2,7 @@ import glm
 import std/algorithm
 import ../gfx/color
 import ../gfx/recti
+import ../gfx/graphics
 import ../game/motors/motor
 
 type
@@ -159,6 +160,10 @@ method addChild*(self: Node, child: Node) {.base.} =
 method drawCore(self: Node, transf: Mat4f) {.base, locks: "unknown".} =
   discard
 
+method getRect*(self: Node): Rectf {.base.} =
+  let size = self.size * self.scale
+  rectFromPositionSize(self.absolutePosition() + vec2(-size.x, size.y) * self.anchorNorm, size)
+
 proc draw*(self: Node; parent = mat4(1.0f)) =
   ## Draws `self` node.
   if self.visible:
@@ -207,6 +212,3 @@ method remove*(self: Node) {.base.} =
   ## Removes this node from its parent.
   if not self.isNil and not self.parent.isNil:
     self.parent.removeChild self
-
-proc getRect*(self: Node): Rectf =
-  rectFromPositionSize(self.absolutePosition(), self.size * self.scale)
