@@ -163,7 +163,7 @@ proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence =
   Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
 proc newObject*(): Object =
-  result = Object(state: -1)
+  result = Object(state: -1, talkOffset: vec2(0'i32, 90'i32))
   sq_resetobject(result.table)
 
 proc facing*(dir: Direction): Facing =
