@@ -130,7 +130,7 @@ proc setSize*(self: Node, size: Vec2f) =
 proc localTransform(self: Node): Mat4f =
   ## Gets the location transformation = translation * rotation * scale.
   var scale = self.getScale()
-  scale(rotate(translate(mat4(1.0f), vec3(self.pos + self.offset + self.renderOffset, 0.0f)), glm.radians(self.rotation), 0.0f, 0.0f, 1.0f), scale.x, scale.y, 1.0f)
+  translate(scale(rotate(translate(mat4(1f), vec3(self.pos + self.offset, 0f)), glm.radians(self.rotation), 0f, 0f, 1f), scale.x, scale.y, 1f), vec3(self.renderOffset, 0f))
 
 method transform*(self: Node, parentTrans: Mat4f): Mat4f {.base.} =
   # Gets the full transformation for this node.

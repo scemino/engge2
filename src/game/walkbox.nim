@@ -1,6 +1,7 @@
 import std/parseutils
+import std/sequtils
 import glm
-import ../libs/polyBool/polyBool
+import clipper2
 
 type Walkbox* = object
   ## Represents an area where an actor can or cannot walk
@@ -15,43 +16,34 @@ proc parseWalkbox*(text: string): Walkbox =
     var x, y: int
     i += parseInt(text, x, i) + 1
     i += parseInt(text, y, i) + 3
-    var p = vec2(x.int32, y.int32)
+    let p = vec2(x.int32, y.int32)
     points.add(p)
   Walkbox(polygon: points, visible: true)
 
-proc toPolygon(walkbox: Walkbox): Polygon =
-  result.addRegion()
+proc toPolygon(walkbox: Walkbox): Path64 =
   for p in walkbox.polygon:
-    result.addVertex p.x.float, p.y.float
+    result.add Point64(x: p.x, y: p.y)
 
-proc mergePoly(walkboxes: openArray[Walkbox]): Polygon =
-  ## Merge all walkboxes in 1 polygon.
+proc mergePolygons(walkboxes: openArray[Walkbox]): Paths64 =
   if walkboxes.len > 0:
-    var polygons: seq[Polygon]
+    var subjects, clips: Paths64
     for wb in walkboxes:
-      polygons.add toPolygon(wb)
-    
-    var polyBool = initPolyBool()
-    var segments = polyBool.segments(polygons[0])
-    for i in 1..<polygons.len:
-      if walkboxes[i].visible:
-        var seg2 = polyBool.segments(polygons[i])
-        var comb = polyBool.combine(segments, seg2)
-        segments = polyBool.selectUnion(comb)
-    for i in 1..<polygons.len:
-      if not walkboxes[i].visible:
-        var seg2 = polyBool.segments(polygons[i])
-        var comb = polyBool.combine(segments, seg2)
-        segments = polyBool.selectDifference(comb)
-    result = polyBool.polygon(segments)
+      if wb.visible:
+        subjects.add wb.toPolygon
+    result = Union(subjects, clips, frEvenOdd)
+
+proc toWalkbox(polygon: Path64): Walkbox =
+  var pts: seq[Vec2i]
+  for p in polygon:
+    pts.add vec2(p.x.int32, p.y.int32)
+  Walkbox(visible: true, polygon: pts)
+
+iterator toWalkboxes(polygons: Paths64): Walkbox =
+  for p in polygons:
+    yield p.toWalkbox
 
 proc merge*(walkboxes: openArray[Walkbox]): seq[Walkbox] =
-  var poly = mergePoly(walkboxes)
-  for region in poly.regions:
-    var pts: seq[Vec2i]
-    for p in region:
-      pts.add(vec2(p.x.int32,p.y.int32))
-    result.add Walkbox(polygon: pts)
+  mergePolygons(walkboxes).toWalkboxes().toSeq
 
 proc concave*(self: Walkbox, vertex: int): bool =
   let current = self.polygon[vertex]
@@ -156,3 +148,22 @@ proc contains*(self: Walkbox, pos: Vec2f, toleranceOnOutside = true): bool =
 
     oldPoint = newPoint
     oldSqDist = newSqDist
+
+when isMainModule:
+  let wbTexts = [
+    "{91,113};{173,113};{186,104};{329,104};{331,109};{412,109};{416,102};{494,102};{506,97};{532,94};{554,90};{660,66};{7,70};{8,86};{25,90};{19,104}", 
+    "{730,114};{732,109};{554,90};{532,94}", 
+    "{730,114};{731,121};{737,125};{750,120};{746,114};{732,109}", 
+    "{693,130};{695,132};{737,125};{731,121}",
+    "{639,136};{695,132};{693,130};{638,134}",
+    "{198,116};{197,113};{190,112};{186,104};{173,113}",
+    "{699,164};{706,164};{636,153};{625,151};{616,147};{609,148};{620,152};{633,154}",
+    "{609,148};{616,147};{621,142};{639,136};{638,134};{613,143}",
+    "{658,185};{663,184};{666,181};{679,177};{699,170};{706,164};{699,164};{696,168};{675,175};{664,178}",
+    "{747,198};{761,203};{766,203};{747,196};{721,195};{682,190};{663,184};{658,185};{679,192};{720,197}"]
+  var wbs: seq[Walkbox]
+  for wbText in wbTexts:
+    wbs.add parseWalkbox(wbText)
+  let sol = mergePolygons(wbs).toWalkboxes().toSeq
+  echo sol
+  echo sol.len

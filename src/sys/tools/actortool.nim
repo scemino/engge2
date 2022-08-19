@@ -51,6 +51,7 @@ proc showProperties() =
     igDragInt2("Talk offset", gActor.talkOffset.arr)
     igDragFloat2("Position", gActor.node.pos.arr)
     igDragFloat2("Offset", gActor.node.offset.arr)
+    igDragFloat2("Render Offset", gActor.node.renderOffset.arr)
     igDragFloat("Volume", addr gActor.volume, 1f, 0f, 1f)
     igDragInt4("Hotspot", gActor.hotspot.arr)
     igDragFloat2("WalkSpeed", gActor.walkSpeed.arr)

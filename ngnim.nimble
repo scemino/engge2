@@ -15,5 +15,6 @@ requires "glm >= 1.1.1"
 requires "stb_image >= 2.5.0"
 requires "https://github.com/scemino/nimyggpack"
 requires "https://github.com/scemino/sqnim"
+requires "https://github.com/scemino/clipper2"
 
 backend = "cpp"

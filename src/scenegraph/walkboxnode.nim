@@ -15,6 +15,7 @@ type
 
 proc newWalkboxNode*(room: Room): WalkboxNode =
   result = WalkboxNode(room: room)
+  result.zOrder = -1000
   result.init()
 
 method drawCore(self: WalkboxNode, transf: Mat4f) =

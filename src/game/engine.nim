@@ -297,6 +297,10 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.room = room
   self.scene = room.scene
   self.room.numLights = 0
+  if not self.walkboxNode.isNil:
+    self.walkboxNode.remove()
+  self.walkboxNode = newWalkboxNode(room)
+  self.scene.addChild self.walkboxNode
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
   # move current actor to the new room
@@ -330,10 +334,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
 proc setRoom*(self: Engine, room: Room) =
   if self.room != room:
     self.enterRoom(room)
-    if not self.walkboxNode.isNil:
-      self.walkboxNode.remove()
-    self.walkboxNode = newWalkboxNode(room)
-    self.scene.addChild self.walkboxNode
     self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
 proc inInventory*(obj: Object): bool =
