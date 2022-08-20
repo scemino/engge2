@@ -1,7 +1,7 @@
 import std/parseutils
 import std/sequtils
 import glm
-import clipper2
+import clipper
 
 type Walkbox* = object
   ## Represents an area where an actor can or cannot walk
@@ -20,25 +20,25 @@ proc parseWalkbox*(text: string): Walkbox =
     points.add(p)
   Walkbox(polygon: points, visible: true)
 
-proc toPolygon(walkbox: Walkbox): Path64 =
+proc toPolygon(walkbox: Walkbox): Path =
   for p in walkbox.polygon:
-    result.add Point64(x: p.x, y: p.y)
+    result.add IntPoint(X: p.x, Y: p.y)
 
-proc mergePolygons(walkboxes: openArray[Walkbox]): Paths64 =
+proc mergePolygons(walkboxes: openArray[Walkbox]): Paths =
   if walkboxes.len > 0:
-    var subjects, clips: Paths64
+    var subjects, clips: Paths
     for wb in walkboxes:
       if wb.visible:
         subjects.add wb.toPolygon
-    result = Union(subjects, clips, frEvenOdd)
+    result = Union(subjects, clips, pftEvenOdd)
 
-proc toWalkbox(polygon: Path64): Walkbox =
+proc toWalkbox(polygon: Path): Walkbox =
   var pts: seq[Vec2i]
   for p in polygon:
-    pts.add vec2(p.x.int32, p.y.int32)
+    pts.add vec2(p.X.int32, p.Y.int32)
   Walkbox(visible: true, polygon: pts)
 
-iterator toWalkboxes(polygons: Paths64): Walkbox =
+iterator toWalkboxes(polygons: Paths): Walkbox =
   for p in polygons:
     yield p.toWalkbox
 
