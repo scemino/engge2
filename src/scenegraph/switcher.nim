@@ -28,7 +28,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     let id = switcher.values[switcher.index]
     switcher.text.text.text = getText(id)
     switcher.text.pos = vec2f(ScreenWidth/2f - switcher.text.text.bounds.x/2f, 0f)
-    switcher.callback(switcher, id)
+    switcher.callback(switcher, switcher.index)
   else:
     discard
 

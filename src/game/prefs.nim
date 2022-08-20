@@ -33,6 +33,9 @@ proc tmpPrefs*(): var TempPref =
 proc prefs*(name, default: string): string =
   if gPrefs.node.hasKey(name): gPrefs.node[name].str else: default
 
+proc setPrefs*(name, value: string) =
+  gPrefs.node[name] = newJString(value)
+
 proc prefsAsJson*(name: string): JsonNode =
   gPrefs.node[name]
 

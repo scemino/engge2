@@ -12,6 +12,7 @@ import ../gfx/text
 import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
+import ../game/prefs
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
@@ -137,6 +138,9 @@ proc newCheckVar*(id: int, y: float, name: string): Checkbox =
   newCheckbox(id, y, onCheckVar, value)
 
 proc onSwitch(self: Switcher, value: int) =
+  const values = ["en", "fr", "it", "de", "es"]
+  setPrefs(Lang, values[value])
+  initTextDb()
   discard
 
 proc onSlide(self: Slider, value: float32) =
