@@ -2,7 +2,6 @@ import glm
 import std/algorithm
 import ../gfx/color
 import ../gfx/recti
-import ../gfx/graphics
 import ../game/motors/motor
 
 type
@@ -164,11 +163,11 @@ method getRect*(self: Node): Rectf {.base.} =
   let size = self.size * self.scale
   rectFromPositionSize(self.absolutePosition() + vec2(-size.x, size.y) * self.anchorNorm, size)
 
-proc draw*(self: Node; parent = mat4(1.0f)) =
+proc draw*(self: Node; parent = mat4(1f)) =
   ## Draws `self` node.
   if self.visible:
-    var transf = self.transform(parent)
-    var myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0.0f))
+    let transf = self.transform(parent)
+    let myTransf = translate(transf, vec3f(-self.anchor.x, self.anchor.y, 0f))
     self.children.sort(proc(x, y: Node):int = cmp(y.getZSort, x.getZSort))
     self.drawCore(myTransf)
     for node in self.children:

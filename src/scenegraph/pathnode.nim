@@ -20,6 +20,11 @@ method drawCore(self: PathNode, transf: Mat4f) =
     let path = walkTo.path
     if path.len > 0:
       var vertices: seq[Vertex]
+      vertices.add Vertex(pos: gEngine.room.roomToScreen(actor.node.pos), color: Yellow)
       for v in path:
-        vertices.add Vertex(pos: gEngine.room.roomToScreen(v), color: Yellow)
+        let p = gEngine.room.roomToScreen(v)
+        vertices.add Vertex(pos: p, color: Yellow)
+        gfxDrawQuad(p-vec2f(2f, 2f), vec2f(4f, 4f), Yellow)
       gfxDrawLines(vertices)
+  if not actor.isNil:
+    gfxDrawQuad(gEngine.room.roomToScreen(actor.node.pos)-vec2f(2f, 2f), vec2f(4f, 4f), Red)

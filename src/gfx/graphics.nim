@@ -152,7 +152,7 @@ proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White
 
 proc gfxDrawLines*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   noTexture()
-  drawPrimitives(GL_LINES, vertices, transf)
+  drawPrimitives(GL_LINE_STRIP, vertices, transf)
 
 proc gfxDrawLineLoop*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   noTexture()
