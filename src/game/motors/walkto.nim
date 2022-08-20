@@ -18,11 +18,13 @@ type WalkTo* = ref object of Motor
     obj: Object
     path*: seq[Vec2f]
     facing: Option[Facing]
+    wsd: float32
 
 proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   new(result)
   result.obj = obj
   result.path = obj.room.calculatePath(obj.node.pos, dest)
+  result.wsd = sqrt(obj.walkspeed.x * obj.walkspeed.x + obj.walkspeed.y * obj.walkspeed.y)
   #info fmt"path: {result.path}"
   result.facing = facing
   result.init()
@@ -97,9 +99,7 @@ method update(self: WalkTo, el: float) =
   if self.path.len != 0:
     let dest = self.path[0]
     let d = distance(dest, self.obj.node.pos)
-    let delta = dest - self.obj.node.pos
-    let walkspeed = self.obj.walkSpeed * el
-    var dx, dy: float
+    
     # arrived at destination ?
     if d < 1.0:
       self.obj.node.pos = self.path[0]
@@ -108,17 +108,12 @@ method update(self: WalkTo, el: float) =
         self.disable()
         self.actorArrived()
     else:
-      # actor needs to walk to the right
-      if delta.x > 0.0:
-        dx = min(walkspeed.x, delta.x)
-      else:
-        dx = -min(walkspeed.x, -delta.x)
-      # actor needs to walk up
-      if delta.y > 0.0:
-        dy = min(walkspeed.y, delta.y)
-      else:
-        dy = -min(walkspeed.y, -delta.y)
-      self.obj.node.pos += vec2(dx.float32, dy.float32)
+      let delta = dest - self.obj.node.pos
+      let duration = d / self.wsd
+      let factor = clamp(el / duration, 0f, 1f)
+
+      let dd = delta * factor
+      self.obj.node.pos += dd
       if abs(delta.x) >= 0.1:
         self.obj.setFacing(if delta.x >= 0: FACE_RIGHT else: FACE_LEFT)
       else:
