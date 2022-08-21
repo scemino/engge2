@@ -12,6 +12,7 @@ import ../gfx/graphics
 import ../game/room
 import ../game/verb
 import ../game/screen
+import ../game/prefs
 import ../game/motors/shake
 import ../script/squtils
 
@@ -234,10 +235,13 @@ proc `actor=`*(self: Hud, actor: Object) =
 
   # updates verbs
   let verbSheet = gResMgr.spritesheet("VerbSheet")
+  let lang = prefs(Lang, LangDefValue)
+  let isRetroVerbs = prefs(RetroVerbs, RetroVerbsDefValue)
+  let verbSuffix = if isRetroVerbs: "_retro" else: ""
   for i in 1..<actorSlot.verbs.len:
     let verb = actorSlot.verbs[i]
     if verb.image.len > 0:
-      let verbFrame = verbSheet.frame(fmt"{verb.image}_en")
+      let verbFrame = verbSheet.frame(fmt"{verb.image}{verbSuffix}_{lang}")
       self.verbNodes[i-1].pos = vec2(verbFrame.spriteSourceSize.x.float32, verbFrame.sourceSize.y.float32 - verbFrame.spriteSourceSize.y.float32 - verbFrame.spriteSourceSize.h.float32)
       self.verbNodes[i-1].setFrame(verbFrame)
       self.verbNodes[i-1].setAnchorNorm(vec2f(0f, 0f))

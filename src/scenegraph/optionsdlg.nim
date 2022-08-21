@@ -1,3 +1,4 @@
+import std/tables
 import glm
 import node
 import textnode
@@ -48,6 +49,10 @@ const
   Help = 99961
   Quit = 99915
   Back = 99904
+  varNames = {Fullscreen: "windowFullscreen", ToiletPaperOver: "toilet_paper_over", AnnoyingInJokes: "annoying_injokes", Controller: "controller", ScrollSyncCursor: "controllerScollLockCursor", InvertVerbColors: "invertVerbHighlight", RetroFonts: "retroFonts", RetroVerbs: "retroVerbs", ClassicSentence: "hudSentence", TextSpeed: "sayLineSpeed", DisplayText: "talkiesShowText", HearVoice: "talkiesHearVoice"}.toTable
+  varPrefNames = {Fullscreen: prefs.Fullscreen, ToiletPaperOver: prefs.ToiletPaperOver, AnnoyingInJokes: prefs.AnnoyingInJokes, Controller: prefs.Controller, ScrollSyncCursor: prefs.ScrollSyncCursor, InvertVerbColors: prefs.InvertVerbHighlight, RetroFonts: prefs.RetroFonts, RetroVerbs: prefs.RetroVerbs, ClassicSentence: prefs.ClassicSentence, TextSpeed: prefs.SayLineSpeed, DisplayText: prefs.DisplayText, HearVoice: prefs.HearVoice}.toTable
+  varPrefDefValues = {Fullscreen: prefs.FullscreenDefValue, ToiletPaperOver: prefs.ToiletPaperOverDefValue, AnnoyingInJokes: prefs.AnnoyingInJokesDefValue, Controller: prefs.ControllerDefValue, ScrollSyncCursor: prefs.ScrollSyncCursorDefValue, InvertVerbColors: prefs.InvertVerbHighlightDefValue, RetroFonts: prefs.RetroFontsDefValue, RetroVerbs: prefs.RetroVerbsDefValue, ClassicSentence: prefs.ClassicSentenceDefValue, DisplayText: prefs.DisplayTextDefValue, HearVoice: prefs.HearVoiceDefValue}.toTable
+  varPrefDefFloatValues = {TextSpeed: prefs.SayLineSpeedDefValue}.toTable
 
 type
   OptionsDialog* = ref object of Node
@@ -119,23 +124,23 @@ proc newBackground(): SpriteNode =
   result.pos = vec2(ScreenWidth/2f, ScreenHeight/2f)
 
 proc onCheckVar(self: Checkbox, state: bool) =
-  let name = cast[string](self.tag)
-  sqCall("setSettingVar", [name, if state: 1 else: 0])
+  let id = cast[int](self.tag)
+  setPrefs(varPrefNames[id], state)
+  sqCall("setSettingVar", [varNames[id], if state: 1 else: 0])
   self.check(state)
 
 proc onSliderVar(self: Slider, value: float32) =
-  let name = cast[string](self.tag)
-  sqCall("setSettingVar", [name, value])
+  let id = cast[int](self.tag)
+  setPrefs(varPrefNames[id], value)
+  sqCall("setSettingVar", [varNames[id], value])
 
-proc newSliderVar*(id: int, y: float, name: string): Slider =
-  var value: float32
-  sqCallFunc(value, "getSettingVar", [name])
-  newSlider(id, y, onSliderVar, value)
+proc newSliderVar*(id: int, y: float): Slider =
+  let value = prefs(varPrefNames[id], varPrefDefFloatValues[id])
+  newSlider(id, y, onSliderVar, value, cast[pointer](id))
 
-proc newCheckVar*(id: int, y: float, name: string): Checkbox =
-  var value: bool
-  sqCallFunc(value, "getSettingVar", [name])
-  newCheckbox(id, y, onCheckVar, value)
+proc newCheckVar*(id: int, y: float): Checkbox =
+  let value = prefs(varPrefNames[id], varPrefDefValues[id])
+  newCheckbox(id, y, onCheckVar, value, cast[pointer](id))
 
 proc onSwitch(self: Switcher, value: int) =
   const values = ["en", "fr", "it", "de", "es"]
@@ -146,10 +151,13 @@ proc onSwitch(self: Switcher, value: int) =
 proc onSlide(self: Slider, value: float32) =
   case self.id:
   of SoundVolume:
+    setPrefs(VolumeSound, value)
     sqCall("soundMixVolume", [value])
   of MusicVolume:
+    setPrefs(VolumeMusic, value)
     sqCall("musicMixVolume", [value])
   of VoiceVolume:
+    setPrefs(VolumeTalkies, value)
     sqCall("talkieMixVolume", [value])
   else:
     discard
@@ -171,24 +179,24 @@ proc update() =
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sVideo:
     gSelf.addChild newHeader(Video)
-    gSelf.addChild newCheckVar(Fullscreen, 420f, "windowFullscreen")
-    gSelf.addChild newCheckVar(ToiletPaperOver, 360f, "toilet_paper_over")
-    gSelf.addChild newCheckVar(AnnoyingInJokes, 300f, "annoying_injokes")
+    gSelf.addChild newCheckVar(Fullscreen, 420f)
+    gSelf.addChild newCheckVar(ToiletPaperOver, 360f)
+    gSelf.addChild newCheckVar(AnnoyingInJokes, 300f)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sControls:
     gSelf.addChild newHeader(Controls)
-    gSelf.addChild newCheckVar(Controller, 540f, "controller")
-    gSelf.addChild newCheckVar(ScrollSyncCursor, 480f, "controllerScollLockCursor")
-    gSelf.addChild newCheckVar(InvertVerbColors, 400f, "invertVerbHighlight")
-    gSelf.addChild newCheckVar(RetroFonts, 340f, "retroFonts")
-    gSelf.addChild newCheckVar(RetroVerbs, 280f, "retroVerbs")
-    gSelf.addChild newCheckVar(ClassicSentence, 220f, "hudSentence")
+    gSelf.addChild newCheckVar(Controller, 540f)
+    gSelf.addChild newCheckVar(ScrollSyncCursor, 480f)
+    gSelf.addChild newCheckVar(InvertVerbColors, 400f)
+    gSelf.addChild newCheckVar(RetroFonts, 340f)
+    gSelf.addChild newCheckVar(RetroVerbs, 280f)
+    gSelf.addChild newCheckVar(ClassicSentence, 220f)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sTextAndSpeech:
     gSelf.addChild newHeader(TextAndSpeech)
-    gSelf.addChild newSliderVar(TextSpeed, 540f, "sayLineSpeed")
-    gSelf.addChild newCheckVar(DisplayText, 400f, "talkiesShowText")
-    gSelf.addChild newCheckVar(HearVoice, 340f, "talkiesHearVoice")
+    gSelf.addChild newSliderVar(TextSpeed, 540f)
+    gSelf.addChild newCheckVar(DisplayText, 400f)
+    gSelf.addChild newCheckVar(HearVoice, 340f)
     gSelf.addChild newSwitcher(280f, onSwitch, @[EnglishText, FrenchText, ItalianText, GermanText, SpanishText], EnglishText)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sSound:

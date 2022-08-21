@@ -2,6 +2,7 @@ import std/tables
 import std/strformat
 import std/logging
 import ../io/ggpackmanager
+import ../game/prefs
 import ../gfx/font
 import ../gfx/bmfont
 import ../gfx/ggfont
@@ -25,8 +26,8 @@ proc newResManager*(): ResManager =
 proc loadFont(self: ResManager, fontName: string) =
   if fontName == "sayline":
     info fmt"Load font {fontName}"
-    self.fonts[fontName] = parseGGFontFromPack("FontModernSheet.json")
-    # TODO: check preferences to use retro or mdern font: self.fonts[fontName] = parseGGFontFromPack("FontRetroSheet.json")
+    let resName = if prefs(RetroFonts, RetroFontsDefValue): "FontRetroSheet.json" else: "FontModernSheet.json"
+    self.fonts[fontName] =  parseGGFontFromPack(resName)
   elif fontName == "C64Font":
     info fmt"Load font {fontName}"
     self.fonts[fontName] = parseGGFontFromPack("FontC64TermSheet.json")
