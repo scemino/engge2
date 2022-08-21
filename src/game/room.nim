@@ -491,7 +491,9 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   # assign an id
   obj.table.setId(newObjId())
-  obj.table.setf("name", if frames.len > 0: frames[0] else: "noname")
+  let name = if frames.len > 0: frames[0] else: "noname"
+  obj.table.setf("name", name)
+  obj.key = name
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
   obj.touchable = true
