@@ -398,6 +398,12 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
       self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop, instant)
       return true
 
+  # if not found, clear the previous animation
+  for c in self.node.children:
+    if c.name == "#anim":
+      c.removeAll()
+      break
+
 proc play*(self: Object, state: string; loop = false, instant = false) =
   ## Plays an animation specified by the `state`. 
   if state == "eyes_right":
