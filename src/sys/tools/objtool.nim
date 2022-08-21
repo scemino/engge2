@@ -53,7 +53,9 @@ proc showProperties() =
     if igCombo("Anim", animIdx.addr, getAnim, nil, gObject.anims.len.int32, -1'i32):
       gObject.play(gObject.anims[animIdx].name)
     igSeparator()
-    igCheckbox("Touchable", gObject.touchable.addr)
+    var touchable = gObject.touchable
+    if igCheckbox("Touchable", touchable.addr):
+      gObject.touchable = touchable
     var color = gObject.node.realColor
     if igColorEdit4("Color", color.arr):
       gObject.node.color = color

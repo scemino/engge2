@@ -96,7 +96,6 @@ type
     blink*: Motor
     turnTo*: Motor
     table*: HSQOBJECT
-    touchable*: bool
     r: Room
     facing*: Facing
     lockFacing: bool
@@ -171,6 +170,25 @@ proc facing*(dir: Direction): Facing =
 
 proc getUsePos*(self: Object): Vec2f =
   self.node.pos + self.usePos
+
+proc `touchable`*(self: Object): bool =
+  if self.objType == ObjectType.otNone:
+    if self.state == GONE:
+      result = false
+    elif not self.node.visible:
+      result = false
+    elif self.table.rawexists("_touchable"):
+      self.table.getf("_touchable", result)
+    elif self.table.rawexists("initTouchable"):
+      self.table.getf("initTouchable", result)
+    else:
+      result = true
+
+proc `touchable=`*(self: Object, value: bool) =
+  if self.table.rawexists("_touchable"):
+    self.table.setf("_touchable", value)
+  else:
+    self.table.newf("_touchable", value)
 
 proc setIcon*(self: Object, fps: int, icons: seq[string]) =
   self.icons = icons
@@ -422,12 +440,8 @@ proc setState*(self: Object, state: int, instant = false) =
   ## .. code-block:: Squirrel
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
-  let graphState = if state == GONE: 1 else: state
-  self.play(graphState, false, instant)
+  self.play(state, false, instant)
   self.state = state
-  self.node.visible = state != GONE
-  if state == GONE:
-    self.touchable = false
 
 proc dependentOn*(self, dependentObj: Object, state: int) =
   self.dependentState = state
@@ -496,7 +510,6 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   obj.key = name
   info fmt"Create object with new table: {obj.name} #{obj.id}"
 
-  obj.touchable = true
   obj.r = self
   obj.sheet = sheet
   
@@ -679,7 +692,6 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
       obj.useDir = if useDir.isSome: parseUseDir(useDir.get) else: dNone
       obj.hotspot = parseRecti(jObject["hotspot"].getStr)
       obj.objType = toObjectType(jObject)
-      obj.touchable = true
       obj.parent = if jObject.hasKey("parent"): jObject["parent"].getStr() else: ""
       obj.r = result
       if jObject.hasKey("animations"):

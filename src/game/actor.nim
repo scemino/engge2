@@ -42,7 +42,6 @@ proc setHeadIndex*(self: Object, head: int) =
 proc newActor*(): Object =
   result = newObject()
   result.hotspot = rect(-18'i32, 0'i32, 37'i32, 71'i32)
-  result.touchable = true
   result.facing = FACE_FRONT
   result.showLayer("blink", false)
   result.showLayer("eyes_left", false)

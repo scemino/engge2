@@ -181,8 +181,6 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           # assign a name
           setf(obj.table, "name", obj.key)
 
-          obj.touchable = true
-          
           # adds the object to the room table
           setf(result.table, obj.name, obj.table)
           obj.setRoom(result)
@@ -192,11 +190,6 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           obj.table.setId(newObjId())
           setf(rootTbl(gVm.v), obj.key, obj.table)
           # info fmt"Create object with existing table: {obj.key} #{obj.id}"
-          if obj.table.rawexists("initTouchable"):
-            # info fmt"initTouchable {obj.key}"
-            obj.table.getf("initTouchable", obj.touchable)
-          else:
-            obj.touchable = true
           if obj.table.rawexists("initState"):
             # info fmt"initState {obj.key}"
             var state: int
