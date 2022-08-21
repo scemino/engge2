@@ -218,6 +218,9 @@ proc updateInventory*(self: Hud) =
     for i in count..<NumInventoryObjects:
       self.inventoryNodes[i].setTexture gEmptyTexture
       self.inventoryNodes[i].buttons.setLen 0
+    # update scroll arrows
+    self.scrollDn.alpha = if self.act.hasDownArrow(): 1f else: 0f
+    self.scrollUp.alpha = if self.act.hasUpArrow(): 1f else: 0f
 
 proc getPos*(self: Hud, inv: Object): Vec2f =
   if not self.act.isNil:
@@ -296,7 +299,7 @@ proc onScroll(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Down:
     rect.hud.act.inventoryOffset += rect.offset
-    rect.hud.act.inventoryOffset = min(rect.hud.act.inventoryOffset, 0)
+    rect.hud.act.inventoryOffset = clamp(rect.hud.act.inventoryOffset, 0, (rect.hud.act.inventory.len - 5) div 4)
     info fmt"onScroll {rect.hud.act.inventoryOffset} {rect.offset}"
     rect.hud.updateInventory()
   else:

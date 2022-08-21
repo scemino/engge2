@@ -75,12 +75,12 @@
     * [x] use flag: with, in, on
     * [x] use flag: giveto
     * [ ] use lookat verb for inventory object 
-  * [ ] scroll inventory
   * [ ] fade
   * [ ] mouse text repositioned
-  * [x] mouse zsort
   * [ ] actor selection
+  * [x] mouse zsort
   * [x] verbs
+  * [x] scroll inventory
   * [x] inventory
   * [x] mouse cursor
 * [ ] triggers
