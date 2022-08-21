@@ -283,6 +283,8 @@ proc actorEnter(self: Engine) =
       if rawExists(self.room.table, "actorEnter"):
         call(self.v, self.room.table, "actorEnter", [self.currentActor.table])
 
+proc getVerb(self: Engine, id: int): Verb
+
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
@@ -302,9 +304,10 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.walkboxNode = newWalkboxNode(room)
   self.scene.addChild self.walkboxNode
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
+  self.hud.verb = self.getVerb(VERB_WALKTO)
 
   # move current actor to the new room
-  if not gEngine.actor.isNil:
+  if not door.isNil and not gEngine.actor.isNil:
     gEngine.actor.room = room
     if not door.isNil:
       gEngine.actor.node.pos = door.getUsePos
@@ -340,7 +343,7 @@ proc inInventory*(obj: Object): bool =
   gEngine.inventory.contains obj
 
 iterator objsAt*(self: Engine, pos: Vec2f): Object =
-  if not self.hud.obj.isNil:
+  if not self.hud.obj.isNil and self.room.fullscreen == 2:
     yield self.hud.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects:
@@ -695,7 +698,7 @@ proc update(self: Engine) =
       self.inputState.setCursorShape(CursorShape.Left)
     elif scrPos.x > (ScreenWidth - ScreenMargin) and cameraPos().x < (self.room.roomSize.x.float32 - screenSize.x.float32):
       self.inputState.setCursorShape(CursorShape.Right)
-    elif not self.noun1.isNil:
+    elif self.room.fullscreen == 1 and not self.noun1.isNil:
       # if the object is a door, it has a flag indicating its direction: left, right, front, back
       let flags = self.noun1.getFlags()
       if flags.hasFlag(DOOR_LEFT):
