@@ -146,6 +146,7 @@ proc onSwitch(self: Switcher, value: int) =
   const values = ["en", "fr", "it", "de", "es"]
   setPrefs(Lang, values[value])
   initTextDb()
+  sqCall("onLanguageChange")
   discard
 
 proc onSlide(self: Slider, value: float32) =

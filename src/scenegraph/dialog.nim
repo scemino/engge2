@@ -4,6 +4,7 @@ import std/sequtils
 import glm
 import node
 import dlgtgt
+import sqnim
 import ../scenegraph/textnode
 import ../game/resmanager
 import ../game/motors/motor
@@ -14,6 +15,7 @@ import ../io/yack
 import ../io/textdb
 import ../io/ggpackmanager
 import ../script/vm
+import ../script/squtils
 
 const 
   MaxDialogSlots = 9
@@ -215,6 +217,7 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   of Leave:
     src.color = slot.dlg.tgt.actorColor(slot.dlg.context.actor)
   of Down:
+    sqCall("onChoiceClick")
     for cond in slot.stamt.conds:
       let v = CondStateVisitor(dlg: slot.dlg, mode: DialogSelMode.Choose)
       cond.accept(v)

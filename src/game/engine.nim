@@ -374,6 +374,8 @@ proc giveTo(actor1, actor2, obj: Object) =
     actor1.inventory.del index
   
 proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
+  sqCall("onObjectClick", [noun1.table])
+
   # Called after the actor has walked to the object.
   let name = if actor.isNil: "currentActor" else: actor.name
   let noun1name = if noun1.isNil: "null" else: noun1.name

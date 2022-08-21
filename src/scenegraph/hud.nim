@@ -4,6 +4,7 @@ import std/tables
 import glm
 import node
 import spritenode
+import sqnim
 import ../game/resmanager
 import ../gfx/color
 import ../gfx/recti
@@ -15,6 +16,7 @@ import ../game/screen
 import ../game/prefs
 import ../game/motors/shake
 import ../script/squtils
+import ../script/vm
 
 const
   NumVerbs = 9
@@ -269,6 +271,7 @@ proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   of Down:
     verbRect.hud.verb = verbRect.hud.slot.verbs[verbRect.index + 1]
     info fmt"verb {verbRect.hud.verb.fun} selected"
+    sqCall("onVerbClick")
   else:
     discard
 

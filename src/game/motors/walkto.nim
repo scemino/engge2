@@ -3,11 +3,14 @@ import std/strformat
 import std/options
 import glm
 import motor
+import sqnim
 import ../engine
 import ../verb
 import ../room
+import ../../game/ids
 import ../../util/vecutils
 import ../../script/squtils
+import ../../script/vm
 import ../../scenegraph/node
 
 const
@@ -28,6 +31,8 @@ proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
   #info fmt"path: {result.path}"
   result.facing = facing
   result.init()
+  if obj.table.rawexists("preWalking"):
+    sqCall(obj.table, "preWalking", [])
 
 proc min_talk_dist(self: Object): int =
   MIN_TALK_DIST
@@ -60,9 +65,20 @@ proc actorArrived(self: WalkTo) =
   if self.obj.table.rawExists("actorArrived"):
     info "call actorArrived callback"
     self.obj.table.call("actorArrived")
-  
+
   # we need to execute a sentence when arrived ?
   if not self.obj.exec.isNil:
+    # call `postWalk`callback
+    let funcName = if self.obj.exec.noun1.id.isActor: "actorPostWalk" else: "objectPostWalk"
+    if self.obj.table.rawExists(funcName):
+      info fmt"call {funcName} callback"
+      var n2Table: HSQOBJECT
+      if not self.obj.exec.noun2.isNil:
+        n2Table = self.obj.exec.noun2.table
+      else:
+        sq_resetobject(n2Table)
+      sqCall(self.obj.table, funcName, [self.obj.exec.verb, self.obj.exec.noun1.table, n2Table])
+    
     info "actorArrived: exec sentence"
     if not self.obj.exec.noun1.inInventory:
       # Object became untouchable as we were walking there

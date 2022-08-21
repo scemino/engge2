@@ -58,6 +58,10 @@ macro sqCall*(name, args): untyped =
   let v = newDotExpr(ident("gVm"), ident("v"))
   result = newStmtList(newCall(ident("sqCall"), v, newCall("rootTbl", v), name, args))
 
+macro sqCall*(name): untyped =
+  let v = newDotExpr(ident("gVm"), ident("v"))
+  result = newStmtList(newCall(ident("sqCall"), v, newCall("rootTbl", v), name, newNimNode(nnkBracket)))
+
 macro sqCallFunc*(v, o, res, name, args): untyped =
   let stms = newStmtList()
   
@@ -287,5 +291,4 @@ iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
 
 when isMainModule:
   dumpTree:
-    let top = sq_gettop(v)
-    sq_settop(v, top)
+    call(@[])

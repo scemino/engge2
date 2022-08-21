@@ -175,7 +175,7 @@ proc `touchable`*(self: Object): bool =
   if self.objType == ObjectType.otNone:
     if self.state == GONE:
       result = false
-    elif not self.node.visible:
+    elif not self.node.isNil and not self.node.visible:
       result = false
     elif self.table.rawexists("_touchable"):
       self.table.getf("_touchable", result)
