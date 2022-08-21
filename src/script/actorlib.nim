@@ -785,14 +785,14 @@ proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc isActorOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## returns true if the specified actor is currently in the screen.
-  var actor = actor(v, 2)
-  if actor.isNil:
-    return sq_throwerror(v, "failed to get actor")
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get actor/object")
 
-  if actor.room != gEngine.room:
+  if obj.room != gEngine.room:
     push(v, false)
   else:
-    let pos = actor.node.pos - cameraPos()
+    let pos = obj.node.pos - cameraPos()
     let size = camera()
     var isOnScreen = rect(0.0f, 0.0f, size.x, size.y).contains(pos)
     push(v, isOnScreen)
