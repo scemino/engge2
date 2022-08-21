@@ -85,14 +85,17 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get y")
     pos = vec2(x.float32, y.float32)
   elif numArgs == 2:
-    var obj = obj(v, 2)
+    let obj = obj(v, 2)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get spot or actor")  
+    gEngine.setRoom(obj.room)
     pos = obj.node.absolutePosition()
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   if not gEngine.cameraPanTo.isNil:
     gEngine.cameraPanTo.disable()
-  var screenSize = gEngine.room.getScreenSize()
-  var at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
+  let screenSize = gEngine.room.getScreenSize()
+  let at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
   gEngine.cameraAt(at)
   0
 
