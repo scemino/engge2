@@ -606,14 +606,14 @@ proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## objectRotate(pigeonVanBackWheel, 0)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if not obj.isNil:
     var rotation = 0.0f
     if SQ_FAILED(sq_getfloat(v, 3, rotation)):
       return sq_throwerror(v, "failed to get rotation")
     if not obj.rotateTo.isNil:
       obj.rotateTo.disable()
-    obj.node.rotation = -rotation
+    obj.node.rotation = rotation
   0
 
 proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -625,7 +625,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## objectRotateTo(bridgeGrateTree, 45, 3.7, SLOW_EASE_IN)
   ## objectRotateTo(AStreet.aStreetPhoneBook, 6, 2.0, SWING)
   ## objectRotateTo(firefly, direction, 12, LOOPING)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if not obj.isNil:
     var rotation = 0.0
     if SQ_FAILED(get(v, 3, rotation)):
@@ -636,7 +636,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var interpolation = 0
     if sq_gettop(v) >= 5 and SQ_FAILED(get(v, 5, interpolation)):
       interpolation = 0
-    obj.rotateTo = newRotateTo(duration, obj.node, -rotation, interpolation)
+    obj.rotateTo = newRotateTo(duration, obj.node, rotation, interpolation)
   0
 
 proc objectScale(v: HSQUIRRELVM): SQInteger {.cdecl.} =
