@@ -21,4 +21,21 @@ jobs:
         with:
           submodules: recursive
       - uses: jiro4989/setup-nim-action@v1
-      - run: nimble build -Y
+      - run: nimble build -d:release -Y
+      - name: Create package
+        shell: bash
+        working-directory: ${{runner.workspace}}/ngnim
+        env:
+          GITHUB_OS: ${{ matrix.os }}
+        run: |
+          if [ "$GITHUB_OS" == "windows-latest" ];
+          then
+            tar -cvf ../engge_${{ runner.os }}.tar ngnim.exe
+          else
+            tar -cvf ../engge_${{ runner.os }}.tar ngnim
+          fi
+      - name: 📦 Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: engge_${{ runner.os }}
+          path: ${{runner.workspace}}/engge_${{ runner.os }}.tar

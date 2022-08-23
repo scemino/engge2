@@ -83,8 +83,6 @@
   * [x] scroll inventory
   * [x] inventory
   * [x] mouse cursor
-* [ ] triggers
-  * [x] room trigger should be called in a thread (to be breakable)
 * [ ] achievements
 * [ ] UI dialogs
   * [x] main menu
@@ -99,22 +97,10 @@
   * [x] pause game
   * [x] quit game
 * [ ] shaders
-* [ ] continuous integration
 * [ ] preferences
   * [ ] private preferences (achievement)
   * [x] user preferences
   * [x] temp preferences (debug)
-* [ ] sentence
-  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
-* [x] debug tools (dear imgui)
-  * [x] console
-  * [x] general
-  * [x] objects
-  * [x] actors
-  * [x] room
-  * [x] textures
-  * [x] threads
-  * [x] sounds
 * [ ] actor
   * [ ] actor reach animation
   * [x] actor costume
@@ -137,22 +123,36 @@
     * [x] ignore #M or #F at the end of a text
     * [x] sound
   * [x] actor walk fast
+* [ ] resource management
+  * [ ] ref counting with resource management
+  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
 * [ ] audio
   * [ ] sound position
   * [x] talk
   * [x] sound
   * [x] music
+* [x] triggers
+  * [x] room trigger should be called in a thread (to be breakable)
+* [x] sentence
+  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
+* [x] debug tools (dear imgui)
+  * [x] console
+  * [x] general
+  * [x] objects
+  * [x] actors
+  * [x] room
+  * [x] textures
+  * [x] threads
+  * [x] sounds
 * [x] script
   * [x] squirrel bindings
   * [x] easy squirrel constants bindings
   * [x] change thread management in order to use only 1 thread
-* [ ] resource management
-  * [ ] ref counting with resource management
-  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
 * [x] test object hierarchy: scene graph ?
 * [x] text
   * [x] horizontal alignment
   * [x] vertical alignment
+* [x] continuous integration
 
 ## Functions
 
