@@ -423,6 +423,9 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
 
   # TODO: finish this
 
+  if verbId == VERB_PICKUP:
+    call("onPickup", [noun1.table, self.actor.table])
+
   info "reset nouns"
   gEngine.noun1 = nil
   gEngine.noun2 = nil
