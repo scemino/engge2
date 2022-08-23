@@ -25,14 +25,14 @@ var
   gMouseCursors: array[9, CursorPtr]
   gMouseCanUseGlobalState: bool
 
-proc igSdl2GetClipboardText(userData: pointer): cstring {.cdecl.} =
+proc igSdl2GetClipboardText(userData: pointer): constChar {.cdecl.} =
   if not gClipboardTextData.isNil:
     freeClipboardText(gClipboardTextData)
   gClipboardTextData = getClipboardText()
-  return gClipboardTextData
+  return cast[constChar](gClipboardTextData)
 
-proc igSdl2SetClipboardText(userData: pointer, text: cstring): void {.cdecl.} =
-  discard setClipboardText(text)
+proc igSdl2SetClipboardText(userData: pointer, text: constChar): void {.cdecl.} =
+  discard setClipboardText(cast[cstring](text))
 
 proc igSdl2Init(window: WindowPtr): bool =
   gTime = 0
@@ -74,9 +74,8 @@ proc igSdl2Init(window: WindowPtr): bool =
   io.keyMap[ImGuiKey.Y.int32] = SDL_SCANCODE_Y.int32
   io.keyMap[ImGuiKey.Z.int32] = SDL_SCANCODE_Z.int32
 
-  # TODO: clipboard
-  # io.setClipboardTextFn = igSdl2SetClipboardText
-  # io.getClipboardTextFn = igSdl2GetClipboardText
+  io.setClipboardTextFn = igSdl2SetClipboardText
+  io.getClipboardTextFn = igSdl2GetClipboardText
 
   # Load mouse cursors
   gMouseCursors[ImGuiMouseCursor.Arrow.int] = createSystemCursor(SDL_SYSTEM_CURSOR_ARROW)
@@ -89,9 +88,6 @@ proc igSdl2Init(window: WindowPtr): bool =
   gMouseCursors[ImGuiMouseCursor.Hand.int] = createSystemCursor(SDL_SYSTEM_CURSOR_HAND)
   gMouseCursors[ImGuiMouseCursor.NotAllowed.int] = createSystemCursor(SDL_SYSTEM_CURSOR_NO)
 
-  when defined windows:
-    io.imeWindowHandle = gWindow.getWin32Window()
-  
   return true
 
 proc igSdl2InitForOpenGL*(window: WindowPtr): bool =

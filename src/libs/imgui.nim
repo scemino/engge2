@@ -1195,8 +1195,8 @@ type
     backendPlatformUserData* {.importc: "BackendPlatformUserData".}: pointer
     backendRendererUserData* {.importc: "BackendRendererUserData".}: pointer
     backendLanguageUserData* {.importc: "BackendLanguageUserData".}: pointer
-    getClipboardTextFn* {.importc: "GetClipboardTextFn".}: proc(user_data: pointer): cstring {.cdecl, varargs.}
-    setClipboardTextFn* {.importc: "SetClipboardTextFn".}: proc(user_data: pointer, text: cstring): void {.cdecl, varargs.}
+    getClipboardTextFn* {.importc: "GetClipboardTextFn".}: proc(user_data: pointer): constChar {.cdecl, varargs.}
+    setClipboardTextFn* {.importc: "SetClipboardTextFn".}: proc(user_data: pointer, text: constChar): void {.cdecl, varargs.}
     clipboardUserData* {.importc: "ClipboardUserData".}: pointer
     imeSetInputScreenPosFn* {.importc: "ImeSetInputScreenPosFn".}: proc(x: int32, y: int32): void {.cdecl, varargs.}
     imeWindowHandle* {.importc: "ImeWindowHandle".}: pointer
