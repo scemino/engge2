@@ -669,7 +669,7 @@ proc update(self: Engine) =
 
   # update mouse pos
   let scrPos = self.winToScreen(mousePos())
-  self.inputState.node.visible = self.inputState.showCursor
+  self.inputState.node.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
   self.inputState.node.pos = scrPos
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
