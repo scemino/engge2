@@ -94,38 +94,43 @@ proc loadDialog(json: JsonNode) =
     # TODO: what to do with this dialog value ?
     # let value = property.second.getInt()
 
-proc toSquirrel(json: JsonNode): HSQObject =
-  sq_resetobject(result)
+proc toSquirrel(json: JsonNode, obj: var HSQObject) =
+  let top = sq_gettop(gVm.v)
+  sq_resetobject(obj)
   case json.kind:
   of JString:
     push(gVm.v, json.getStr())
-    discard get(gVm.v, -1, result)
+    discard get(gVm.v, -1, obj)
   of JInt:
     push(gVm.v, json.getInt())
-    discard get(gVm.v, -1, result)
+    discard get(gVm.v, -1, obj)
   of JBool:
     push(gVm.v, json.getBool())
-    discard get(gVm.v, -1, result)
+    discard get(gVm.v, -1, obj)
   of JFloat:
     push(gVm.v, json.getFloat())
-    discard get(gVm.v, -1, result)
+    discard get(gVm.v, -1, obj)
   of JNull:
     discard
   of JArray:
     sq_newarray(gVm.v, 0)
     for j in json.getElems():
-      push(gVm.v, toSquirrel(j))
+      var tmp: HSQOBJECT
+      toSquirrel(j, tmp)
+      push(gVm.v, tmp)
       discard sq_arrayappend(gVm.v, -2)
-    discard get(gVm.v, -1, result)
-    sq_addref(gVm.v, result)
+    discard get(gVm.v, -1, obj)
   of JObject:
     sq_newtable(gVm.v)
     for (k,v) in json.getFields().pairs:
       push(gVm.v, k)
-      push(gVm.v, toSquirrel(v))
+      var tmp: HSQOBJECT
+      toSquirrel(v, tmp)
+      push(gVm.v, tmp)
       discard sq_newslot(gVm.v, -3, SQFalse)
-    discard get(gVm.v, -1, result)
-    sq_addref(gVm.v, result)
+    discard get(gVm.v, -1, obj)
+  sq_addref(gVm.v, obj)
+  sq_settop(gVm.v, top)
 
 proc loadCallbacks(json: JsonNode) =
   info "loadCallbacks"
@@ -137,7 +142,8 @@ proc loadCallbacks(json: JsonNode) =
         time = callBackHash["time"].getInt().float / 1000f
         name = callBackHash["function"].getStr()
       if callBackHash.hasKey "param":
-        let arg = toSquirrel(callBackHash["param"])
+        var arg: HSQOBJECT
+        toSquirrel(callBackHash["param"], arg)
         gEngine.callbacks.add newCallback(id, time, name, @[arg])
       else:
         gEngine.callbacks.add newCallback(id, time, name, @[])
@@ -146,11 +152,14 @@ proc loadCallbacks(json: JsonNode) =
 proc loadGlobals(json: JsonNode) =
   info "loadGlobals"
   var g: HSQOBJECT
-  getf(rootTbl(gVm.v), "g", g)
+  getf("g", g)
   assert g.objType == OT_TABLE
   for (k, v) in json.pairs:
-    debug "load globals " & k
-    setf(g, k, toSquirrel(v))
+    debug "load globals '" & k & "': " & $v
+    var tmp: HSQOBJECT
+    toSquirrel(v, tmp)
+    sq_addref(gVm.v, tmp)
+    setf(g, k, tmp)
 
 proc room(name: string): Room =
   for room in gEngine.rooms:
@@ -195,7 +204,12 @@ proc loadActor(actor: Object, json: JsonNode) =
     of "_volume":
       actor.volume = v.getFloat()
     elif not k.startsWith('_'):
-      actor.table.setf(k, toSquirrel(v))
+      var tmp: HSQOBJECT
+      toSquirrel(v, tmp)
+      if actor.table.rawexists(k):
+        actor.table.setf(k, tmp)
+      else:
+        actor.table.newf(k, tmp)
     else:
       warn fmt"load actor: key '{k}' is unknown: {v}"
   
@@ -270,10 +284,12 @@ proc loadObj(obj: Object, json: JsonNode) =
     of "_roomKey":
       obj.setRoom(room(v.getStr))
     elif not k.startsWith('_'):
+      var tmp: HSQOBJECT
+      toSquirrel(v, tmp)
       if obj.table.rawexists(k):
-        obj.table.setf(k, toSquirrel(v))
+        obj.table.setf(k, tmp)
       else:
-        obj.table.newf(k, toSquirrel(v))
+        obj.table.newf(k, tmp)
     else:
       warn fmt"load object: key '{k}' is unknown"
   
@@ -303,7 +319,9 @@ proc loadRoom(room: Room, json: JsonNode) =
       loadPseudoObjects(room, v)
     else:
       if not k.startsWith('_'):
-        room.table.setf(k, toSquirrel(v))
+        var tmp: HSQOBJECT
+        toSquirrel(v, tmp)
+        room.table.setf(k, tmp)
       else:
         warn fmt"Load room: key '{k}' is unknown"
   
@@ -322,18 +340,29 @@ proc loadGame(json: JsonNode) =
     return
   
   sqCall("preLoad", [])
+  info fmt"top gameScene: {sq_gettop(gVm.v)}"
   loadGameScene(json["gameScene"])
+  info fmt"top dialog: {sq_gettop(gVm.v)}"
   loadDialog(json["dialog"])
+  info fmt"top callbacks: {sq_gettop(gVm.v)}"
   loadCallbacks(json["callbacks"])
+  info fmt"top globals: {sq_gettop(gVm.v)}"
   loadGlobals(json["globals"])
+  info fmt"top actors: {sq_gettop(gVm.v)}"
   loadActors(json["actors"])
+  info fmt"top inventory: {sq_gettop(gVm.v)}"
   loadInventory(json["inventory"])
+  info fmt"top rooms: {sq_gettop(gVm.v)}"
   loadRooms(json["rooms"])
+  info fmt"top gameTime: {sq_gettop(gVm.v)}"
   gEngine.time = json["gameTime"].getFloat
   gEngine.inputState.setState(json["inputState"].getInt().InputStateFlag)
   loadObjects(json["objects"])
+  info fmt"top selectedActor: {sq_gettop(gVm.v)}"
   setActor(json["selectedActor"].getStr())
+  info fmt"top currentRoom: {sq_gettop(gVm.v)}"
   setRoom(json["currentRoom"].getStr())
+  info fmt"top SAVEBUILD: {sq_gettop(gVm.v)}"
 
   setf(rootTbl(gVm.v), "SAVEBUILD", json["savebuild"].getInt())
 

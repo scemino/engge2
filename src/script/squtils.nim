@@ -204,7 +204,7 @@ template call*(name: string; args: openArray[untyped]) =
 proc call*(name: string) =
   call(gVm.v, rootTbl(gVm.v), name)
 
-proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
+proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int {.inline} =
   let top = sq_gettop(v)
   push(v, obj)
   sq_pushstring(v, name, -1)
@@ -219,7 +219,7 @@ proc paramCount*(v: HSQUIRRELVM, obj: HSQOBJECT, name: string): int =
   sq_settop(v, top)
   nparams
 
-proc rawexists*(obj: HSQOBJECT, name: string): bool =
+proc rawexists*(obj: HSQOBJECT, name: string): bool {.inline} =
   var v = gVm.v
   let top = sq_gettop(v)
   push(v, obj)
@@ -231,17 +231,16 @@ proc rawexists*(obj: HSQOBJECT, name: string): bool =
   sq_settop(v, top)
   return false
 
-proc exists*(obj: HSQOBJECT, name: string): bool =
-  var v = gVm.v
+proc exists*(obj: HSQOBJECT, name: string): bool {.inline} =
+  let v = gVm.v
   let top = sq_gettop(v)
   push(v, obj)
   sq_pushstring(v, name, -1)
   if SQ_SUCCEEDED(sq_get(v, -2)):
-    let oType = sq_gettype(v, -1)
-    sq_settop(v, top)
-    return oType != OT_NULL
+    result = sq_gettype(v, -1) != OT_NULL
+  else:
+    result = false
   sq_settop(v, top)
-  return false
 
 proc getId*(o: HSQOBJECT): int =
   result = 0
