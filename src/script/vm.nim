@@ -6,7 +6,13 @@ import ../io/ggpackmanager
 import ../gfx/recti
 
 proc onError(v: HSQUIRRELVM, desc: SQString, source: SQString, line: SQInteger, column: SQInteger) {.cdecl.} =
-  echo fmt"{source}({line},{column}): {desc}"
+  error fmt"{source}({line},{column}): {desc}"
+
+proc onPrintInfo(v: HSQUIRRELVM, message: SQString) {.cdecl.} =
+  info message
+
+proc onPrintError(v: HSQUIRRELVM, message: SQString) {.cdecl.} =
+  error message
 
 type VM* = ref object of RootObj
   v*: HSQUIRRELVM
@@ -16,7 +22,7 @@ var gVm*: VM
 proc newVM*(): VM =
   new(result)
   result.v = sq_open(1024)
-  sq_setprintfunc(result.v, printfunc, printfunc)
+  setprintfunc(result.v, onPrintInfo, onPrintError)
   sqstd_seterrorhandlers(result.v)
   sq_setcompilererrorhandler(result.v, onError)
   gVm = result
