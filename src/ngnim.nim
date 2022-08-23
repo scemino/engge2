@@ -19,6 +19,10 @@ import scenegraph/dialog
 import sys/debugtool
 import sys/tools
 
+const
+  AppName = "engge II"
+  PackageName = "ThimbleweedPark.ggpack1"
+
 proc onKey(key: InputKey, scancode: int32, action: InputAction,
     mods: InputModifierKey) =
   if key == Escape:
@@ -28,7 +32,7 @@ proc render() =
   gEngine.render()
 
 proc runVm() =
-  var vm = vm.newVM()
+  let vm = vm.newVM()
   discard newEngine(vm.v)
   gEngine.dlg.tgt = EngineDialogTarget()
   gEngine.screen.addChild newPathNode()
@@ -59,11 +63,9 @@ proc main() =
   addHandler(newConsoleLogger())
   addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn))
   addHandler(newRollingFileLogger("ng.log"))
+  
   let consoleTool = newConsoleTool()
   addHandler(newConsoleToolLogger(consoleTool))
-  info("# Welcome to ngnim")
-  info fmt"Host: {hostCPU} / {hostOS}"
-  info fmt"Nim: {NimVersion}"
   addDebugTool(consoleTool)
   addDebugTool(newThreadTool())
   addDebugTool(newSoundTool())
@@ -74,15 +76,18 @@ proc main() =
   addDebugTool(newStackTool())
 
   # init app
-  app.init(title = "engge II")
+  info fmt"# Welcome to {AppName}"
+  info fmt"Host: {hostCPU} / {hostOS}"
+  info fmt"Nim: {NimVersion}"
+  app.init(title = AppName)
   app.setKeyCallback(onKey)
   initPrefs()
 
   # check if we have game assets
-  if fileExists("ThimbleweedPark.ggpack1"):
+  if fileExists(PackageName):
     # then start game
     let key = prefs("key", "56ad")
-    gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1", key)
+    gGGPackMgr = newGGPackFileManager(PackageName, key)
     gResMgr = newResManager()
     gEventMgr = newGameEventManager()
     gGameLoader = newEngineGameLoader()
@@ -90,6 +95,6 @@ proc main() =
     runVm()
     app.run(render)
   else:
-    error "ThimbleweedPark.ggpack1 not found"
+    error fmt"{PackageName} not found"
 
 main()

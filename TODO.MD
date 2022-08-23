@@ -30,60 +30,19 @@
 
 ## TODO
 
-* [ ] camera
-    * [ ] advanced camera movement
-    * [x] camera follow actor
-    * [x] camera pan
-* [ ] input
-  * [ ] input mapping
-* [ ] cutscene
-  * [ ] cutscene override
-  * [ ] cutscene UI (ESC)
-* [ ] dialogs
-  * [x] yack intepreter
-  * [x] yack parsing
-  * [x] draw choices
-  * [x] allow to choose a sentence
-  * [x] hide choices after having chosen a sentence
-  * [x] disable input during dialog
-  * [x] use actor colors
-  * [x] hide cursor text
-  * [ ] choice anim
-  * [ ] choice slide when too long
-  * [ ] expressions
-    * [x] goto
-    * [x] code
-    * [x] choice
-    * [x] say
-    * [x] pause
-    * [x] dialog
-    * [x] shutup
-    * [x] waitwhile
-    * [x] limit
-    * [x] parrot
-    * [ ] waitfor
-    * [ ] allow objects
-    * [ ] override
-  * [x] conditions
-    * [x] code
-    * [x] once
-    * [x] show once
-    * [x] once ever
-    * [x] temp once
 * [ ] HUD
-  * [ ] sentence
-    * [x] use flag: with, in, on
-    * [x] use flag: giveto
-    * [ ] use lookat verb for inventory object 
+  * [ ] actor selection
   * [ ] fade
   * [ ] mouse text repositioned
-  * [ ] actor selection
+  * [ ] sentence
+    * [ ] use lookat verb for inventory object 
+    * [x] use flag: with, in, on
+    * [x] use flag: giveto
   * [x] mouse zsort
   * [x] verbs
   * [x] scroll inventory
   * [x] inventory
   * [x] mouse cursor
-* [ ] achievements
 * [ ] UI dialogs
   * [x] main menu
   * [ ] options
@@ -96,11 +55,6 @@
     * [ ] Help
   * [x] pause game
   * [x] quit game
-* [ ] shaders
-* [ ] preferences
-  * [ ] private preferences (achievement)
-  * [x] user preferences
-  * [x] temp preferences (debug)
 * [ ] actor
   * [ ] actor reach animation
   * [x] actor costume
@@ -123,20 +77,63 @@
     * [x] ignore #M or #F at the end of a text
     * [x] sound
   * [x] actor walk fast
-* [ ] resource management
-  * [ ] ref counting with resource management
-  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
 * [ ] audio
   * [ ] sound position
   * [x] talk
   * [x] sound
   * [x] music
-* [x] triggers
-  * [x] room trigger should be called in a thread (to be breakable)
-* [x] sentence
-  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
-* [x] debug tools (dear imgui)
-  * [x] console
+* [ ] dialogs
+  * [ ] choice anim
+  * [ ] choice slide when too long
+  * [ ] expressions
+    * [ ] waitfor
+    * [ ] allow objects
+    * [ ] override
+    * [x] goto
+    * [x] code
+    * [x] choice
+    * [x] say
+    * [x] pause
+    * [x] dialog
+    * [x] shutup
+    * [x] waitwhile
+    * [x] limit
+    * [x] parrot
+  * [x] conditions
+    * [x] code
+    * [x] once
+    * [x] show once
+    * [x] once ever
+    * [x] temp once
+  * [x] yack intepreter
+  * [x] yack parsing
+  * [x] draw choices
+  * [x] allow to choose a sentence
+  * [x] hide choices after having chosen a sentence
+  * [x] disable input during dialog
+  * [x] use actor colors
+  * [x] hide cursor text* [ ] achievements
+* [ ] input
+  * [ ] input mapping
+* [ ] cutscene
+  * [ ] cutscene UI (ESC)
+  * [x] cutscene override
+* [ ] preferences
+  * [ ] private preferences (achievement)
+  * [x] user preferences
+  * [x] temp preferences (debug)
+* [ ] camera
+    * [ ] advanced camera movement
+    * [x] camera follow actor
+    * [x] camera pan
+* [ ] shaders
+* [ ] debug tools (dear imgui)
+  * [ ] preferences to enable debug tools
+  * [ ] shortcuts to show/hode
+  * [ ] console
+    * [ ] dump variables
+    * [x] input
+    * [x] log
   * [x] general
   * [x] objects
   * [x] actors
@@ -144,6 +141,18 @@
   * [x] textures
   * [x] threads
   * [x] sounds
+* [ ] resource management
+  * [ ] ref counting with resource management
+  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] triggers
+  * [x] room trigger should be called in a thread (to be breakable)
+* [x] sentence
+  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
+* [ ] logging
+  * [ ] add colors to console
+  * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)
+  * [x] console
+  * [x] debug tool console
 * [x] script
   * [x] squirrel bindings
   * [x] easy squirrel constants bindings
