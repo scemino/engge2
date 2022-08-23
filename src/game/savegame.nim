@@ -261,12 +261,20 @@ proc loadActors(json: JsonNode) =
       loadActor(actor, json[actor.key])
 
 proc loadObj(obj: Object, json: JsonNode) =
+  var state: int
+  if json.hasKey("_state"):
+    state = json["_state"].getInt
+  if not obj.node.isNil:
+    obj.setState(state, true)
+  else:
+    warn fmt"obj '{obj.key}' has no node !"
+
   for (k,v) in json.pairs:
     case k:
+    of "_state":
+      discard
     of "_pos":
       obj.node.pos = vec2f(parseVec2i(v.getStr()))
-    of "_state":
-      obj.setState(v.getInt(), true)
     of "_rotation":
       obj.node.rotation = v.getFloat()
     of "_touchable":
