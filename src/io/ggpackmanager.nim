@@ -52,13 +52,13 @@ method assetExists*(self: GGPackFileSystemManager, entry: string): bool =
         return true
   false
 
-proc newGGPackFileManager*(path: string): GGPackFileManager =
+proc newGGPackFileManager*(path, key: string): GGPackFileManager =
   new(result)
   result.path = path
   info fmt"Search ggpack in {path.substr(0, path.len-2) & '*'}"
   for file in os.walkFiles(path.substr(0, path.len-2) & '*'):
     info fmt"Add ggpack {file}"
-    result.ggpacks.add newGGPackDecoder(newFileStream(file), xorKeys["56ad"])
+    result.ggpacks.add newGGPackDecoder(newFileStream(file), xorKeys[key])
 
 method loadStream(self: GGPackFileManager, entry: string): Stream =
   var (_, _, ext) = splitFile(entry)

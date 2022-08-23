@@ -81,7 +81,8 @@ proc main() =
   # check if we have game assets
   if fileExists("ThimbleweedPark.ggpack1"):
     # then start game
-    gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1")
+    let key = prefs("key", "56ad")
+    gGGPackMgr = newGGPackFileManager("ThimbleweedPark.ggpack1", key)
     gResMgr = newResManager()
     gEventMgr = newGameEventManager()
     gGameLoader = newEngineGameLoader()
