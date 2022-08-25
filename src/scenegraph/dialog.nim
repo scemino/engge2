@@ -299,7 +299,7 @@ proc running(self: Dialog, dt: float) =
         self.run(statmt)
     if self.choicesReady():
         self.updateChoiceStates()
-    else:
+    elif self.action.isNil:
       self.state = None
 
 proc newDialog*(): Dialog =
