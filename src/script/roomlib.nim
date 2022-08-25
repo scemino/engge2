@@ -98,7 +98,9 @@ proc enableTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if enabled:
     gEngine.room.triggers.add obj
   else:
-    gEngine.room.triggers.del gEngine.room.triggers.find obj
+    let index = gEngine.room.triggers.find obj
+    if index != -1:
+      gEngine.room.triggers.del index
   0
 
 proc enterRoomFromDoor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
