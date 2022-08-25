@@ -318,7 +318,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   call("enteredRoom", [room.table])
 
 proc setRoom*(self: Engine, room: Room) =
-  if self.room != room:
+  if not room.isNil and self.room != room:
     self.enterRoom(room)
     self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
