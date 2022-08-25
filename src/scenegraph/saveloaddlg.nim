@@ -8,6 +8,7 @@ import textnode
 import spritenode
 import nimyggpack
 import ../gfx/color
+import ../gfx/graphics
 import ../gfx/text
 import ../gfx/image
 import ../gfx/recti
@@ -25,8 +26,10 @@ const
   Back = 99904
 
 type
+  ClickCallback* = proc(node: Node, id: int)
   SaveLoadDialog* = ref object of Node
     savegames: array[9, Savegame]
+    clickCbk: ClickCallback
 
 proc newHeader(id: int): TextNode =
   let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)
@@ -39,6 +42,9 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     src.color = Yellow
   of Leave:
     src.color = White
+  of Down:
+    let dlg = cast[SaveLoadDialog](src.getParent())
+    dlg.clickCbk(dlg, Back)
   else:
     discard
 
@@ -104,8 +110,8 @@ proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   else:
     discard
 
-proc newSaveLoadDialog*(): SaveLoadDialog =
-  result = SaveLoadDialog()
+proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
+  result = SaveLoadDialog(clickCbk: clickCbk)
   result.addChild newBackground()
   result.addChild newHeader(LoadGame)
 
@@ -157,3 +163,6 @@ proc newSaveLoadDialog*(): SaveLoadDialog =
   result.addChild newButton(Back, 80f, "UIFontMedium")
 
   result.init()
+
+method drawCore(self: SaveLoadDialog, transf: Mat4f) =
+  gfxDrawQuad(vec2(0f, 0f), vec2f(ScreenWidth, ScreenHeight), rgbaf(Black, 0.5f), transf)

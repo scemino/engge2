@@ -23,6 +23,21 @@ const
 type
   StartScreen* = ref object of Node
 
+proc onQuitClick(node: Node, id: int) =
+  case id:
+  of Yes:
+    quit()
+  of No:
+    node.remove()
+  else:
+    discard
+
+proc newStartScreen*(): StartScreen
+
+proc onLoadBackClick(node: Node, id: int) =
+  node.getParent().addChild newStartScreen()
+  node.remove()
+
 proc onButtonDown(node: Node, id: int) =
   case id:
   of NewGame:
@@ -32,10 +47,10 @@ proc onButtonDown(node: Node, id: int) =
     node.getParent().addChild newOptionsDialog()
     node.remove()
   of LoadGame:
-    node.getParent().addChild newSaveLoadDialog()
+    node.getParent().addChild newSaveLoadDialog(onLoadBackClick)
     node.remove()
   of Quit:
-    node.getParent().addChild newQuitDialog()
+    node.getParent().addChild newQuitDialog(onQuitClick)
     node.remove()
   else:
     discard

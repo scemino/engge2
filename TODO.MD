@@ -32,17 +32,23 @@
 ## TODO
 
 * [ ] UI dialogs
-  * [x] main menu
-  * [ ] options
-    * [ ] Save game
-    * [x] Load game
+  * [ ] the background is greyed out (and is inactive)
+  * [x] Main menu (StartScreen) does not pause game
+  * [ ] Options
+    * [ ] Save game (enabled only in game)
+    * [x] Load game (back: go back to main menu or game)
     * [x] Sound
     * [x] Video
     * [x] Controls
     * [x] Text & Speech
     * [ ] Help
-  * [x] pause game
-  * [x] quit game
+      * [ ] Intro            (back: back to options even from mainmenu)
+      * [ ] Mouse tips       (back: back to options even from mainmenu)
+      * [ ] Controller tips  (back: back to options even from mainmenu)
+      * [ ] Controller map   (back: back to options even from mainmenu)
+      * [ ] Keyboard map     (back: back to options even from mainmenu)
+  * [x] pause game (cursor is changed)
+  * [x] quit game (is over options, background is darker, no: go back to main menu or options)
 * [ ] actor
   * [ ] actor reach animation
   * [x] actor costume
@@ -138,6 +144,7 @@
 * [ ] HUD
   * [ ] fade
   * [ ] mouse text repositioned
+  * [ ] when sentence is set to classic the cursor change over objects/actors
   * [x] actor selection
   * [x] mouse zsort
   * [x] verbs

@@ -7,8 +7,10 @@ import checkbox
 import slider
 import switcher
 import saveloaddlg
+import quitdlg
 import sqnim
 import ../gfx/color
+import ../gfx/graphics
 import ../gfx/text
 import ../gfx/spritesheet
 import ../game/resmanager
@@ -70,10 +72,22 @@ var
 
 proc setState(state: State)
 
+proc onQuitClick(node: Node, id: int) =
+  case id:
+  of Yes:
+    quit()
+  of No:
+    node.remove()
+  else:
+    discard
+
+proc onLoadBackClick(node: Node, id: int) =
+  node.remove()
+
 proc onButtonDown(node: Node, id: int) =
   case id:
   of Quit:
-    quit()
+    node.getParent().addChild newQuitDialog(onQuitClick)
   of Back:
     setState(sOptions)
   of Video:
@@ -85,7 +99,7 @@ proc onButtonDown(node: Node, id: int) =
   of Sound:
     setState(sSound)
   of LoadGame:
-    node.getParent().addChild newSaveLoadDialog()
+    node.getParent().addChild newSaveLoadDialog(onLoadBackClick)
     node.remove()
   else:
     discard
@@ -222,3 +236,6 @@ proc newOptionsDialog*(): OptionsDialog =
 
   gDisabled.add SaveGame
   update()
+
+method drawCore(self: OptionsDialog, transf: Mat4f) =
+  gfxDrawQuad(vec2(0f, 0f), vec2f(ScreenWidth, ScreenHeight), rgbaf(Black, 0.5f), transf)

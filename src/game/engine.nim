@@ -59,6 +59,7 @@ type
     audio*: AudioSystem
     scene*: Scene
     screen*: Scene
+    ui*: Scene
     cameraPanTo*: Motor
     inputState*: InputState
     noun1*: Object
@@ -97,11 +98,13 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.seedWithTime()
   result.inputState = newInputState()
   result.dlg = newDialog()
+  result.ui = newScene()
+  result.ui.addChild newStartScreen()
   result.actorswitcher = newActorSwitcher()
   result.screen.addChild result.inputState.node
   result.screen.addChild result.dlg
   result.screen.addChild result.actorswitcher
-  result.screen.addChild newStartScreen()
+  result.screen.addChild result.ui
   sq_resetobject(result.defaultObj)
 
 proc `seed=`*(self: Engine, seed: int64) =
@@ -691,7 +694,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
-    let selectFunc = proc() = self.screen.addChild newOptionsDialog()
+    let selectFunc = proc() = self.ui.addChild newOptionsDialog()
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
 
 proc update(self: Engine) =

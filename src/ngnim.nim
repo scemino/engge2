@@ -20,7 +20,7 @@ import sys/debugtool
 import sys/tools
 
 when defined(Windows):
-  {.passL: "-lobjc".}
+  {.passL: "-static".}
 
 const
   AppName = "engge II"
