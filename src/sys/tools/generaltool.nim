@@ -70,11 +70,11 @@ method render*(self: GeneralTool) =
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   
   # camera
-  igText("Camera follow: %s", if gEngine.follow.isNil: "(none)".cstring else: gEngine.follow.name.cstring)
+  igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.name.cstring)
   igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
   var camPos = gEngine.cameraPos()
   if igDragFloat2("Camera pos", camPos.arr):
-    gEngine.follow = nil
+    gEngine.follow(nil)
     let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
     gEngine.cameraAt(camPos - halfScreenSize)
   igDragInt4("Bounds", gEngine.bounds.arr)

@@ -69,7 +69,7 @@ type
     inventory*: seq[Object]
     cutscene*: ThreadBase
     roomShader: Shader
-    follow*: Object
+    followActor*: Object
     buttons: MouseButtonMask
     mouseDownTime: DateTime
     walkFastState: bool
@@ -113,24 +113,6 @@ proc `seed`*(self: Engine): int64 =
 
 proc `currentActor`*(self: Engine): Object =
   self.actor
-
-proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
-  self.actor = actor
-  self.hud.actor = actor
-  if self.hud.parent.isNil and not actor.isNil:
-    self.screen.addChild self.hud
-  elif not self.hud.parent.isNil and actor.isNil:
-    self.screen.removeChild self.hud
-
-  # call onActorSelected callbacks
-  sqCall("onActorSelected", [actor.table, userSelected])
-  let room = if actor.isNil: nil else: actor.room
-  if not room.isNil:
-    if room.table.rawExists("onActorSelected"):
-      sqCall(room.table, "onActorSelected", [actor.table, userSelected])
-
-  if not actor.isNil:
-    self.follow = actor
 
 proc getObj(room: Room, key: string): Object =
   for layer in room.layers:
@@ -666,6 +648,33 @@ proc cursorText(self: Engine): string =
 proc flashSelectableActor*(self: Engine, flash: int) =
   self.actorswitcher.flash = flash
 
+proc follow*(self: Engine, actor: Object) =
+  self.followActor = actor
+  if not actor.isNil:
+    let pos = actor.node.pos
+    let oldRoom = self.room
+    self.setRoom(actor.room)
+    if oldRoom != actor.room:
+      self.cameraAt(pos)
+
+proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
+  self.actor = actor
+  self.hud.actor = actor
+  if self.hud.parent.isNil and not actor.isNil:
+    self.screen.addChild self.hud
+  elif not self.hud.parent.isNil and actor.isNil:
+    self.screen.removeChild self.hud
+
+  # call onActorSelected callbacks
+  sqCall("onActorSelected", [actor.table, userSelected])
+  let room = if actor.isNil: nil else: actor.room
+  if not room.isNil:
+    if room.table.rawExists("onActorSelected"):
+      sqCall(room.table, "onActorSelected", [actor.table, userSelected])
+
+  if not actor.isNil:
+    self.follow(actor)
+
 proc actorSwitcherSlot(self: Engine, slot: ActorSlot): ActorSwitcherSlot =
   let selectFunc = proc() = self.setCurrentActor(slot.actor, true)
   ActorSwitcherSlot(icon: slot.actor.getIcon(), back: slot.verbUiColors.inventoryBackground, frame: slot.verbUiColors.inventoryFrame, selectFunc: selectFunc)
@@ -690,9 +699,9 @@ proc update(self: Engine) =
   self.time += elapsed
 
   # update camera
-  let screenSize = gEngine.room.getScreenSize()
-  if not self.follow.isNil:
-    self.cameraAt(self.follow.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
+  let screenSize = self.room.getScreenSize()
+  if not self.followActor.isNil:
+    self.cameraAt(self.followActor.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
 
   # update mouse pos
   let scrPos = winToScreen(mousePos())

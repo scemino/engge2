@@ -5,6 +5,7 @@
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
+* [x] selecting an actor does not switch room
 * [x] menu hotspot is wrong
 * [x] inventory hotspot is wrong
 * [x] dialog choice hotspot is wrong
@@ -30,19 +31,6 @@
 
 ## TODO
 
-* [ ] HUD
-  * [ ] fade
-  * [ ] mouse text repositioned
-  * [ ] sentence
-    * [ ] use lookat verb for inventory object 
-    * [x] use flag: with, in, on
-    * [x] use flag: giveto
-  * [x] actor selection
-  * [x] mouse zsort
-  * [x] verbs
-  * [x] scroll inventory
-  * [x] inventory
-  * [x] mouse cursor
 * [ ] UI dialogs
   * [x] main menu
   * [ ] options
@@ -141,18 +129,32 @@
   * [x] textures
   * [x] threads
   * [x] sounds
-* [ ] resource management
-  * [ ] ref counting with resource management
-  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
-* [x] triggers
-  * [x] room trigger should be called in a thread (to be breakable)
-* [x] sentence
+* [ ] sentence
+  * [ ] classic sentence
+  * [ ] use lookat verb for inventory object 
+  * [x] use flag: with, in, on
+  * [x] use flag: giveto
   * [x] cursor verb should be reset (walk to) when action is executed or cancelled
+* [ ] HUD
+  * [ ] fade
+  * [ ] mouse text repositioned
+  * [x] actor selection
+  * [x] mouse zsort
+  * [x] verbs
+  * [x] scroll inventory
+  * [x] inventory
+  * [x] mouse cursor
 * [ ] logging
   * [ ] add colors to console
   * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)
   * [x] console
   * [x] debug tool console
+* [ ] resource management
+  * [ ] ref counting with resource management
+  * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] triggers
+  * [x] room trigger should be called in a thread (to be breakable)
+  * [x] sound triggers
 * [x] script
   * [x] squirrel bindings
   * [x] easy squirrel constants bindings

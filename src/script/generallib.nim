@@ -114,7 +114,7 @@ proc cameraBounds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = actor(v, 2)
-  gEngine.follow = actor
+  gEngine.follow(actor)
   let pos = actor.node.pos
   let oldRoom = gEngine.room
   if not actor.room.isNil:

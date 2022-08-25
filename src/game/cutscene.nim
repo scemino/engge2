@@ -3,7 +3,6 @@ import std/strformat
 import sqnim
 import ../script/vm
 import ../script/squtils
-import ../game/room
 import ids
 import thread
 import inputstate
@@ -97,8 +96,7 @@ method stop*(self: Cutscene) =
   debug "End cutscene"
   gEngine.inputState.setState(self.inputState)
   info fmt"Restore cutscene input: {self.inputState}"
-  gEngine.follow = gEngine.actor
-  gEngine.setRoom(gEngine.actor.room)
+  gEngine.follow(gEngine.actor)
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())
