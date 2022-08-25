@@ -19,6 +19,9 @@ import scenegraph/dialog
 import sys/debugtool
 import sys/tools
 
+when defined(Windows):
+  {.passL: "-lobjc".}
+
 const
   AppName = "engge II"
   PackageName = "ThimbleweedPark.ggpack1"
