@@ -3,7 +3,6 @@ import std/json
 import std/tables
 import std/strformat
 import std/strutils
-import std/sets
 import std/logging
 import sqnim
 import ../script/squtils
@@ -12,6 +11,7 @@ import ../io/ggpackmanager
 import ../scenegraph/dialog
 import ../scenegraph/node
 import ../scenegraph/hud
+import ../scenegraph/actorswitcher
 import ../game/callback
 import ../game/prefs
 import ../game/room
@@ -34,7 +34,7 @@ proc loadGameScene(json: JsonNode) =
     mode.incl asOn
   if json["actorsTempUnselectable"].getInt() != 0:
     mode.incl asTemporaryUnselectable
-  gEngine.hud.mode = mode
+  gEngine.actorswitcher.mode = mode
   tmpPrefs().forceTalkieText = json["forceTalkieText"].getInt() != 0
   for jSelectableActor in json["selectableActors"]:
     let actor = actor(jSelectableActor["_actorKey"].getStr())

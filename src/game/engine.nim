@@ -31,6 +31,8 @@ import ../scenegraph/hud
 import ../scenegraph/walkboxnode
 import ../scenegraph/dialog
 import ../scenegraph/startscreen
+import ../scenegraph/actorswitcher
+import ../scenegraph/optionsdlg
 import ../sys/app
 import ../util/common
 
@@ -75,6 +77,7 @@ type
     bounds*: Recti
     frameCounter*: int
     dlg*: Dialog
+    actorswitcher*: Actorswitcher
 
 var gEngine*: Engine
 
@@ -94,8 +97,10 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.seedWithTime()
   result.inputState = newInputState()
   result.dlg = newDialog()
+  result.actorswitcher = newActorSwitcher()
   result.screen.addChild result.inputState.node
   result.screen.addChild result.dlg
+  result.screen.addChild result.actorswitcher
   result.screen.addChild newStartScreen()
   sq_resetobject(result.defaultObj)
 
@@ -358,9 +363,9 @@ proc objAt*(self: Engine, pos: Vec2f, flags: int): Object =
 proc inventoryAt*(self: Engine, pos: Vec2f): Object =
   self.objAt(pos, proc (x: Object): bool = x.inInventory())
 
-proc winToScreen*(self: Engine, pos: Vec2f): Vec2f =
-  result = (pos / vec2f(appGetWindowSize())) * vec2(1280f, 720f)
-  result = vec2(result.x, 720f - result.y)
+proc winToScreen*(pos: Vec2f): Vec2f =
+  result = (pos / vec2f(appGetWindowSize())) * vec2(ScreenWidth, ScreenHeight)
+  result = vec2(result.x, ScreenHeight - result.y)
 
 proc verbNoWalkTo(verbId: VerbId, noun1: Object): bool =
   if verbId == VERB_LOOKAT:
@@ -589,7 +594,7 @@ proc update*(self: Engine, node: Node, elapsed: float) =
   let mouseState = mouseBtns()
   let isMouseDn = mbLeft in mouseState and mbLeft notin self.buttons
   if node.buttons.len > 0:
-    let scrPos = self.winToScreen(mousePos())
+    let scrPos = winToScreen(mousePos())
     for btn in node.buttons.toSeq:
       # mouse inside button ?
       if node.getRect().contains(scrPos):
@@ -658,6 +663,28 @@ proc cursorText(self: Engine): string =
       if not self.noun2.isNil:
         result = result & " " & getText(self.noun2.name)
 
+proc flashSelectableActor*(self: Engine, flash: int) =
+  self.actorswitcher.flash = flash
+
+proc actorSwitcherSlot(self: Engine, slot: ActorSlot): ActorSwitcherSlot =
+  let selectFunc = proc() = self.setCurrentActor(slot.actor, true)
+  ActorSwitcherSlot(icon: slot.actor.getIcon(), back: slot.verbUiColors.inventoryBackground, frame: slot.verbUiColors.inventoryFrame, selectFunc: selectFunc)
+
+proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
+  if not self.actor.isNil:
+    # add current actor first
+    let slot = self.hud.actorSlot(self.actor)
+    result.add self.actorSwitcherSlot(slot)
+
+    # then other selectable actors
+    for slot in self.hud.actorSlots:
+      if slot.selectable and slot.actor != self.actor and slot.actor.room.name != "Void":
+        result.add self.actorSwitcherSlot(slot)
+  
+    # add gear icon
+    let selectFunc = proc() = self.screen.addChild newOptionsDialog()
+    result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
+
 proc update(self: Engine) =
   let elapsed = tmpPrefs().gameSpeedFactor / 60'f32
   self.time += elapsed
@@ -668,7 +695,7 @@ proc update(self: Engine) =
     self.cameraAt(self.follow.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
 
   # update mouse pos
-  let scrPos = self.winToScreen(mousePos())
+  let scrPos = winToScreen(mousePos())
   self.inputState.node.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
   self.inputState.node.pos = scrPos
   if not self.room.isNil:
@@ -763,6 +790,9 @@ proc update(self: Engine) =
   # update motors
   if not self.cameraPanTo.isNil and self.cameraPanTo.enabled:
     self.cameraPanTo.update(elapsed)
+
+  # update actorswitcher
+  self.actorswitcher.update(self.actorSwitcherSlots(), elapsed)
 
   # update room
   self.fade.update(elapsed)

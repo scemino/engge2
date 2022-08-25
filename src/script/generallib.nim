@@ -221,13 +221,13 @@ proc cameraPos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc cursorPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns x coordinates of the mouse in screen coordinates.
-  let scrPos = gEngine.winToScreen(mousePos())
+  let scrPos = winToScreen(mousePos())
   push(v, scrPos.x)
   1
 
 proc cursorPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns y coordinates of the mouse in screen coordinates.
-  let scrPos = gEngine.winToScreen(mousePos())
+  let scrPos = winToScreen(mousePos())
   push(v, scrPos.y)
   1
 

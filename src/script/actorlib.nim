@@ -17,6 +17,7 @@ import ../gfx/color
 import ../gfx/graphics
 import ../gfx/recti
 import ../scenegraph/node
+import ../scenegraph/actorswitcher
 import ../game/motors/motor
 
 proc getOppositeFacing(facing: Facing): Facing =
@@ -336,13 +337,13 @@ proc actorSlotSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get selectable")
     case selectable:
     of 0:
-      gEngine.hud.mode.excl asOn
+      gEngine.actorSwitcher.mode.excl asOn
     of 1:
-      gEngine.hud.mode.incl asOn
+      gEngine.actorSwitcher.mode.incl asOn
     of 2:
-      gEngine.hud.mode.incl asTemporaryUnselectable
+      gEngine.actorSwitcher.mode.incl asTemporaryUnselectable
     of 3:
-      gEngine.hud.mode.excl asTemporaryUnselectable
+      gEngine.actorSwitcher.mode.excl asTemporaryUnselectable
     else:
       return sq_throwerror(v, "invalid selectable value")
     return 0
@@ -707,11 +708,10 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc flashSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var on: SQInteger
-  if SQ_FAILED(sq_getinteger(v, 2, on)):
-    return sq_throwerror(v, "failed to get on")
-  # TODO: g_pEngine->flashSelectableActor(on != 0)
-  warn("flashSelectableActor not implemented")
+  var time: int
+  if SQ_FAILED(get(v, 2, time)):
+    return sq_throwerror(v, "failed to get time")
+  gEngine.flashSelectableActor(time)
   0
 
 proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =

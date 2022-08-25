@@ -61,7 +61,7 @@ method render*(self: GeneralTool) =
   igBegin("General".cstring, addr gGeneralVisible)
 
   let inCutscene = not gEngine.cutscene.isNil
-  let scrPos = gEngine.winToScreen(mousePos())
+  let scrPos = winToScreen(mousePos())
   let roomPos = if gEngine.room.isNil: vec2f(0f, 0f) else: gEngine.room.screenToRoom(scrPos)
   igText("In cutscene: %s", if inCutscene: "yes".cstring else: "no".cstring)
   igText("Dialog: %s", text(gEngine.dlg.state).cstring)

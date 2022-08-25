@@ -21,10 +21,9 @@ import ../script/vm
 const
   NumVerbs = 9
   NumInventoryObjects = 8
+  NumActors = 6
+
 type
-  ActorSlotSelectableMode* = enum
-    asOn = 1
-    asTemporaryUnselectable = 2
   Verb* = object
     id*: VerbId
     image*: string
@@ -50,8 +49,7 @@ type
     selectable*: bool
     actor*: Object
   Hud* = ref object of Node
-    actorSlots*: array[6, ActorSlot]
-    mode*: set[ActorSlotSelectableMode]
+    actorSlots*: array[NumActors, ActorSlot]
     backingItems, inventory: Node
     scrollUp, scrollDn: SpriteNode
     verbNodes*: array[NumVerbs, SpriteNode]

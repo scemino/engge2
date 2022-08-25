@@ -31,13 +31,13 @@
 ## TODO
 
 * [ ] HUD
-  * [ ] actor selection
   * [ ] fade
   * [ ] mouse text repositioned
   * [ ] sentence
     * [ ] use lookat verb for inventory object 
     * [x] use flag: with, in, on
     * [x] use flag: giveto
+  * [x] actor selection
   * [x] mouse zsort
   * [x] verbs
   * [x] scroll inventory
@@ -204,7 +204,7 @@
 - [x] actorWalkTo
 - [x] addSelectableActor
 - [x] createActor
-- [ ] flashSelectableActor
+- [x] flashSelectableActor
 - [x] isActorOnScreen
 - [x] isActorSelectable
 - [x] is_actor
