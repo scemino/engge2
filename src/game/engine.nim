@@ -213,6 +213,10 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
     if v.objType == OT_TABLE and v.rawexists("icon"):
       info fmt"Add {k} to inventory"
       setf(rootTbl(gVm.v), k, v)
+
+      # set room as delegate
+      v.setdelegate(table)
+
       # declare flags if does not exist
       if not v.rawexists("flags"):
         v.setf("flags", 0)

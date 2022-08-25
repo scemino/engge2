@@ -11,6 +11,7 @@
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
+* [x] script error when using agent badge
 * [x] selecting an actor does not switch room
 * [x] menu hotspot is wrong
 * [x] inventory hotspot is wrong
