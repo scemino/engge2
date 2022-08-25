@@ -118,7 +118,7 @@ proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
   let sheet = gResMgr.spritesheet("SaveLoadSheet")
   let slotFrame = sheet.frame("saveload_slot_frame")
   let scale = vec2(4f*slotFrame.frame.w.float32/320f, 4f*slotFrame.frame.h.float32/180f)
-  let fontSmallBold = gResMgr.font("UIFontSmallBold")
+  let fontSmallBold = gResMgr.font("UIFontSmall")
   
   for i in 0..<9:
     let path = fmt"Savegame{i+1}.png"
