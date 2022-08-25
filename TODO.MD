@@ -3,7 +3,6 @@
 ## Known Bugs
 
 * [ ] lips don't move anymore
-* [ ] when walking the actor is wearing a hat sometimes ???
 * [ ] when we talk to Sandy, the dialog stops before the end
 * [ ] when we talk to Sandy, the actor is walking to the wrong spot
 * [ ] when we use the notebook, the text is not at the correct position
@@ -11,6 +10,7 @@
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
+* [x] when walking the actor is wearing a hat sometimes ???
 * [x] script error when using agent badge
 * [x] selecting an actor does not switch room
 * [x] menu hotspot is wrong

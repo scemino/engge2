@@ -67,6 +67,7 @@ proc newNodeAnim*(obj: Object, anim: ObjectAnimation; fps = 0.0f; node: Node = n
     result.node = newSpriteNode(if instant: frames[frames.len-1] else: frames[0])
     result.node.flipX = obj.getFacing() == FACE_LEFT
     result.node.name = anim.name
+    result.node.visible = not obj.hiddenLayers.contains(anim.name)
     if anim.offsets.len > 0:
       result.node.pos = vec2f(anim.offsets[0])
     rootNode.addChild result.node
