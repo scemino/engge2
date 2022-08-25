@@ -562,7 +562,8 @@ proc objectPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.node.absolutePosition().x + obj.usePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f)
+  let x = obj.node.absolutePosition().x + obj.usePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f
+  push(v, x.int)
   1
 
 proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -570,7 +571,8 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f)
+  let y = obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f
+  push(v, y.int)
   1
 
 proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -766,7 +768,7 @@ proc objectUsePosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.usePos.x)
+  push(v, obj.usePos.x.int)
   1
 
 proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -777,7 +779,7 @@ proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.usePos.y)
+  push(v, obj.usePos.y.int)
   1
 
 proc objectValidUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =

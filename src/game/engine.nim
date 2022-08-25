@@ -492,11 +492,13 @@ proc cancelSentence(self: Engine, actor: Object) =
 
 proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
   if self.room.table.rawexists("clickedAt"):
-    info "clickedAt " & $[roomPos.x, roomPos.y]
-    self.room.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
+    let x = roomPos.x
+    let y = roomPos.y
+    info "clickedAt " & $[x, y]
+    self.room.table.callFunc(result, "clickedAt", [x, y])
     if not result:
       if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
-        self.actor.table.callFunc(result, "clickedAt", [roomPos.x, roomPos.y])
+        self.actor.table.callFunc(result, "clickedAt", [x, y])
 
 proc getVerb(self: Engine, id: int): Verb =
   if not self.actor.isNil:
