@@ -301,10 +301,11 @@ proc `room=`*(self: Object, room: Room) =
   let oldRoom = self.r
   if not oldRoom.isNil:
     info fmt"Remove {self.name} from room {oldRoom.name}"
-    let index = oldRoom.layer(0).objects.find(self)
+    let layer = oldRoom.layer(0)
+    let index = layer.objects.find(self)
     if index != -1:
-      oldRoom.layer(0).objects.del index
-    room.layer(0).node.removeChild self.node
+      layer.objects.del index
+    layer.node.removeChild self.node
   if not room.isNil and not room.layer(0).isNil and not room.layer(0).node.isNil:
     info fmt"Add {self.name} in room {room.name}"
     room.layer(0).objects.add self
@@ -312,7 +313,7 @@ proc `room=`*(self: Object, room: Room) =
   self.r = room
 
 proc setRoom*(self: Object, room: Room) =
-  self.r = room
+  self.room = room
 
 proc lockFacing*(self: Object, left, right, front, back: Facing) =
   self.facingMap[FACE_LEFT] = left
