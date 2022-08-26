@@ -330,7 +330,7 @@ proc inInventory*(obj: Object): bool =
   gEngine.inventory.contains obj
 
 iterator objsAt*(self: Engine, pos: Vec2f): Object =
-  if not self.hud.obj.isNil and self.room.fullscreen == 2:
+  if not self.hud.obj.isNil and self.room.fullscreen == FullscreenRoom:
     yield self.hud.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects:
@@ -496,8 +496,8 @@ proc cancelSentence(self: Engine, actor: Object) =
 
 proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
   if self.room.table.rawexists("clickedAt"):
-    let x = roomPos.x
-    let y = roomPos.y
+    let x = roomPos.x.int
+    let y = roomPos.y.int
     info "clickedAt " & $[x, y]
     self.room.table.callFunc(result, "clickedAt", [x, y])
     if not result:
@@ -516,7 +516,9 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.objAt(roomPos)
 
-    if mbLeft in btns and mbLeft notin self.buttons:
+    if self.room.fullscreen == FullscreenCloseup:
+      discard self.clickedAtHandled(roomPos)
+    elif mbLeft in btns and mbLeft notin self.buttons:
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
@@ -716,63 +718,74 @@ proc update(self: Engine) =
   let scrPos = winToScreen(mousePos())
   self.inputState.node.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
   self.inputState.node.pos = scrPos
+
+  let btns = mouseBtns()
+
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
-    if self.hud.verb.id == VERB_USE and self.useFlag != ufNone:
-      self.noun2 = self.objAt(roomPos)
-    elif self.hud.verb.id == VERB_GIVE:
-      if self.useFlag != ufGiveTo:
-        self.noun1 = self.inventoryAt(roomPos)
+    if self.room.fullScreen == FullscreenRoom:
+      if self.hud.verb.id == VERB_USE and self.useFlag != ufNone:
+        self.noun2 = self.objAt(roomPos)
+      elif self.hud.verb.id == VERB_GIVE:
+        if self.useFlag != ufGiveTo:
+          self.noun1 = self.inventoryAt(roomPos)
+          self.useFlag = ufNone
+          self.noun2 = nil
+        else:
+          self.noun2 = self.objAt(roomPos, proc (x: Object): bool = x != self.actor and x.getFlags().hasFlag(GIVEABLE))
+          if not self.noun2.isNil:
+            info fmt"Give '{self.noun1.key}' to '{self.noun2.key}'"
+      else:
+        self.noun1 = self.objAt(roomPos)
         self.useFlag = ufNone
         self.noun2 = nil
-      else:
-        self.noun2 = self.objAt(roomPos, proc (x: Object): bool = x != self.actor and x.getFlags().hasFlag(GIVEABLE))
-        if not self.noun2.isNil:
-          info fmt"Give '{self.noun1.key}' to '{self.noun2.key}'"
-    else:
-      self.noun1 = self.objAt(roomPos)
-      self.useFlag = ufNone
-      self.noun2 = nil
-    self.inputState.setText(self.cursorText)
-    # update cursor shape
-    # if cursor is in the margin of the screen and if camera can move again
-    # then show a left arrow or right arrow
-    if scrPos.x < ScreenMargin and cameraPos().x >= 1f:
-      self.inputState.setCursorShape(CursorShape.Left)
-    elif scrPos.x > (ScreenWidth - ScreenMargin) and cameraPos().x < (self.room.roomSize.x.float32 - screenSize.x.float32):
-      self.inputState.setCursorShape(CursorShape.Right)
-    elif self.room.fullscreen == 1 and not self.noun1.isNil:
-      # if the object is a door, it has a flag indicating its direction: left, right, front, back
-      let flags = self.noun1.getFlags()
-      if flags.hasFlag(DOOR_LEFT):
+      self.inputState.setText(self.cursorText)
+      # update cursor shape
+      # if cursor is in the margin of the screen and if camera can move again
+      # then show a left arrow or right arrow
+      if scrPos.x < ScreenMargin and cameraPos().x >= 1f:
         self.inputState.setCursorShape(CursorShape.Left)
-      elif flags.hasFlag(DOOR_RIGHT):
+      elif scrPos.x > (ScreenWidth - ScreenMargin) and cameraPos().x < (self.room.roomSize.x.float32 - screenSize.x.float32):
         self.inputState.setCursorShape(CursorShape.Right)
-      elif flags.hasFlag(DOOR_FRONT):
-        self.inputState.setCursorShape(CursorShape.Front)
-      elif flags.hasFlag(DOOR_BACK):
-        self.inputState.setCursorShape(CursorShape.Back)
+      elif self.room.fullscreen == FullscreenRoom and not self.noun1.isNil:
+        # if the object is a door, it has a flag indicating its direction: left, right, front, back
+        let flags = self.noun1.getFlags()
+        if flags.hasFlag(DOOR_LEFT):
+          self.inputState.setCursorShape(CursorShape.Left)
+        elif flags.hasFlag(DOOR_RIGHT):
+          self.inputState.setCursorShape(CursorShape.Right)
+        elif flags.hasFlag(DOOR_FRONT):
+          self.inputState.setCursorShape(CursorShape.Front)
+        elif flags.hasFlag(DOOR_BACK):
+          self.inputState.setCursorShape(CursorShape.Back)
+        else:
+          self.inputState.setCursorShape(CursorShape.Normal)
       else:
         self.inputState.setCursorShape(CursorShape.Normal)
+
+      self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
+
+      # call clickedAt if any button down
+      if self.dlg.state == DialogState.None:
+        if mbLeft in btns:
+          if mbLeft notin self.buttons:
+            self.mouseDownTime = now()
+          else:
+            let mouseDnDur = now() - self.mouseDownTime
+            if mouseDnDur > initDuration(milliseconds = 500):
+              self.walkFast()
+        else:
+          self.walkFast(false)
+        if btns.len > 0:
+          self.clickedAt(scrPos, btns)
     else:
+      self.hud.visible = false
+      self.noun1 = self.objAt(roomPos)
+      let cText = if self.noun1.isNil: "" else: getText(self.noun1.name)
+      self.inputState.setText(cText)
       self.inputState.setCursorShape(CursorShape.Normal)
-
-  self.hud.visible = self.inputState.inputVerbsActive and not self.room.isNil and self.room.fullScreen != 1 and self.dlg.state == DialogState.None
-
-  # call clickedAt if any button down
-  let btns = mouseBtns()
-  if self.dlg.state == DialogState.None:
-    if mbLeft in btns:
-      if mbLeft notin self.buttons:
-        self.mouseDownTime = now()
-      else:
-        let mouseDnDur = now() - self.mouseDownTime
-        if mouseDnDur > initDuration(milliseconds = 500):
-          self.walkFast()
-    else:
-      self.walkFast(false)
-    if btns.len > 0:
-      self.clickedAt(scrPos, btns)
+      if mbLeft in btns and mbLeft notin self.buttons:
+        self.clickedAt(scrPos, btns)
 
   # update cutscene
   if not self.cutscene.isNil:

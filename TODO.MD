@@ -2,12 +2,16 @@
 
 ## Known Bugs
 
+* [ ] walkto keep the actor in memory stack
+* [ ] {notalk} make the actor disappear
 * [ ] lips don't move anymore
 * [ ] when we use the notebook, the text is not at the correct position
-* [ ] when we are in a closup room, we can still move the current actor
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
+* [ ] in closeup room, go to the options menus, savegame should be disabled
+* [x] in closeup room the actor switcher should allow to go to the options menus, actors are disabled
+* [x] when we are in a closeup room, we can still move the current actor
 * [x] when we talk to Sandy, the actor is walking to the wrong spot
 * [x] when we talk to Sandy, the dialog stops before the end
 * [x] when walking the actor is wearing a hat sometimes ???

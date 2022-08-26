@@ -34,6 +34,8 @@ const
   USE_WITH = 2
   USE_ON = 4
   USE_IN = 32
+  FullscreenCloseup* = 1
+  FullscreenRoom*    = 2
 type
   UseFlag* = enum
     ufNone,
@@ -144,7 +146,7 @@ type
     entering: bool                ## indicates whether or not an actor is entering this room
     lights*: array[50, Light]     ## Lights of the room
     numLights*: int               ## Number of lights
-    ambientLight*: Color           ## Ambient light color
+    ambientLight*: Color          ## Ambient light color
     mergedPolygon*: seq[Walkbox]
     pathFinder: PathFinder
     overlayTo*: Motor

@@ -51,24 +51,27 @@ proc transform(self: ActorSwitcher, transf: Mat4f, index: int): Mat4f =
   let scale = vec3f(2f, 2f, 0f)
   scale(translate(transf, pos), scale)
 
-proc drawIcon(self: ActorSwitcher, icon: string, backColor, frameColor: Color, alpha: float32, transf: Mat4f, index: int) =
+proc getAlpha(self: ActorSwitcher, index: int): float32 =
+  if asTemporaryUnselectable in self.mode and (index != self.slots.len - 1):
+    result = DisableAlpha
+  else:
+    if asOn in self.mode:
+      result = if self.mouseOver: EnableAlpha else: self.alpha
+    else:
+      result = DisableAlpha
+
+proc drawIcon(self: ActorSwitcher, icon: string, backColor, frameColor: Color, transf: Mat4f, index: int) =
   let gameSheet = gResMgr.spritesheet("GameSheet")
   let texture = gResMgr.texture(gameSheet.meta.image)
   let iconBackFrame = gameSheet.frame("icon_background")
   let iconActorFrame = gameSheet.frame(icon)
   let iconFrame = gameSheet.frame("icon_frame")
   let t = self.transform(transf, index)
+  let alpha = self.getAlpha(index)
 
   drawSprite(iconBackFrame, texture, rgbaf(backColor, alpha), t)
   drawSprite(iconActorFrame, texture, rgbaf(White, alpha), t)
   drawSprite(iconFrame, texture, rgbaf(frameColor, alpha), t)
-
-proc getAlpha(self: ActorSwitcher): float32 =
-  let isEnabled = asOn in self.mode
-  if isEnabled:
-    result = if self.mouseOver: EnableAlpha else: self.alpha
-  else:
-    result = DisableAlpha
 
 proc winToScreen*(pos: Vec2f): Vec2f =
   result = (pos / vec2f(appGetWindowSize())) * vec2(ScreenWidth, ScreenHeight)
@@ -119,8 +122,8 @@ proc update*(self: ActorSwitcher, slots: seq[ActorSwitcherSlot], elapsed: float)
   if self.mouseover and mbLeft in mouseBtns() and not self.down:
     self.down = true
     # check if we allow to select an actor
-    if asTemporaryUnselectable notin self.mode:
-      let iconIndex = self.iconIndex(scrPos)
+    let iconIndex = self.iconIndex(scrPos)
+    if asTemporaryUnselectable notin self.mode or iconIndex == (self.slots.len - 1):
       let selectFunc = self.slots[iconIndex].selectFunc
       if not selectFunc.isNil:
         selectFunc()
@@ -131,7 +134,7 @@ method drawCore(self: ActorSwitcher, transf: Mat4f) =
   if self.mouseOver:
     for i in 0..<self.slots.len:
       let slot = self.slots[i]
-      self.drawIcon(slot.icon, slot.back, slot.frame, EnableAlpha, transf, i)
+      self.drawIcon(slot.icon, slot.back, slot.frame, transf, i)
   elif self.slots.len > 0:
     let slot = self.slots[0]
-    self.drawIcon(slot.icon, slot.back, slot.frame, self.getAlpha(), transf, 0)
+    self.drawIcon(slot.icon, slot.back, slot.frame, transf, 0)
