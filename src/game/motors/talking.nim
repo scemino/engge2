@@ -67,7 +67,6 @@ proc say(self: Talking, text: string) =
     let name = fmt"{self.talkieKey().toUpper()}_{id}"
     let path = name & ".lip"
 
-    # TODO: actor animation
     info fmt"Load lip {path}"
     if gGGPackMgr.assetExists(path):
       self.lip = newLip(path)
@@ -83,16 +82,18 @@ proc say(self: Talking, text: string) =
       txt = txt.substr(i + 1)
 
   # modify state ?
+  var state: string
   if txt[0] == '{':
     let i = txt.find('}')
     if i != -1:
-      let state = txt.substr(1, i - 1)
+      state = txt.substr(1, i - 1)
       info fmt"Set state from anim '{state}'"
-      self.obj.play(state)
+      if state == "notalk":
+        self.obj.play(state)
       txt = txt.substr(i + 1)
 
   self.obj.sayNode.remove()
-  var text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
+  let text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
