@@ -130,7 +130,7 @@ method update(self: WalkTo, el: float) =
 
       let dd = delta * factor
       self.obj.node.pos += dd
-      if abs(delta.x) >= 0.1:
+      if abs(delta.x) >= abs(delta.y):
         self.obj.setFacing(if delta.x >= 0: FACE_RIGHT else: FACE_LEFT)
       else:
         self.obj.setFacing(if delta.y > 0: FACE_BACK else: FACE_FRONT)
