@@ -2,13 +2,13 @@
 
 ## Known Bugs
 
-* [ ] walkto keep the actor in memory stack
 * [ ] lips don't move anymore
 * [ ] when we use the notebook, the text is not at the correct position
 * [ ] wrong actor placement during give animation
 * [ ] inventory icon is all white
 * [ ] empty inventory icon has 1 white pixel
 * [ ] in closeup room, go to the options menus, savegame should be disabled
+* [x] walkto keep the actor in memory stack
 * [x] when walk down or up, we should see the face or back of the actor
 * [x] after loading a savegame actors aren't visible
 * [x] {notalk} makes the actor disappear
