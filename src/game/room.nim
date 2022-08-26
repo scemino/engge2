@@ -298,19 +298,24 @@ proc showLayer*(self: Object, layer: string, visible: bool) =
         node.visible = visible
 
 proc `room=`*(self: Object, room: Room) =
-  let oldRoom = self.r
-  if not oldRoom.isNil:
-    info fmt"Remove {self.name} from room {oldRoom.name}"
-    let layer = oldRoom.layer(0)
-    let index = layer.objects.find(self)
-    if index != -1:
-      layer.objects.del index
-    layer.node.removeChild self.node
-  if not room.isNil and not room.layer(0).isNil and not room.layer(0).node.isNil:
-    info fmt"Add {self.name} in room {room.name}"
-    room.layer(0).objects.add self
-    room.layer(0).node.addChild self.node
-  self.r = room
+  if self.room != room:
+    let oldRoom = self.r
+    if not oldRoom.isNil:
+      info fmt"Remove {self.name} from room {oldRoom.name}"
+      let layer = oldRoom.layer(0)
+      if not layer.isNil:
+        let index = layer.objects.find(self)
+        if index != -1:
+          layer.objects.del index
+        if not layer.node.isNil:
+          layer.node.removeChild self.node
+    if not room.isNil and not room.layer(0).isNil and not room.layer(0).node.isNil:
+      info fmt"Add {self.name} in room {room.name}"
+      let layer = room.layer(0)
+      if not layer.isNil:
+        layer.objects.add self
+        layer.node.addChild self.node
+    self.r = room
 
 proc setRoom*(self: Object, room: Room) =
   self.room = room
