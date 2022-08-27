@@ -284,6 +284,16 @@ iterator items*(obj: HSQOBJECT): HSQOBJECT =
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
 
+iterator mitems*(obj: HSQOBJECT): ptr HSQOBJECT =
+  sq_pushobject(gVm.v, obj)
+  sq_pushnull(gVm.v)
+  while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
+    var o: HSQOBJECT
+    discard get(gVm.v, -1, o)
+    yield o.addr
+    sq_pop(gVm.v, 2)
+  sq_pop(gVm.v, 2)
+
 iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
   sq_pushobject(gVm.v, obj)
   sq_pushnull(gVm.v)
@@ -293,6 +303,18 @@ iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
     discard get(gVm.v, -1, obj)
     discard get(gVm.v, -2, key)
     yield (key, obj)
+    sq_pop(gVm.v, 2)
+  sq_pop(gVm.v, 2)
+
+iterator mpairs*(obj: HSQOBJECT): (string, ptr HSQOBJECT) =
+  sq_pushobject(gVm.v, obj)
+  sq_pushnull(gVm.v)
+  while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
+    var key: string
+    var obj: HSQOBJECT
+    discard get(gVm.v, -1, obj)
+    discard get(gVm.v, -2, key)
+    yield (key, obj.addr)
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
 
