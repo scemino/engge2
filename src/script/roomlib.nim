@@ -295,13 +295,14 @@ proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## local spotters = roomActors(currentRoom)
   ## foreach(actor in spotters) { ...}
-  var room = room(v, 2)
+  let room = room(v, 2)
   if room.isNil:
     return sq_throwerror(v, "failed to get room")
+  
   sq_newarray(v, 0)
   for actor in gEngine.actors:
     if actor.room == room:
-      sq_pushobject(v, room.table)
+      push(v, actor.table)
       discard sq_arrayappend(v, -2)
   1
 
