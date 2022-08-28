@@ -12,6 +12,7 @@ import game/prefs
 import game/resmanager
 import game/gameloader
 import game/savegame
+import game/inputmap
 import scenegraph/node
 import scenegraph/pathnode
 import scenegraph/dlgenginetgt
@@ -28,8 +29,7 @@ const
 
 proc onKey(key: InputKey, scancode: int32, action: InputAction,
     mods: InputModifierKey) =
-  if key == Escape:
-    app.appQuit()
+  execCmd(Input(key: key, modf: mods))
 
 proc render() =
   gEngine.render()
@@ -85,6 +85,7 @@ proc main() =
   app.init(title = AppName)
   app.setKeyCallback(onKey)
   initPrefs()
+  regCmds()
 
   # check if we have game assets
   if fileExists(PackageName):

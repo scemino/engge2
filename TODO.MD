@@ -121,7 +121,30 @@
   * [x] use actor colors
   * [x] hide cursor text* [ ] achievements
 * [ ] input
-  * [ ] input mapping
+  * [x] input mapping
+  * [ ] verbs shortcuts
+  * [ ] command handlers
+    * [ ] SkipText
+    * [ ] SkipCutscene
+    * [ ] PauseGame
+    * [ ] SelectChoice1
+    * [ ] SelectChoice2
+    * [ ] SelectChoice3
+    * [ ] SelectChoice4
+    * [ ] SelectChoice5
+    * [ ] SelectChoice6
+    * [ ] ShowOptions
+    * [ ] ToggleHud
+    * [ ] ToggleDebug
+    * [ ] ShowHotspot
+    * [x] SelectActor1
+    * [x] SelectActor2
+    * [x] SelectActor3
+    * [x] SelectActor4
+    * [x] SelectActor5
+    * [x] SelectActor6
+    * [x] SelectPreviousActor
+    * [x] SelectNextActor
 * [ ] cutscene
   * [ ] cutscene UI (ESC)
   * [x] cutscene override

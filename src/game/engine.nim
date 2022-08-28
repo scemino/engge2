@@ -11,6 +11,7 @@ import screen
 import verb
 import shaders
 import prefs
+import inputmap
 import motors/motor
 import ../script/squtils
 import ../script/flags
@@ -87,6 +88,10 @@ proc seedWithTime*(self: Engine) =
   self.randSeed = now.toUnix * 1_000_000_000 + now.nanosecond
   self.rand = initRand(self.randSeed)
 
+proc selectActor(index: int)
+proc selectNextActor()
+proc selectPrevActor()
+
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
   gEngine = result
@@ -106,6 +111,15 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.screen.addChild result.actorswitcher
   result.screen.addChild result.ui
   sq_resetobject(result.defaultObj)
+
+  regCmdFunc(GameCommand.SelectActor1, proc () = selectActor(0))
+  regCmdFunc(GameCommand.SelectActor2, proc () = selectActor(1))
+  regCmdFunc(GameCommand.SelectActor3, proc () = selectActor(2))
+  regCmdFunc(GameCommand.SelectActor4, proc () = selectActor(3))
+  regCmdFunc(GameCommand.SelectActor5, proc () = selectActor(4))
+  regCmdFunc(GameCommand.SelectActor6, proc () = selectActor(5))
+  regCmdFunc(GameCommand.SelectNextActor, proc () = selectNextActor())
+  regCmdFunc(GameCommand.SelectPreviousActor, proc () = selectPrevActor())
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.randSeed = seed
@@ -685,6 +699,26 @@ proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
 
   if not actor.isNil:
     self.follow(actor)
+
+proc selectActor(index: int) =
+  let slot = gEngine.hud.actorSlots[index]
+  if slot.selectable and not slot.actor.isNil and slot.actor.room.name != "Void":
+    gEngine.setCurrentActor(slot.actor, true)
+
+proc selectNextActor() =
+  for i in 0..<gEngine.hud.actorSlots.len:
+    let slot = gEngine.hud.actorSlots[i]
+    if slot.actor == gEngine.currentActor:
+      selectActor((i + 1) mod gEngine.hud.actorSlots.len)
+
+proc selectPrevActor() =
+  for i in 0..<gEngine.hud.actorSlots.len:
+    let slot = gEngine.hud.actorSlots[i]
+    if slot.actor == gEngine.currentActor:
+      if i>0:
+        selectActor((i - 1))
+      else:
+        selectActor(gEngine.hud.actorSlots.len - 1)
 
 proc actorSwitcherSlot(self: Engine, slot: ActorSlot): ActorSwitcherSlot =
   let selectFunc = proc() = self.setCurrentActor(slot.actor, true)
