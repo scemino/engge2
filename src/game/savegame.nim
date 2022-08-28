@@ -94,6 +94,32 @@ proc loadDialog(json: JsonNode) =
     # TODO: what to do with this dialog value ?
     # let value = property.second.getInt()
 
+proc invObj(key: string): Object =
+  for obj in gEngine.inventory:
+    if obj.key == key:
+      return obj
+
+proc obj(key: string): Object =
+  for o in gEngine.inventory:
+    if o.key == key:
+      return o
+  for room in gEngine.rooms:
+    for layer in room.layers:
+      for o in layer.objects:
+        if o.key == key:
+          return o
+
+proc obj(room: Room, key: string): Object =
+  for layer in room.layers:
+    for o in layer.objects:
+      if o.key == key:
+        return o
+
+proc room(name: string): Room =
+  for room in gEngine.rooms:
+    if room.name == name:
+      return room
+
 proc toSquirrel(json: JsonNode, obj: var HSQObject) =
   let top = sq_gettop(gVm.v)
   sq_resetobject(obj)
@@ -121,14 +147,44 @@ proc toSquirrel(json: JsonNode, obj: var HSQObject) =
       discard sq_arrayappend(gVm.v, -2)
     discard get(gVm.v, -1, obj)
   of JObject:
-    sq_newtable(gVm.v)
-    for (k,v) in json.getFields().pairs:
-      push(gVm.v, k)
-      var tmp: HSQOBJECT
-      toSquirrel(v, tmp)
-      push(gVm.v, tmp)
-      discard sq_newslot(gVm.v, -3, SQFalse)
-    discard get(gVm.v, -1, obj)
+    # check if it's a reference to an actor
+    if json.hasKey "_actorKey":
+      obj = actor(json["_actorKey"].getStr).table
+    elif json.hasKey "_roomKey":
+      let roomName = json["_roomKey"].getStr
+      if json.hasKey "_objectKey":
+        let objName = json["_objectKey"].getStr
+        let room = room(roomName)
+        if room.isNil:
+          warn fmt"room with key={roomName} not found"
+        else:
+          let o = obj(room, objName)
+          if o.isNil:
+            warn fmt"room object with key={roomName}/{objName} not found"
+          else:
+            obj = o.table
+      else:
+        let room = room(roomName)
+        if room.isNil:
+          warn fmt"room with key={roomName} not found"
+        else:
+          obj = room.table
+    elif json.hasKey "_objectKey":
+      let objName = json["_objectKey"].getStr
+      let o = obj(objName)
+      if o.isNil:
+        warn fmt"object with key={objName} not found"
+      else:
+        obj = o.table
+    else:
+      sq_newtable(gVm.v)
+      for (k,v) in json.getFields().pairs:
+        push(gVm.v, k)
+        var tmp: HSQOBJECT
+        toSquirrel(v, tmp)
+        push(gVm.v, tmp)
+        discard sq_newslot(gVm.v, -3, SQFalse)
+      discard get(gVm.v, -1, obj)
   sq_addref(gVm.v, obj)
   sq_settop(gVm.v, top)
 
@@ -160,11 +216,6 @@ proc loadGlobals(json: JsonNode) =
     toSquirrel(v, tmp)
     sq_addref(gVm.v, tmp)
     setf(g, k, tmp)
-
-proc room(name: string): Room =
-  for room in gEngine.rooms:
-    if room.name == name:
-      return room
 
 proc setRoom(name: string) =
   gEngine.setRoom(room(name))
@@ -215,27 +266,6 @@ proc loadActor(actor: Object, json: JsonNode) =
   
   if actor.table.rawexists("postLoad"):
     sqCall(actor.table, "postLoad", [])
-
-proc invObj(key: string): Object =
-  for obj in gEngine.inventory:
-    if obj.key == key:
-      return obj
-
-proc obj(key: string): Object =
-  for o in gEngine.inventory:
-    if o.key == key:
-      return o
-  for room in gEngine.rooms:
-    for layer in room.layers:
-      for o in layer.objects:
-        if o.key == key:
-          return o
-
-proc obj(room: Room, key: string): Object =
-  for layer in room.layers:
-    for o in layer.objects:
-      if o.key == key:
-        return o
 
 proc loadInventory(json: JsonNode) =
   if json.kind != JNull:
@@ -335,7 +365,6 @@ proc loadRoom(room: Room, json: JsonNode) =
   
   if room.table.rawexists("postLoad"):
     sqCall(room.table, "postLoad", [])
-
 
 proc loadRooms(json: JsonNode) =
   for (k, v) in json.pairs:
