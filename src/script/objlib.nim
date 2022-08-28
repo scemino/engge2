@@ -112,7 +112,7 @@ proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## breaktime(time)
   ## playObjectSound(randomfrom(soundDrip1, soundDrip2, soundDrip3), radioStudioBucket)
   ## deleteObject(drip)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   obj.delObject()
 
 proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -162,7 +162,7 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## if (isObject(obj) && objectValidUsePos(obj) && objectTouchable(obj)) {
   var obj: HSQOBJECT
   discard sq_getstackobj(v, 2, obj)
-  var isObj = obj.objType == OT_TABLE and obj.getId().isObject()
+  let isObj = obj.objType == OT_TABLE and obj.getId().isObject()
   if not isObj and obj.objType == OT_TABLE:
     var name: string
     getf(obj, "name", name)
@@ -234,7 +234,7 @@ proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if spot.isNil:
       result = sq_throwerror(v, "failed to get spot")
     else:
-      obj.node.pos = spot.node.pos
+      obj.node.pos = spot.getUsePos
       result = 0
   elif sq_gettop(v) == 4:
     var x, y: SQInteger
@@ -347,10 +347,8 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## 
   ## .. code-block:: Squirrel
   ## objectHidden(oldRags, YES)
-  var obj = obj(v, 2)
-  if obj.isNil:
-    return sq_throwerror(v, "failed to get object or actor")
-  else:
+  let obj = obj(v, 2)
+  if not obj.isNil:
     var hidden = 0
     discard get(v, 3, hidden)
     info fmt"Sets object visible {obj.name} to {hidden == 0}"
@@ -562,7 +560,7 @@ proc objectPosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  let x = obj.node.absolutePosition().x + obj.usePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f
+  let x = obj.getUsePos.x + obj.hotspot.x.float32 + obj.hotspot.w.float32 / 2.0f
   push(v, x.int)
   1
 
@@ -571,7 +569,7 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  let y = obj.node.absolutePosition().y + obj.usePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f
+  let y = obj.getUsePos.y + obj.hotspot.y.float32 + obj.hotspot.h.float32 / 2.0f
   push(v, y.int)
   1
 
