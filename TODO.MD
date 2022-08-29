@@ -470,7 +470,7 @@
 - [x] pickupObject
 - [x] pickupReplacementObject
 - [x] playObjectState
-- [ ] popInventory
+- [x] popInventory
 - [x] removeInventory
 - [x] setDefaultObject
 - [ ] shakeObject

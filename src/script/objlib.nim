@@ -889,7 +889,13 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc popInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "popInventory not implemented"
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  var count: int
+  if SQ_FAILED(get(v, 3, count)):
+    return sq_throwerror(v, "failed to get count")
+  obj.setPop(count)
   0
 
 proc removeInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =

@@ -130,6 +130,8 @@ type
     sound*: SoundId
     dependentState: int
     dependentObj: Object
+    popElapsed: float
+    popCount: int
   Room* = ref object of RootObj
     name*: string                 ## Name of the room
     sheet*: string                ## Name of the spritesheet to use
@@ -168,6 +170,16 @@ proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence =
 proc newObject*(): Object =
   result = Object(state: -1, talkOffset: vec2(0'i32, 90'i32))
   sq_resetobject(result.table)
+
+proc setPop*(self: Object, count: int) =
+  self.popCount = count
+  self.popElapsed = 0f
+
+proc getPop*(self: Object): int =
+  self.popCount
+
+proc popScale*(self: Object): float32 =
+  0.5f + 0.5f * sin(-PI/2f + self.popElapsed * 4f * PI)
 
 proc facing*(dir: Direction): Facing =
   dir.Facing
@@ -503,6 +515,12 @@ proc update*(self: Object, elapsedSec: float) =
     if self.iconElapsed > (1f / self.iconFps.float32):
       self.iconElapsed = 0f
       self.iconIndex = (self.iconIndex + 1) mod self.icons.len
+
+  if self.popCount > 0:
+      self.popElapsed += elapsedSec
+      if self.popElapsed > 0.5f:
+        dec self.popCount
+        self.popElapsed -= 0.5f
 
 proc delObject*(self: Object) =
   if not self.isNil:

@@ -82,6 +82,8 @@ const
   HudRetroScaleDefValue = 0.8'f32
   HudModernScale = "hudModernScale"
   HudModernScaleDefValue = 0.025'f32
+  InventoryPopCount* = "inventoryPopCount"
+  InventoryPopCountDefValue* = 5
   
 type
   TempPref = object
@@ -117,6 +119,9 @@ proc prefs*(name: string, default: float32): float32 =
 
 proc prefs*(name: string, default: bool): bool =
   if gPrefs.node.hasKey(name): gPrefs.node[name].getInt() != 0 else: default
+
+proc prefs*(name: string, default: int): int =
+  if gPrefs.node.hasKey(name): gPrefs.node[name].getInt() else: default
 
 proc setPrefs*(name, value: string) =
   gPrefs.node[name] = newJString(value)

@@ -90,8 +90,13 @@ proc drawArrows(self: Inventory, transf: Mat4f) =
   drawSprite(arrowUp, texture, rgbaf(self.verbNormal, alphaUp), tUp)
   drawSprite(arrowDn, texture, rgbaf(self.verbNormal, alphaDn), tDn)
 
+proc getScale(self: Object): float32 =
+  if self.getPop() > 0:
+    result = 4.25f + self.popScale() * 0.25f
+  else:
+    result = 4f
+
 proc drawItems(self: Inventory, transf: Mat4f) =
-  const scale = 4f
   let startOffsetX = ScreenWidth / 2f + ArrowWidth + Margin + BackWidth / 2f
   let startOffsetY = MarginBottom + 1.5f * BackHeight + BackOffset
   let itemsSheet = gResMgr.spritesheet("InventoryItems")
@@ -104,6 +109,7 @@ proc drawItems(self: Inventory, transf: Mat4f) =
     if itemsSheet.frameTable.hasKey(icon):
       let itemFrame = itemsSheet.frame(icon)
       let pos = vec2(startOffsetX + ((i mod NumObjectsByRow).float32*(BackWidth + BackOffset)), startOffsetY - ((i div NumObjectsByRow).float32 * (BackHeight + BackOffset)))
+      let scale = obj.getScale()
       let t = scale(translate(transf, vec3(pos, 0f)), vec3(scale, scale, 0f))
       drawSprite(itemFrame, texture, White, t)
 
