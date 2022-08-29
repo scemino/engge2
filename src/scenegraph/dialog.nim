@@ -248,6 +248,8 @@ proc gotoNextLabel(self: Dialog) =
     let i = self.cu.labels.find(self.lbl)
     if i != -1 and i != self.cu.labels.len - 1:
       self.selectLabel(self.cu.labels[i+1].name)
+    else:
+      self.state = None
 
 proc choicesReady(self: Dialog): bool =
   self.numSlots > 0
@@ -272,6 +274,8 @@ proc run(self: Dialog, statmt: YStatement) =
   if self.acceptConditions(statmt):
     let visitor = ExpVisitor(dialog: self)
     statmt.exp.accept(visitor)
+    if statmt.exp of YGoto:
+      return
   self.currentStatement += 1
 
 proc running(self: Dialog, dt: float) =
@@ -299,7 +303,7 @@ proc running(self: Dialog, dt: float) =
         self.run(statmt)
     if self.choicesReady():
         self.updateChoiceStates()
-    elif self.action.isNil:
+    elif self.action.isNil or not self.action.enabled:
       self.state = None
 
 proc newDialog*(): Dialog =
