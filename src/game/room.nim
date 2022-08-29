@@ -427,10 +427,11 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
       return true
 
   # if not found, clear the previous animation
-  for c in self.node.children:
-    if c.name == "#anim":
-      c.removeAll()
-      break
+  if not self.id.isActor():
+    for c in self.node.children:
+      if c.name == "#anim":
+        c.removeAll()
+        break
 
 proc play*(self: Object, state: string; loop = false, instant = false) =
   ## Plays an animation specified by the `state`. 

@@ -9,6 +9,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] change actor's facing do nothing
+* [x] actor sometimes disappears
 * [x] actor switcher should be not available during cutscene
 * [x] actor switcher should be not available during dialog
 * [x] dialog with coroner is never ending
