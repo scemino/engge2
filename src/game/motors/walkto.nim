@@ -111,6 +111,11 @@ proc actorArrived(self: WalkTo) =
     discard gEngine.callVerb(self.obj, self.obj.exec.verb, self.obj.exec.noun1, self.obj.exec.noun2)
     self.obj.exec = nil
 
+method disable*(self: WalkTo) =
+  procCall self.Motor.disable()
+  info "actor walk cancelled"
+  self.obj.play("stand")
+
 method update(self: WalkTo, el: float) =
   if self.path.len != 0:
     let dest = self.path[0]
