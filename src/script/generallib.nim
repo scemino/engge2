@@ -25,6 +25,7 @@ import ../gfx/recti
 import ../scenegraph/node
 import ../scenegraph/hud
 import ../scenegraph/dialog
+import ../scenegraph/inventory
 import ../io/json
 import ../io/ggpackmanager
 import ../io/textdb
@@ -283,7 +284,7 @@ proc findScreenPosition(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if obj.isNil:
       return sq_throwerror(v, "failed to get object or actor")
     if obj.inInventory():
-      push(v, gEngine.hud.getPos(obj))
+      push(v, gEngine.uiInv.getPos(obj))
       result = 1
     else:
       let rPos = gEngine.room.roomToScreen(obj.node.pos)

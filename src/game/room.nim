@@ -124,6 +124,8 @@ type
     inventoryOffset*: int
     icons*: seq[string]
     iconFps: int
+    iconIndex: int
+    iconElapsed: float32
     enter*, leave*: HSQOBJECT
     sound*: SoundId
     dependentState: int
@@ -198,21 +200,36 @@ proc `touchable=`*(self: Object, value: bool) =
 proc setIcon*(self: Object, fps: int, icons: seq[string]) =
   self.icons = icons
   self.iconFps = fps
-  # TODO: finish set icon
+  self.iconIndex = 0
+  self.iconElapsed = 0f
 
 proc setIcon*(self: Object, icon: string) =
   self.setIcon(0, @[icon])
 
 proc getIcon*(self: Object): string =
   if self.icons.len > 0:
-    result = self.icons[0]
+    result = self.icons[self.iconIndex]
   else:
-    if self.table.objType == OT_NULL:
+    var iconTable: HSQOBJECT
+    self.table.getf("icon", iconTable)
+    if iconTable.objType == OT_NULL:
       warn "object table is null"
-    else:
-      self.table.getf("icon", result)
-      self.icons.add result
-      info fmt"object icon is {result}"
+    elif iconTable.objType == OT_STRING:
+      result = $sq_objtostring(iconTable)
+      self.setIcon(result)
+    elif iconTable.objType == OT_ARRAY:
+      var i = 0
+      var fps = 0
+      var icons: seq[string]
+      for item in iconTable.mitems:
+        if i == 0:
+          fps = sq_objtointeger(item[])
+        else:
+          let icon = $sq_objtostring(item[])
+          icons.add icon
+        inc i
+      self.setIcon(fps, icons)
+      result = self.getIcon()
 
 proc getFlags*(self: Object): int =
   if self.table.rawexists("flags"):
@@ -479,6 +496,12 @@ proc update*(self: Object, elapsedSec: float) =
   self.talking.updateMotor(elapsedSec)
   self.blink.updateMotor(elapsedSec)
   self.turnTo.updateMotor(elapsedSec)
+
+  if self.icons.len > 1 and self.iconFps > 0:
+    self.iconElapsed += elapsedSec
+    if self.iconElapsed > (1f / self.iconFps.float32):
+      self.iconElapsed = 0f
+      self.iconIndex = (self.iconIndex + 1) mod self.icons.len
 
 proc delObject*(self: Object) =
   if not self.isNil:

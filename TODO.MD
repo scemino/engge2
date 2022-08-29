@@ -5,9 +5,10 @@
 * [ ] lips don't move anymore
 * [ ] when we use the notebook, the text is not at the correct position
 * [ ] wrong actor placement during give animation
-* [ ] inventory icon is all white
-* [ ] empty inventory icon has 1 white pixel
 * [ ] in closeup room, go to the options menus, savegame should be disabled
+* [x] some inventory objects are empty
+* [x] empty inventory icon has 1 white pixel
+* [x] inventory icon is all white
 * [x] walkto keep the actor in memory stack
 * [x] when walk down or up, we should see the face or back of the actor
 * [x] after loading a savegame actors aren't visible
@@ -181,11 +182,14 @@
   * [ ] fade
   * [ ] mouse text repositioned
   * [ ] when sentence is set to classic the cursor change over objects/actors
-  * [x] actor selection
+  * [ ] actor selection
+    * [ ] fade transition when switchin actors
+    * [x] actor switch
   * [x] mouse zsort
   * [x] verbs
-  * [x] scroll inventory
   * [x] inventory
+    * [x] scroll
+    * [x] inventory item animation
   * [x] mouse cursor
 * [ ] logging
   * [ ] add colors to console

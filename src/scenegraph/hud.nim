@@ -1,6 +1,5 @@
 import std/logging
 import std/strformat
-import std/tables
 import glm
 import node
 import spritenode
@@ -9,10 +8,8 @@ import ../game/resmanager
 import ../gfx/color
 import ../gfx/recti
 import ../gfx/spritesheet
-import ../gfx/graphics
 import ../game/room
 import ../game/verb
-import ../game/screen
 import ../game/prefs
 import ../game/motors/shake
 import ../script/squtils
@@ -20,7 +17,6 @@ import ../script/vm
 
 const
   NumVerbs = 9
-  NumInventoryObjects = 8
   NumActors = 6
 
 type
@@ -50,30 +46,18 @@ type
     actor*: Object
   Hud* = ref object of Node
     actorSlots*: array[NumActors, ActorSlot]
-    backingItems, inventory: Node
+    backingItems: Node
     scrollUp, scrollDn: SpriteNode
     verbNodes*: array[NumVerbs, SpriteNode]
-    inventoryNodes: array[NumInventoryObjects, SpriteNode]
     act*: Object
     slot*: ActorSlot
     verbRects: array[NumVerbs, VerbRect]
-    invRects: array[NumInventoryObjects, InventoryRect]
-    scrollRects: array[2, ScrollRect]
     verb*: Verb
-    obj*: Object
   VerbRect = object
     hud*: Hud
     index*: int
-  InventoryRect = object
-    hud*: Hud
-    index*: int
-  ScrollRect = object
-    hud*: Hud
-    offset*: int
 
 proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer)
-proc onInventoryObject(src: Node, event: EventKind, pos: Vec2f, tag: pointer)
-proc onScroll(src: Node, event: EventKind, pos: Vec2f, tag: pointer)
 
 proc newHud*(): Hud =
   var hud = Hud()
@@ -111,70 +95,6 @@ proc newHud*(): Hud =
     result.verbNodes[i].addButton(onVerb, result.verbRects[i].addr)
     backingItems.addChild result.verbNodes[i]
 
-  # draw scroll up
-  let scUpFrame = gameSheet.frame("scroll_up")
-  let scrollUp = newSpriteNode(texture, scUpFrame)
-  scrollUp.name = "scroll_up"
-  scrollUp.pos = vec2(ScreenWidth/2f, scUpFrame.sourceSize.y.float32)
-  scrollUp.setAnchorNorm(vec2f(0f, 0f))
-  result.scrollRects[0] = ScrollRect(hud: hud, offset: -1)
-  scrollUp.addButton(onScroll, result.scrollRects[0].addr)
-  result.scrollUp = scrollUp
-  backingItems.addChild scrollUp
-
-  # draw scroll down
-  let scDnFrame = gameSheet.frame("scroll_down")
-  let scrollDn = newSpriteNode(texture, scDnFrame)
-  scrollDn.name = "scroll_down"
-  scrollDn.pos = vec2(ScreenWidth/2f, 0'f32)
-  scrollDn.setAnchorNorm(vec2f(0f, 0f))
-  result.scrollRects[1] = ScrollRect(hud: hud, offset: 1)
-  scrollDn.addButton(onScroll, result.scrollRects[1].addr)
-  result.scrollDn = scrollDn
-  backingItems.addChild scrollDn
-
-  # draw inventory background
-  let inventory = Node()
-  inventory.name = "inventory"
-  inventory.init()
-  result.inventory = inventory
-  backing.addChild inventory
-
-  let startOffsetX = ScreenWidth/2f + scDnFrame.sourceSize.x.float32 + 4f
-  var offsetX = startOffsetX
-  let inventoryFrame = gameSheet.frame("inventory_background")
-  
-  # draw first inventory row
-  for i in 1..4:
-    let node = newSpriteNode(texture, inventoryFrame)
-    node.pos = vec2f(offsetX, 8f)
-    node.setAnchorNorm(vec2(0f, 1f))
-    inventory.addChild node
-    offsetX += inventoryFrame.sourceSize.x.float32 + 4f
-  offsetX = startOffsetX
-  
-  # draw second inventory row
-  for i in 1..4:
-    let node = newSpriteNode(texture, inventoryFrame)
-    node.pos = vec2f(offsetX, 4f)
-    node.setAnchorNorm(vec2(0f, 0f))
-    inventory.addChild node
-    offsetX += inventoryFrame.sourceSize.x.float32 + 4f
-    
-  # draw inventory objects
-  offsetX = startOffsetX + scDnFrame.sourceSize.x.float32 / 2f
-  let itemsSheet = gResMgr.spritesheet("InventoryItems")
-  let inventoryItemsTexture = gResMgr.texture(itemsSheet.meta.image)
-  let inventoryItemsFrame = itemsSheet.frame("background")
-  for i in 0..<NumInventoryObjects:
-    var node = newSpriteNode(inventoryItemsTexture, inventoryItemsFrame)
-    node.pos = vec2f(offsetX, 0f)
-    node.setAnchorNorm(vec2(0.5f, 1f))
-    node.scale = vec2(4f, 4f)
-    result.inventoryNodes[i] = node
-    result.addChild node
-    offsetX += frame.sourceSize.x.float32 + 4f
-
 proc actorSlot*(self: Hud, actor: Object): ActorSlot =
   for slot in self.actorSlots.mitems:
     if slot.actor == actor:
@@ -185,56 +105,9 @@ proc verb*(self: ActorSlot, verbId: VerbId): Verb =
     if verb.id == verbId:
       return verb
 
-proc hasUpArrow(actor: Object): bool =
-  actor.inventoryOffset != 0;
-
-proc hasDownArrow(actor: Object): bool =
-  actor.inventory.len > (actor.inventoryOffset * 4 + NumInventoryObjects)
-
-proc updateInventory*(self: Hud) =
-  if not self.act.isNil:
-    let startOffsetX = 640f + 56f + 137f / 2f
-    let startOffsetY = 4f + 75f
-    let itemsSheet = gResMgr.spritesheet("InventoryItems")
-    let count = min(NumInventoryObjects, self.act.inventory.len - self.act.inventoryOffset * 4)
-    for i in 0..<count:
-      let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
-      let icon = obj.getIcon()
-      if itemsSheet.frameTable.hasKey(icon):
-        let itemFrame = itemsSheet.frame(icon)
-        self.invRects[i] = InventoryRect(hud: self, index: self.act.inventoryOffset * 4 + i)
-        self.inventoryNodes[i].color = White
-        self.inventoryNodes[i].pos = vec2(startOffsetX + ((i mod 4)*(137+7)).float32, startOffsetY - ((i div 4)*75).float32)
-        self.inventoryNodes[i].setFrame(itemFrame)
-        self.inventoryNodes[i].scale = vec2(4f, 4f)
-        self.inventoryNodes[i].setAnchorNorm(vec2f(0.5f, 0f))
-        self.inventoryNodes[i].buttons.setLen 0
-        self.inventoryNodes[i].addButton(onInventoryObject, self.invRects[i].addr)
-      else:
-        warn fmt"Icon '{icon}' for object {obj.name}({obj.key}) not found in InventoryItems spritesheet"
-    # reset other slots
-    for i in count..<NumInventoryObjects:
-      self.inventoryNodes[i].setTexture gEmptyTexture
-      self.inventoryNodes[i].buttons.setLen 0
-    # update scroll arrows
-    self.scrollDn.alpha = if self.act.hasDownArrow(): 1f else: 0f
-    self.scrollUp.alpha = if self.act.hasUpArrow(): 1f else: 0f
-
-proc getPos*(self: Hud, inv: Object): Vec2f =
-  if not self.act.isNil:
-    let itemsSheet = gResMgr.spritesheet("InventoryItems")
-    let count = self.act.inventory.len - self.act.inventoryOffset * 4
-    for i in 0..<min(NumInventoryObjects, count):
-      let obj = self.act.inventory[self.act.inventoryOffset * 4 + i]
-      if obj.table.getId() == inv.table.getId():
-        let icon = obj.getIcon()
-        if itemsSheet.frameTable.hasKey(icon):
-          return self.inventoryNodes[i].pos + self.inventoryNodes[i].size/2f
-
 proc `actor=`*(self: Hud, actor: Object) =
   let actorSlot = self.actorSlot(actor)
   self.backingItems.color = actorSlot.verbUiColors.verbNormal
-  self.inventory.color = actorSlot.verbUiColors.inventoryBackground
 
   # updates verbs
   let verbSheet = gResMgr.spritesheet("VerbSheet")
@@ -250,17 +123,11 @@ proc `actor=`*(self: Hud, actor: Object) =
       self.verbNodes[i-1].setAnchorNorm(vec2f(0f, 0f))
       self.verbNodes[i-1].color = actorSlot.verbUiColors.verbNormal
 
-  # update scroll arrows
-  self.scrollDn.alpha = if actor.hasDownArrow(): 1f else: 0f
-  self.scrollUp.alpha = if actor.hasUpArrow(): 1f else: 0f
-
   info fmt"Update actor to {actor.name}"
   self.slot = self.actorSlot(actor)
   self.verb = self.slot.verbs[0]
   self.act = actor
-
-  self.updateInventory()
-
+  
 proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let verbRect = cast[ptr VerbRect](tag)
   case event:
@@ -273,32 +140,5 @@ proc onVerb(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     verbRect.hud.verb = verbRect.hud.slot.verbs[verbRect.index + 1]
     info fmt"verb {verbRect.hud.verb.fun} selected"
     sqCall("onVerbClick")
-  else:
-    discard
-
-proc onInventoryObject(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let invRect = cast[ptr InventoryRect](tag)
-  let obj = invRect.hud.act.inventory[invRect.index]
-  let name = if obj.isNil: "(none)" else: obj.key
-  info fmt"on inventory object {name}"
-  case event:
-  of Enter:
-    src.shakeMotor = newShake(0.3, src, 1.2f)
-    invRect.hud.obj = obj
-  of Leave:
-    invRect.hud.obj = nil
-  of Down:
-    discard
-  else:
-    discard
-
-proc onScroll(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let rect = cast[ptr ScrollRect](tag)
-  case event:
-  of Down:
-    rect.hud.act.inventoryOffset += rect.offset
-    rect.hud.act.inventoryOffset = clamp(rect.hud.act.inventoryOffset, 0, (rect.hud.act.inventory.len - 5) div 4)
-    info fmt"onScroll {rect.hud.act.inventoryOffset} {rect.offset}"
-    rect.hud.updateInventory()
   else:
     discard

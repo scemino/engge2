@@ -839,7 +839,6 @@ proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if actor.isNil:
     actor = gEngine.actor
   actor.pickupObject(obj)
-  gEngine.hud.updateInventory()
   0
 
 proc pickupReplacementObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -900,7 +899,6 @@ proc removeInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   obj.removeInventory()
-  gEngine.hud.updateInventory()
   0
 
 proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =

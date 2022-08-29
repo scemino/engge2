@@ -34,6 +34,7 @@ import ../scenegraph/dialog
 import ../scenegraph/startscreen
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
+import ../scenegraph/inventory
 import ../sys/app
 import ../util/common
 
@@ -79,6 +80,7 @@ type
     bounds*: Recti
     frameCounter*: int
     dlg*: Dialog
+    uiInv*: Inventory
     actorswitcher*: Actorswitcher
 
 var gEngine*: Engine
@@ -106,8 +108,10 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.ui = newScene()
   result.ui.addChild newStartScreen()
   result.actorswitcher = newActorSwitcher()
+  result.uiInv = newInventory()
   result.screen.addChild result.inputState.node
   result.screen.addChild result.dlg
+  result.screen.addChild result.uiInv
   result.screen.addChild result.actorswitcher
   result.screen.addChild result.ui
   sq_resetobject(result.defaultObj)
@@ -344,8 +348,8 @@ proc inInventory*(obj: Object): bool =
   gEngine.inventory.contains obj
 
 iterator objsAt*(self: Engine, pos: Vec2f): Object =
-  if not self.hud.obj.isNil and self.room.fullscreen == FullscreenRoom:
-    yield self.hud.obj
+  if not self.uiInv.obj.isNil and self.room.fullscreen == FullscreenRoom:
+    yield self.uiInv.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects:
       if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
@@ -421,7 +425,6 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
         info "call objectGive"
         call("objectGive", [noun1.table, self.actor.table, noun2.table])
         self.actor.giveTo(noun2, noun1)
-        self.hud.updateInventory()
     return
 
   if noun2.isNil:
@@ -798,6 +801,7 @@ proc update(self: Engine) =
         self.inputState.setCursorShape(CursorShape.Normal)
 
       self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
+      self.uiInv.visible = self.hud.visible
 
       # call clickedAt if any button down
       if self.dlg.state == DialogState.None:
@@ -814,6 +818,7 @@ proc update(self: Engine) =
           self.clickedAt(scrPos, btns)
     else:
       self.hud.visible = false
+      self.uiInv.visible = false
       self.noun1 = self.objAt(roomPos)
       let cText = if self.noun1.isNil: "" else: getText(self.noun1.name)
       self.inputState.setText(cText)
@@ -858,6 +863,13 @@ proc update(self: Engine) =
 
   # update actorswitcher
   self.actorswitcher.update(self.actorSwitcherSlots(), elapsed)
+
+  # update inventory
+  if self.currentActor.isNil:
+    self.uiInv.update(elapsed)
+  else:
+    let verbUI = self.hud.actorSlot(self.currentActor).verbUiColors
+    self.uiInv.update(elapsed, self.currentActor, verbUI.inventoryBackground, verbUI.verbNormal)
 
   # update room
   self.fade.update(elapsed)
