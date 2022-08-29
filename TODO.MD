@@ -7,8 +7,10 @@
 * [ ] wrong actor placement during give animation
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
-* [ ] actor switcher should be not available during cutscene
+* [ ] actor still walks when switching actors
 * [ ] change actor's facing do nothing
+* [x] actor switcher should be not available during cutscene
+* [x] actor switcher should be not available during dialog
 * [x] dialog with coroner is never ending
 * [x] some inventory objects are empty
 * [x] empty inventory icon has 1 white pixel

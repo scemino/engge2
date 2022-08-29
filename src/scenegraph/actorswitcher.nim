@@ -10,8 +10,9 @@ import ../game/screen
 import ../sys/app
 
 const
-  DisableAlpha = 0.5f
+  DisableAlpha = 0f
   EnableAlpha = 1f
+  InactiveAlpha = 0.5f
   Margin = 30f
   ActorSep = 60f
   AnimDuration = 0.120f
@@ -37,7 +38,7 @@ type
     slots: seq[ActorSwitcherSlot]         ## list of slots containing icon, colors and select function
 
 proc newActorSwitcher*(): ActorSwitcher =
-  result = ActorSwitcher(alpha: 1f)
+  result = ActorSwitcher(alpha: EnableAlpha)
   result.init()
 
 proc drawSprite(sf: SpriteSheetFrame, texture: Texture, color: Color, transf: Mat4f) =
@@ -52,13 +53,14 @@ proc transform(self: ActorSwitcher, transf: Mat4f, index: int): Mat4f =
   scale(translate(transf, pos), scale)
 
 proc getAlpha(self: ActorSwitcher, index: int): float32 =
-  if asTemporaryUnselectable in self.mode and (index != self.slots.len - 1):
-    result = DisableAlpha
+  if index == self.slots.len - 1:
+    result = EnableAlpha
+  elif asTemporaryUnselectable in self.mode:
+    result = InactiveAlpha
+  elif asOn in self.mode:
+    result = if self.mouseOver: EnableAlpha else: self.alpha
   else:
-    if asOn in self.mode:
-      result = if self.mouseOver: EnableAlpha else: self.alpha
-    else:
-      result = DisableAlpha
+    result = if self.mouseOver: InactiveAlpha else: DisableAlpha
 
 proc drawIcon(self: ActorSwitcher, icon: string, backColor, frameColor: Color, transf: Mat4f, index: int) =
   let gameSheet = gResMgr.spritesheet("GameSheet")
@@ -90,45 +92,46 @@ proc iconIndex*(self: ActorSwitcher, pos: Vec2f): int =
   self.slots.len - 1 - ((self.height - y) / ActorSep).int
 
 proc update*(self: ActorSwitcher, slots: seq[ActorSwitcherSlot], elapsed: float) =
-  self.slots = slots
+  if self.visible:
+    self.slots = slots
 
-  # update flash icon
-  if self.flash != 0 and (self.flash == -1 or self.flashElapsed < self.flash.float32):
-    self.flashElapsed = self.flashElapsed + elapsed
-    self.alpha = 0.6f + 0.4f * sin(PI * 2f * self.flashElapsed)
-  else:
-    self.flash = 0
-    self.flashElapsed = 0f
-    self.alpha = DisableAlpha
-
-  # check if mouse is over actor icons or gear icon
-  let scrPos = winToScreen(mousePos())
-  let oldMouseOver = self.mouseover
-  self.mouseover = not self.down and self.rect().contains(scrPos)
-
-  # update anim
-  self.animElapsed = self.animElapsed + elapsed
-
-  # stop anim or flash if necessary
-  if oldMouseOver != self.mouseover:
-    self.animElapsed = 0f
-    if self.mouseover:
+    # update flash icon
+    if self.flash != 0 and (self.flash == -1 or self.flashElapsed < self.flash.float32):
+      self.flashElapsed = self.flashElapsed + elapsed
+      self.alpha = 0.6f + 0.4f * sin(PI * 2f * self.flashElapsed)
+    else:
       self.flash = 0
-  
-  # update anim pos
-  self.animPos = min(1f, self.animElapsed / AnimDuration)
+      self.flashElapsed = 0f
+      self.alpha = InactiveAlpha
 
-  # check if we select an actor or gear icon
-  if self.mouseover and mbLeft in mouseBtns() and not self.down:
-    self.down = true
-    # check if we allow to select an actor
-    let iconIndex = self.iconIndex(scrPos)
-    if asTemporaryUnselectable notin self.mode or iconIndex == (self.slots.len - 1):
-      let selectFunc = self.slots[iconIndex].selectFunc
-      if not selectFunc.isNil:
-        selectFunc()
-  if mbLeft notin mouseBtns():
-    self.down = false
+    # check if mouse is over actor icons or gear icon
+    let scrPos = winToScreen(mousePos())
+    let oldMouseOver = self.mouseover
+    self.mouseover = not self.down and self.rect().contains(scrPos)
+
+    # update anim
+    self.animElapsed = self.animElapsed + elapsed
+
+    # stop anim or flash if necessary
+    if oldMouseOver != self.mouseover:
+      self.animElapsed = 0f
+      if self.mouseover:
+        self.flash = 0
+    
+    # update anim pos
+    self.animPos = min(1f, self.animElapsed / AnimDuration)
+
+    # check if we select an actor or gear icon
+    if self.mouseover and mbLeft in mouseBtns() and not self.down:
+      self.down = true
+      # check if we allow to select an actor
+      let iconIndex = self.iconIndex(scrPos)
+      if asOn in self.mode or iconIndex == (self.slots.len - 1):
+        let selectFunc = self.slots[iconIndex].selectFunc
+        if not selectFunc.isNil:
+          selectFunc()
+    if mbLeft notin mouseBtns():
+      self.down = false
 
 method drawCore(self: ActorSwitcher, transf: Mat4f) =
   if self.mouseOver:

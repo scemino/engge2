@@ -801,7 +801,8 @@ proc update(self: Engine) =
         self.inputState.setCursorShape(CursorShape.Normal)
 
       self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
-      self.uiInv.visible = self.hud.visible
+      self.uiInv.visible = self.hud.visible and self.cutscene.isNil
+      self.actorSwitcher.visible = self.dlg.state == DialogState.None and self.cutscene.isNil
 
       # call clickedAt if any button down
       if self.dlg.state == DialogState.None:
