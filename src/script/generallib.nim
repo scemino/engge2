@@ -90,7 +90,7 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if obj.isNil:
       return sq_throwerror(v, "failed to get spot or actor")  
     gEngine.setRoom(obj.room)
-    pos = obj.node.absolutePosition()
+    pos = obj.getUsePos
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   if not gEngine.cameraPanTo.isNil:

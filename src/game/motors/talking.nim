@@ -12,6 +12,7 @@ import ../../game/engine
 import ../../game/room
 import ../../game/resmanager
 import ../../game/screen
+import ../../game/prefs
 import ../../io/lip
 import ../../io/textdb
 import ../../io/ggpackmanager
@@ -26,7 +27,7 @@ type Talking = ref object of Motor
   obj: Object
   node: Node
   lip: Lip
-  elapsed: float
+  elapsed, duration: float
   soundId: SoundId
   color: Color
   texts: seq[string]
@@ -47,16 +48,26 @@ proc talkieKey(self: Talking): string =
 
 proc loadActorSpeech(self: Talking, name: string): SoundId =
   info fmt"loadActorSpeech {name}.ogg"
-  let soundDefinition = newSoundDefinition(name.toUpper & ".ogg")
-  gEngine.audio.soundDefs.add(soundDefinition)
-  if soundDefinition.isNil:
-    error fmt"File {name}.ogg not found"
-  else:
-    # TODO: add actor id
-    result = gEngine.audio.play(soundDefinition, Talk)
-    
+  let filename = name.toUpper & ".ogg"
+  if gGGPackMgr.assetExists(filename):
+    let soundDefinition = newSoundDefinition(filename)
+    if soundDefinition.isNil:
+      error fmt"File {name}.ogg not found"
+    else:
+      gEngine.audio.soundDefs.add(soundDefinition)
+      # TODO: add actor id
+      result = gEngine.audio.play(soundDefinition, Talk)
+
+proc setDuration(self: Talking, text: string) =
+  self.elapsed = 0
+  let sayLineBaseTime = prefs(SayLineBaseTime)
+  let sayLineCharTime = prefs(SayLineCharTime)
+  let sayLineMinTime = prefs(SayLineMinTime)
+  let sayLineSpeed = prefs(SayLineSpeed)
+  let duration = (sayLineBaseTime + sayLineCharTime * text.len.float32) / (0.2f + sayLineSpeed)
+  self.duration = max(duration, sayLineMinTime)
+
 proc say(self: Talking, text: string) =
-  info fmt"sayLine {text}"
   var txt = text
   if text[0] == '@':
     var id: int
@@ -74,32 +85,40 @@ proc say(self: Talking, text: string) =
 
     # TODO: call sayingLine
     self.soundId = self.loadActorSpeech(name)
+  elif text[0] == '^':
+    txt = text[1..^1]
 
   # remove text in parenthesis
   if txt[0] == '(':
     let i = txt.find(')')
     if i != -1:
-      txt = txt.substr(i + 1)
+      txt = txt[i+1..^1]
+
+  info fmt"sayLine '{txt}'"
 
   # modify state ?
   var state: string
   if txt[0] == '{':
     let i = txt.find('}')
     if i != -1:
-      state = txt.substr(1, i - 1)
+      state = txt[1..i-1]
       info fmt"Set state from anim '{state}'"
       if state == "notalk":
         self.obj.play(state)
-      txt = txt.substr(i + 1)
+      txt = txt[i + 1..^1]
+
+  self.setDuration(txt)
 
   self.obj.sayNode.remove()
   let text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
+  
   # clamp position to keep it on screen
   pos.x = clamp(pos.x, 10f + text.bounds.x / 2f, ScreenWidth - text.bounds.x / 2f)
   pos.y = clamp(pos.y, 10f + text.bounds.y.float32, ScreenHeight - text.bounds.y.float32)
+  
   self.obj.sayNode.pos = pos
   self.obj.sayNode.setAnchorNorm(vec2(0.5f, 0.5f))
   gEngine.screen.addChild self.obj.sayNode
@@ -121,15 +140,14 @@ method disable(self: Talking) =
   self.obj.setHeadIndex(1)
   self.node.remove()
 
-method update(self: Talking, el: float) =
+method update(self: Talking, elapsed: float) =
   if self.enabled:
-    if gEngine.audio.playing(self.soundId):
+    self.elapsed += elapsed
+    if self.elapsed < self.duration:
       let letter = self.lip.letter(self.elapsed)
-      self.elapsed += el
       self.obj.setHeadIndex(letterToIndex[letter])
     else:
       if self.texts.len > 0:
-        self.elapsed = 0
         self.say(self.texts[0])
         self.texts.del 0
       else:

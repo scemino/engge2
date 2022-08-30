@@ -27,10 +27,13 @@ const
   HearVoice* = "talkiesHearVoice"
   HearVoiceDefValue* = true
   SayLineSpeed* = "sayLineSpeed"
-  SayLineSpeedDefValue* = 0.8'f32
-  SayLineBaseTime = "sayLineBaseTime"
-  SayLineCharTime = "sayLineCharTime"
-  SayLineMinTime = "sayLineMinTime"
+  SayLineSpeedDefValue* = 0.5f
+  SayLineBaseTime* = "sayLineBaseTime"
+  SayLineBaseTimeDefValue* = 1.5f
+  SayLineCharTime* = "sayLineCharTime"
+  SayLineCharTimeDefValue* = 0.025f
+  SayLineMinTime* = "sayLineMinTime"
+  SayLineMinTimeDefValue* = 0.2f
   ToiletPaperOver* = "toiletPaperOver"
   ToiletPaperOverDefValue* = false
   AnnoyingInJokes* = "annoyingInJokes"
@@ -80,9 +83,9 @@ const
   SaveGameName = "saveGameName"
   SaveGamePath = "saveGamePath"
   HudRetroScale = "hudRetroScale"
-  HudRetroScaleDefValue = 0.8'f32
+  HudRetroScaleDefValue = 0.8f
   HudModernScale = "hudModernScale"
-  HudModernScaleDefValue = 0.025'f32
+  HudModernScaleDefValue = 0.025f
   InventoryPopCount* = "inventoryPopCount"
   InventoryPopCountDefValue* = 5
   

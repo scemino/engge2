@@ -89,6 +89,7 @@
     * [x] walkboxes
   * [x] actor blink
   * [x] actor talking
+    * [x] talking speed should be adjustable
     * [x] actor lips movement
     * [x] change state if in {}
     * [x] replace \" by "
