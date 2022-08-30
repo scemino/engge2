@@ -148,13 +148,13 @@ proc normalize(texture: Texture, v: Vec2i): Vec2f =
 proc addGlyphQuad(self: Text, info: CharInfo) =
   ## Add a glyph quad to the vertex array
 
-  var left = info.glyph.bounds.bottomLeft.x.float32
-  var top = info.glyph.bounds.bottomLeft.y.float32
-  var right = info.glyph.bounds.topRight.x.float32
-  var bottom = info.glyph.bounds.topRight.y.float32
+  let left = info.glyph.bounds.bottomLeft.x.float32
+  let top = info.glyph.bounds.bottomLeft.y.float32
+  let right = info.glyph.bounds.topRight.x.float32
+  let bottom = info.glyph.bounds.topRight.y.float32
 
-  var uv1 = normalize(self.texture, info.glyph.textureRect.bottomLeft)
-  var uv2 = normalize(self.texture, info.glyph.textureRect.topRight)
+  let uv1 = normalize(self.texture, info.glyph.textureRect.bottomLeft)
+  let uv2 = normalize(self.texture, info.glyph.textureRect.topRight)
 
   self.vertices.add Vertex(pos: vec2(info.pos.x + left, info.pos.y + top), color: info.color, texCoords: vec2(uv1.x, uv2.y))
   self.vertices.add Vertex(pos: vec2(info.pos.x + right, info.pos.y + top), color: info.color, texCoords: vec2(uv2.x, uv2.y))
@@ -170,7 +170,7 @@ proc width(self: Text, reader: TokenReader, tok: Token): float32 =
 proc update*(self: Text) =
   if self.dirty:
     self.dirty = false
-    var (_, name, _) = splitFile(self.font.path)
+    let (_, name, _) = splitFile(self.font.path)
     self.texture = gResMgr.texture(name & ".png")
 
     # Reset
@@ -181,11 +181,11 @@ proc update*(self: Text) =
     # split text by tokens and split tokens by lines
     var lines: seq[Line]
     var line: Line
-    var reader = newTokenReader(self.text)
+    let reader = newTokenReader(self.text)
     var x: float32
     for tok in reader:
       # ignore color token width
-      let w = if tok.id == tiColor or tok.id == tiNewLine: 0.0f else: self.width(reader, tok)
+      let w = if tok.id == tiColor or tok.id == tiNewLine: 0f else: self.width(reader, tok)
       # new line if width > maxWidth or newline character
       if tok.id == tiNewLine or (self.maxWidth > 0 and line.tokens.len > 0 and x + w > self.maxWidth):
         lines.add line
