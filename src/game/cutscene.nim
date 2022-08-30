@@ -7,6 +7,7 @@ import ids
 import thread
 import inputstate
 import engine
+import room
 
 type 
   CutsceneState = enum
@@ -22,19 +23,21 @@ type
     threadObj, closure, closureOverride, envObj: HSQOBJECT
     state: CutsceneState
     stopped: bool
+    showCursor: bool
     inputState: InputStateFlag
+    actor: Object
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
-  result = Cutscene(name: "cutscene", v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId())
-  result.inputState = gEngine.inputState.getState()
+  result = Cutscene(name: "cutscene", v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId(), inputState: gEngine.inputState.getState(), actor: gEngine.followActor, showCursor: gEngine.inputState.showCursor, state: csStart)
   info fmt"Create cutscene {result.id} with input: 0x{result.inputState.int:X}"
   gEngine.inputState.inputActive = false
   gEngine.inputState.inputVerbsActive = false
+  gEngine.inputState.showCursor = false
+  gEngine.follow(nil)
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
   sq_addref(gVm.v, result.envObj)
-  result.state = csStart
 
 proc destroy*(self: Cutscene) =
   discard sq_release(gVm.v, self.threadObj)
@@ -95,8 +98,9 @@ method stop*(self: Cutscene) =
   self.state = csQuit
   debug "End cutscene"
   gEngine.inputState.setState(self.inputState)
+  gEngine.inputState.showCursor = self.showCursor
   info fmt"Restore cutscene input: {self.inputState}"
-  gEngine.follow(gEngine.actor)
+  gEngine.follow(self.actor)
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())

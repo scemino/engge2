@@ -70,7 +70,7 @@ method render*(self: GeneralTool) =
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   
   # camera
-  igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.name.cstring)
+  igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.key.cstring)
   igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
   var camPos = gEngine.cameraPos()
   if igDragFloat2("Camera pos", camPos.arr):

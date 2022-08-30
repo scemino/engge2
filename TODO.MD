@@ -9,6 +9,8 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] change actor's facing do nothing
+* [x] we should reset actor's follow during cutscene
+* [x] we shouldn't see cursor during cutscene
 * [x] crash if sayline with only space characters 
 * [x] sometimes when actor is walking, the actor stops but the animation walking is still running
 * [x] actor sometimes disappears
