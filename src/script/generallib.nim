@@ -89,6 +89,7 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let obj = obj(v, 2)
     if obj.isNil:
       return sq_throwerror(v, "failed to get spot or actor")  
+    gEngine.follow(nil)
     gEngine.setRoom(obj.room)
     pos = obj.getUsePos
   else:

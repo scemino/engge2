@@ -33,7 +33,6 @@ proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: H
   gEngine.inputState.inputActive = false
   gEngine.inputState.inputVerbsActive = false
   gEngine.inputState.showCursor = false
-  gEngine.follow(nil)
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
@@ -100,7 +99,7 @@ method stop*(self: Cutscene) =
   gEngine.inputState.setState(self.inputState)
   gEngine.inputState.showCursor = self.showCursor
   info fmt"Restore cutscene input: {self.inputState}"
-  gEngine.follow(self.actor)
+  gEngine.follow(gEngine.actor)
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())
