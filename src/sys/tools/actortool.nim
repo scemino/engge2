@@ -3,6 +3,7 @@ import glm
 import ../debugtool
 import ../../game/engine
 import ../../game/room
+import ../../game/motors/motor
 import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb
@@ -37,6 +38,7 @@ proc showProperties() =
     let actorRoom = if gActor.room.isNil: "Void" else: gActor.room.name
     igBegin("Actor properties", addr gShowProperties)
     igCheckbox("Use Walkboxes", addr gActor.useWalkboxes)
+    igText("Walking: %s", if not gActor.walkTo.isNil and gActor.walkTo.enabled: "yes".cstring else: "no".cstring)
     igText("Room: %s", actorRoom.cstring)
     igText("Facing: %s", ($gActor.facing).cstring)
     igText("Z-Order: %d", gActor.node.getZSort())

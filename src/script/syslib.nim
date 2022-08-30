@@ -135,7 +135,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.isNil and obj.nodeAnim.enabled)
+  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.disabled)
 
 proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.
@@ -238,7 +238,7 @@ proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##    breakwhilewalking(currentActor)
   ##    pushSentence(VERB_USE, nickel, Nickel.copyTron)
   ##})
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   breakwhilecond(v, fmt"breakwhilewalking({obj.name})", proc (): bool = not obj.walkTo.isNil and obj.walkTo.enabled)
@@ -246,11 +246,11 @@ proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks until specified sound has finished playing.
   ## Once sound finishes, the method will continue running.
-  var sound = sound(v, 2)
+  let sound = sound(v, 2)
   if not sound.isNil:
     result = breakwhilecond(v, fmt"breakwhilesound({sound.id})", proc (): bool = gEngine.audio.playing(sound))
   else:
-    var soundDef = soundDef(v, 2)
+    let soundDef = soundDef(v, 2)
     if not soundDef.isNil:
       result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 

@@ -238,7 +238,11 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       # declare flags if does not exist
       if not v.rawexists("flags"):
         v.setf("flags", 0)
-      gEngine.inventory.add Object(table: v, key: k)
+      let obj = Object(table: v, key: k)
+      obj.node = newNode(k)
+      obj.nodeAnim = newAnim(obj)
+      obj.node.addChild obj.nodeAnim
+      gEngine.inventory.add obj
 
   # declare the room in the root table
   result.table.setId(newRoomId())

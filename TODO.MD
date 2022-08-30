@@ -2,13 +2,13 @@
 
 ## Known Bugs
 
-* [ ] lips don't move anymore
 * [ ] when we use the notebook, the text is not at the correct position
 * [ ] wrong actor placement during give animation
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
-* [ ] change actor's facing do nothing
+* [x] change actor's facing do nothing
+* [x] lips don't move anymore
 * [x] we should reset actor's follow during cutscene
 * [x] we shouldn't see cursor during cutscene
 * [x] crash if sayline with only space characters 

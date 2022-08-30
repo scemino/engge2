@@ -15,6 +15,7 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/textnode
 import ../scenegraph/overlaynode
+import ../scenegraph/spritenode
 import motors/motor
 import objanim
 import ../util/jsonutil
@@ -36,6 +37,7 @@ const
   USE_IN = 32
   FullscreenCloseup* = 1
   FullscreenRoom*    = 2
+  DefaultFps = 10f
 type
   UseFlag* = enum
     ufNone,
@@ -84,7 +86,7 @@ type
     objType*: ObjectType          ## object type: prop, trigger, object, spot
     sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
     triggerActive*: bool
-    nodeAnim*: Motor
+    nodeAnim*: Anim
     animLoop: bool
     animName*: string
     animFlags*: int
@@ -163,12 +165,29 @@ type
   Sentence* = ref object of RootObj
     verb*: VerbId
     noun1*, noun2*: Object
+  Anim* = ref object of Node
+    frames: seq[SpriteFrame]
+    frameIndex: int
+    elapsed: float
+    frameDuration: float
+    loop: bool
+    instant: bool
+    anim: ObjectAnimation
+    obj: Object
+    disabled*: bool
+
+proc newAnim*(obj: Object): Anim
+proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant = false)
+proc update*(self: Anim, elapsed: float)
 
 proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence = 
   Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
 proc newObject*(): Object =
-  result = Object(state: -1, talkOffset: vec2(0'i32, 90'i32))
+  result = Object(state: -1, talkOffset: vec2(0'i32, 90'i32), )
+  result.node = newNode("newObj")
+  result.nodeAnim = newAnim(result)
+  result.node.addChild result.nodeAnim
   sq_resetobject(result.table)
 
 proc setPop*(self: Object, count: int) =
@@ -422,11 +441,10 @@ proc play*(self: Object, state: string, loop = false, instant = false)
 proc setFacing*(self: Object, facing: Facing) =
   if self.facing != facing:
     info fmt"set facing: {facing}"
+    let update = not (self.facing == FACE_LEFT and facing == FACE_RIGHT or self.facing == FACE_RIGHT and facing == FACE_LEFT)
     self.facing = facing
-    if not self.nodeAnim.isNil:
+    if update and not self.nodeAnim.isNil:
       self.play(self.animName, self.animLoop)
-
-import ../game/motors/nodeanim
 
 proc playCore(self: Object, state: string; loop = false, instant = false): bool =
   ## Plays an animation specified by the `state`. 
@@ -434,16 +452,13 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
     let anim = self.anims[i]
     if anim.name == state:
       self.animFlags = anim.flags
-      # info fmt"playObjectState {self.name}({self.key}), state={state}, id={i}, name={anim.name}, fps={anim.fps}, loop={anim.loop or loop}, instant={instant}"
-      self.nodeAnim = newNodeAnim(self, anim, self.fps, nil, loop, instant)
+      self.nodeAnim.setAnim(anim, self.fps, loop, instant)
       return true
 
   # if not found, clear the previous animation
   if not self.id.isActor():
-    for c in self.node.children:
-      if c.name == "#anim":
-        c.removeAll()
-        break
+    self.nodeAnim.frames.setLen 0
+    self.nodeAnim.removeAll()
 
 proc play*(self: Object, state: string; loop = false, instant = false) =
   ## Plays an animation specified by the `state`. 
@@ -504,11 +519,12 @@ proc update*(self: Object, elapsedSec: float) =
   self.alphaTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
   self.moveTo.updateMotor(elapsedSec)
-  self.nodeAnim.updateMotor(elapsedSec)
   self.walkTo.updateMotor(elapsedSec)
   self.talking.updateMotor(elapsedSec)
   self.blink.updateMotor(elapsedSec)
   self.turnTo.updateMotor(elapsedSec)
+
+  self.nodeAnim.update(elapsedSec)
 
   if self.icons.len > 1 and self.iconFps > 0:
     self.iconElapsed += elapsedSec
@@ -580,7 +596,6 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
     obj.anims.add objAnim
 
   # adds object to the scenegraph
-  obj.node = newNode(obj.name)
   obj.node.zOrder = 1
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
@@ -745,6 +760,12 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
   if jRoom.hasKey("objects"):
     for jObject in jRoom["objects"]:
       var obj = Object(state: -1)
+      var objNode = newNode(obj.key)
+      objNode.pos = vec2f(parseVec2i(jObject["pos"].getStr))
+      objNode.zOrder = jObject["zsort"].getInt().int32
+      obj.node = objNode
+      obj.nodeAnim = newAnim(obj)
+      obj.node.addChild obj.nodeAnim
       obj.key = jObject["name"].getStr
       obj.usePos = vec2f(parseVec2i(jObject["usepos"].getStr))
       let useDir = jObject.getNode("usedir")
@@ -755,10 +776,6 @@ proc parseRoom(self: var RoomParser, table: HSQOBJECT): Room =
       obj.r = result
       if jObject.hasKey("animations"):
         obj.anims = parseObjectAnimations(jObject["animations"])
-      var objNode = newNode(obj.name)
-      objNode.pos = vec2f(parseVec2i(jObject["pos"].getStr))
-      objNode.zOrder = jObject["zsort"].getInt().int32
-      obj.node = objNode
       obj.layer = result.layer(0)
 
       result.layer(0).objects.add(obj)
@@ -844,3 +861,95 @@ proc `overlay=`*(self: Room, color: Color) =
 
 proc `overlay`*(self: Room): Color =
   self.overlayNode.ovlColor
+
+proc getFrames(self: Object, frames: seq[string]): seq[SpriteFrame] =
+  let ss = self.getSpriteSheet()
+  if ss.isNil:
+    for frame in frames:
+      result.add(newSpriteRawFrame(gResMgr.texture(frame)))
+  else:
+    let texture = gResMgr.texture(ss.meta.image)
+    for frame in frames:
+      if frame == "null":
+        result.add(newSpritesheetFrame(texture, SpriteSheetFrame()))
+      elif not ss.isNil and ss.frameTable.contains(frame):
+        result.add(newSpritesheetFrame(texture, ss.frame(frame)))
+
+proc getFps(fps, animFps: float32): float32 =
+  if fps != 0f:
+    result = fps.float32
+  else:
+    result = if animFps == 0f: DefaultFps else: animFps
+
+proc newAnim*(obj: Object): Anim =
+  result = Anim(obj: obj)
+  result.init()
+
+proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant = false) =
+  self.anim = anim
+  self.name = anim.name
+  self.frames = self.obj.getFrames(anim.frames)
+  self.frameIndex = if instant and self.frames.len > 0: self.frames.len - 1 else: 0
+  self.frameDuration = 1.0 / getFps(fps, anim.fps)
+  self.loop = loop or anim.loop
+  self.instant = instant
+
+  self.removeAll()
+  for layer in anim.layers:
+    let node = newAnim(self.obj)
+    node.setAnim(layer, fps, loop, instant)
+    self.addChild node
+
+proc trigSound(self: Anim) =
+  if self.anim.triggers.len > 0 and self.frameIndex < self.anim.triggers.len:
+    let trigger = self.anim.triggers[self.frameIndex]
+    if trigger.len > 0:
+      self.obj.trig(trigger)
+
+proc disable(self: Anim) =
+  self.disabled = true
+
+proc drawSprite(sf: SpriteSheetFrame, texture: Texture, color: Color, transf: Mat4f, flipX = false) =
+  let x = if flipX: -0.5f * (-1f + sf.sourceSize.x.float32) + sf.frame.size.x.float32 + sf.spriteSourceSize.x.float32 else: 0.5f * (-1f + sf.sourceSize.x.float32) - sf.spriteSourceSize.x.float32
+  let y = 0.5f * (sf.sourceSize.y.float32 + 1f) - sf.spriteSourceSize.h.float32 - sf.spriteSourceSize.y.float32
+  let pos = vec3f(floor(-x), floor(y), 0f)
+  let trsf = translate(transf, pos)
+  gfxDrawSprite(sf.frame / texture.size, texture, color, trsf, flipX)
+
+method drawCore(self: Anim, transf: Mat4f) =
+  if self.frameIndex < self.frames.len:
+    let frame = self.frames[self.frameIndex]
+    let flipX = self.obj.getFacing() == FACE_LEFT
+    drawSprite(frame.frame, frame.texture, self.color, transf, flipX)
+
+proc update*(self: Anim, elapsed: float) =
+  if not self.anim.isNil:
+    self.visible = not self.obj.hiddenLayers.contains(self.anim.name)
+    if self.instant:
+      self.disable()
+    elif self.frames.len != 0:
+      self.elapsed += elapsed
+      if self.elapsed > self.frameDuration:
+        self.elapsed = 0
+        if self.frameIndex < self.frames.len - 1:
+          inc self.frameIndex
+          self.trigSound()
+        elif self.loop:
+          self.frameIndex = 0
+          self.trigSound()
+        else:
+          self.disable()
+      if self.anim.offsets.len > 0:
+        var off = self.anim.offsets[self.frameIndex]
+        if self.obj.getFacing() == FACE_LEFT:
+          off.x = -off.x
+        self.offset = vec2(off.x.float32, off.y.float32)
+    elif self.children.len != 0:
+      var disabled = true
+      for layer in self.children:
+        layer.Anim.update(elapsed)
+        disabled = disabled and layer.Anim.disabled
+      if disabled:
+        self.disable()
+    else:
+      self.disable()

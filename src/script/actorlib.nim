@@ -437,7 +437,6 @@ proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettop(v) >= 4 and SQ_FAILED(get(v, 4, loop)):
     return sq_throwerror(v, "failed to get loop")
   info fmt"Play anim {actor.name} {animation} loop={loop}"
-  actor.stopWalking()
   actor.play(animation, loop != 0)
   0
 
@@ -697,7 +696,9 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.key = key
 
   info fmt"Create actor {key} {actor.table.getId()}"
-  actor.node = newNode(actor.name)
+  actor.node = newNode(actor.key)
+  actor.nodeAnim = newAnim(actor)
+  actor.node.addChild actor.nodeAnim
   actor.node.zOrderFunc = proc (): int32 = actor.node.pos.y.int32
   actor.node.scaleFunc = proc (): float32 = actor.room.getScaling(actor.node.pos.y)
   gEngine.actors.add(actor)

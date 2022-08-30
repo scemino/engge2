@@ -113,7 +113,8 @@ proc actorArrived(self: WalkTo) =
 
 method disable*(self: WalkTo) =
   procCall self.Motor.disable()
-  info "actor walk cancelled"
+  if self.path.len != 0:
+    info "actor walk cancelled"
   self.obj.play("stand")
 
 method update(self: WalkTo, el: float) =
