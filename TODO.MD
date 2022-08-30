@@ -168,9 +168,9 @@
 * [ ] shaders
 * [ ] debug tools (dear imgui)
   * [ ] preferences to enable debug tools
-  * [ ] shortcuts to show/hode
-  * [ ] console
-    * [ ] dump variables
+  * [ ] shortcuts to show/hide
+  * [x] console
+    * [x] dump variables
     * [x] input
     * [x] log
   * [x] general

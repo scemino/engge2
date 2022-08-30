@@ -26,7 +26,7 @@ proc newResManager*(): ResManager =
 proc loadFont(self: ResManager, fontName: string) =
   if fontName == "sayline":
     info fmt"Load font {fontName}"
-    let resName = if prefs(RetroFonts, RetroFontsDefValue): "FontRetroSheet.json" else: "FontModernSheet.json"
+    let resName = if prefs(RetroFonts): "FontRetroSheet.json" else: "FontModernSheet.json"
     self.fonts[fontName] =  parseGGFontFromPack(resName)
   elif fontName == "C64Font":
     info fmt"Load font {fontName}"

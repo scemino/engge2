@@ -38,7 +38,7 @@ proc getText(self: TextDb, id: int): string =
     error fmt"Text {id} not found in {self.texts}"
 
 proc initTextDb*() =
-  let lang = prefs(Lang, prefs(Lang, LangDefValue))
+  let lang = prefs(Lang)
   gTextDb.read(fmt"ThimbleweedText_{lang}.tsv")
 
 proc getText*(id: int): string =

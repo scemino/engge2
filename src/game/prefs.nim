@@ -1,4 +1,5 @@
 import std/os
+import std/macros
 import std/strutils
 import std/strformat
 import ../io/json
@@ -123,6 +124,9 @@ proc prefs*(name: string, default: bool): bool =
 proc prefs*(name: string, default: int): int =
   if gPrefs.node.hasKey(name): gPrefs.node[name].getInt() else: default
 
+macro prefs*(name: string): untyped =
+  newCall(ident("prefs"), name, ident(name.strVal & "DefValue"))
+
 proc setPrefs*(name, value: string) =
   gPrefs.node[name] = newJString(value)
   savePrefs()
@@ -145,5 +149,5 @@ proc getKey*(path: string): string =
   result = path
   let (_, name, ext) = splitFile(path)
   if name.endsWith("_en"):
-    let lang = prefs(Lang, LangDefValue)
+    let lang = prefs(Lang)
     result = fmt"{name.substr(0, name.len - 4)}_{lang}{ext}"    

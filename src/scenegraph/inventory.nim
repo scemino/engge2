@@ -77,7 +77,7 @@ proc hasDownArrow(actor: Object): bool =
   actor.inventory.len > (actor.inventoryOffset * NumObjectsByRow + NumObjects)
 
 proc drawArrows(self: Inventory, transf: Mat4f) =
-  let isRetro = prefs(RetroVerbs, RetroVerbsDefValue)
+  let isRetro = prefs(RetroVerbs)
   let gameSheet = gResMgr.spritesheet("GameSheet")
   let texture = gResMgr.texture(gameSheet.meta.image)
   let arrowUp = gameSheet.frame(if isRetro: "scroll_up_retro" else: "scroll_up")

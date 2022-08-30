@@ -111,8 +111,8 @@ proc `actor=`*(self: Hud, actor: Object) =
 
   # updates verbs
   let verbSheet = gResMgr.spritesheet("VerbSheet")
-  let lang = prefs(Lang, LangDefValue)
-  let isRetroVerbs = prefs(RetroVerbs, RetroVerbsDefValue)
+  let lang = prefs(Lang)
+  let isRetroVerbs = prefs(RetroVerbs)
   let verbSuffix = if isRetroVerbs: "_retro" else: ""
   for i in 1..<actorSlot.verbs.len:
     let verb = actorSlot.verbs[i]
