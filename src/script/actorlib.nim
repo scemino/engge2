@@ -177,7 +177,7 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.setCostume(name, sheet)
 
 proc actorDistanceTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var actor = actor(v, 2)
+  let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   var obj: Object
@@ -187,7 +187,7 @@ proc actorDistanceTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get object")
   else:
     obj = gEngine.actor
-  push(v, distance(actor.node.pos, obj.node.pos + obj.usePos).int)
+  push(v, distance(actor.node.pos, obj.getUsePos()).int)
   1
 
 proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -202,7 +202,7 @@ proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var dist: int
     if SQ_FAILED(get(v, 4, dist)):
       return sq_throwerror(v, "failed to get distance")
-    push(v, distance(actor.node.pos, obj.node.pos + obj.usePos) < dist.float)
+    push(v, distance(actor.node.pos, obj.getUsePos()) < dist.float)
     return 1
   else:
     # TODO:
@@ -624,9 +624,7 @@ proc actorWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     actor = gEngine.actor
   elif nArgs == 2:
     actor = actor(v, 2)
-  if actor.isNil:
-    return sq_throwerror(v, "failed to get actor")
-  push(v, actor.isWalking())
+  push(v, not actor.isNil and actor.isWalking())
   1
 
 proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -809,17 +807,17 @@ proc isActorSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc is_actor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, returns true otherwise returns false.
-  var actor = actor(v, 2)
+  let actor = actor(v, 2)
   push(v, not actor.isNil)
   1
 
 proc masterActorArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array with every single actor that has been defined in the game so far, including non-player characters.
   ## See also masterRoomArray. 
-  var actors = gEngine.actors
+  let actors = gEngine.actors
   sq_newarray(v, 0)
   for actor in actors:
-    sq_pushobject(v, actor.table)
+    push(v, actor.table)
     discard sq_arrayappend(v, -2)
   1
 
@@ -863,7 +861,7 @@ proc triggerActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## local stepsArray = triggerActors(AStreet.bookStoreLampTrigger)
   ## if (stepsArray.len()) {    // someone's on the steps
   ## }
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   sq_newarray(v, 0)
