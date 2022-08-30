@@ -411,7 +411,7 @@
 - [x] logInfo
 - [x] logWarning
 - [x] microTime
-- [ ] moveCursorTo
+- [x] moveCursorTo
 - [x] rawsafeget
 - [x] startglobalthread
 - [x] startthread

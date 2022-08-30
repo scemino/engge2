@@ -150,6 +150,9 @@ proc mousePos*(): Vec2f =
   discard getMouseState(xpos, ypos)
   result = vec2(xpos.float32, ypos.float32)
 
+proc mouseMove*(pos: Vec2i) =
+  warpMouseInWindow(w, pos.x.cint, pos.y.cint)
+
 proc mouseBtns*(): MouseButtonMask =
   var xpos, ypos: cint
   let state = getMouseState(xpos, ypos)

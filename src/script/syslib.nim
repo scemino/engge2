@@ -1,6 +1,7 @@
 import std/[logging, strformat, strutils]
 import sqnim
 import vm
+import glm
 import squtils
 import ../audio/audio
 import ../game/thread
@@ -15,6 +16,7 @@ import ../game/motors/motor
 import ../scenegraph/dialog
 import ../gfx/color
 import ../util/utils
+import ../sys/app
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
@@ -436,7 +438,17 @@ proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc moveCursorTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "moveCursorTo not implemented"
+  var x, y: int32
+  if SQ_FAILED(get(v, 2, x)):
+    return sq_throwerror(v, "Failed to get x")
+  if SQ_FAILED(get(v, 3, y)):
+    return sq_throwerror(v, "Failed to get y")
+  var t: float
+  if SQ_FAILED(get(v, 4, t)):
+    return sq_throwerror(v, "Failed to get time")
+
+  mouseMove(vec2(x, y))
+  # TODO: use time
   1
 
 proc removeCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
