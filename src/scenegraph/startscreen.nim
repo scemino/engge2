@@ -6,6 +6,8 @@ import ../gfx/color
 import ../gfx/text
 import ../game/resmanager
 import ../game/screen
+import ../game/states/state
+import ../game/states/dlgstate
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
@@ -41,17 +43,14 @@ proc onLoadBackClick(node: Node, id: int) =
 proc onButtonDown(node: Node, id: int) =
   case id:
   of NewGame:
-    node.remove()
+    discard popState()
     sqCall("start", [1])
   of Options:
-    node.getParent().addChild newOptionsDialog()
-    node.remove()
+    pushState newDlgState(node.getParent, newOptionsDialog())
   of LoadGame:
-    node.getParent().addChild newSaveLoadDialog(onLoadBackClick)
-    node.remove()
+    pushState newDlgState(node.getParent,newSaveLoadDialog(onLoadBackClick))
   of Quit:
-    node.getParent().addChild newQuitDialog(onQuitClick)
-    node.remove()
+    pushState newDlgState(node.getParent,newQuitDialog(onQuitClick))
   else:
     discard
 

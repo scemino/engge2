@@ -10,7 +10,6 @@ import inputstate
 import screen
 import verb
 import shaders
-import prefs
 import inputmap
 import motors/motor
 import ../script/squtils
@@ -106,7 +105,6 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.inputState = newInputState()
   result.dlg = newDialog()
   result.ui = newScene()
-  result.ui.addChild newStartScreen()
   result.actorswitcher = newActorSwitcher()
   result.uiInv = newInventory()
   result.screen.addChild result.inputState.node
@@ -604,7 +602,7 @@ proc updateTriggers(self: Engine) =
         trigger.triggerActive = false
         self.callTrigger(trigger, trigger.leave)
 
-proc update*(self: Engine, node: Node, elapsed: float) =
+proc update(self: Engine, node: Node, elapsed: float) =
   let mouseState = mouseBtns()
   let isMouseDn = mbLeft in mouseState and mbLeft notin self.buttons
   if node.buttons.len > 0:
@@ -746,8 +744,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
     let selectFunc = proc() = self.ui.addChild newOptionsDialog()
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
 
-proc update(self: Engine) =
-  let elapsed = tmpPrefs().gameSpeedFactor / 60'f32
+proc update*(self: Engine, elapsed: float) =
   self.time += elapsed
 
   # update camera
@@ -895,7 +892,6 @@ proc cameraPos*(self: Engine): Vec2f =
     result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
 proc render*(self: Engine) =
-  self.update()
   self.frameCounter += 1
   
   # draw scene

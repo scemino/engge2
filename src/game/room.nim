@@ -920,7 +920,10 @@ method drawCore(self: Anim, transf: Mat4f) =
   if self.frameIndex < self.frames.len:
     let frame = self.frames[self.frameIndex]
     let flipX = self.obj.getFacing() == FACE_LEFT
-    drawSprite(frame.frame, frame.texture, self.color, transf, flipX)
+    if frame.kind == SpriteFrameKind.Spritesheet:
+      drawSprite(frame.frame, frame.texture, self.color, transf, flipX)
+    else:
+      gfxDrawSprite(frame.texture, self.color, transf, flipX)
 
 proc update*(self: Anim, elapsed: float) =
   if not self.anim.isNil:

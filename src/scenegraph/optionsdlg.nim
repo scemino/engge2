@@ -16,6 +16,8 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../game/prefs
+import ../game/states/state
+import ../game/states/dlgstate
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
@@ -77,17 +79,17 @@ proc onQuitClick(node: Node, id: int) =
   of Yes:
     quit()
   of No:
-    node.remove()
+    popState(2)
   else:
     discard
 
 proc onLoadBackClick(node: Node, id: int) =
-  node.remove()
+  popState(2)
 
 proc onButtonDown(node: Node, id: int) =
   case id:
   of Quit:
-    node.getParent().addChild newQuitDialog(onQuitClick)
+    pushState newDlgState(node.getParent, newQuitDialog(onQuitClick))
   of Back:
     setState(sOptions)
   of Video:
@@ -99,8 +101,7 @@ proc onButtonDown(node: Node, id: int) =
   of Sound:
     setState(sSound)
   of LoadGame:
-    node.getParent().addChild newSaveLoadDialog(onLoadBackClick)
-    node.remove()
+    pushState newDlgState(node.getParent, newSaveLoadDialog(onLoadBackClick))
   else:
     discard
 
