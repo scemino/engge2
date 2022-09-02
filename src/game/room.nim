@@ -923,7 +923,8 @@ method drawCore(self: Anim, transf: Mat4f) =
     if frame.kind == SpriteFrameKind.Spritesheet:
       drawSprite(frame.frame, frame.texture, self.color, transf, flipX)
     else:
-      gfxDrawSprite(frame.texture, self.color, transf, flipX)
+      let trsf = translate(transf, vec3f(-vec2f(frame.texture.size) / 2f, 0f))
+      gfxDrawSprite(frame.texture, self.color, trsf, flipX)
 
 proc update*(self: Anim, elapsed: float) =
   if not self.anim.isNil:
