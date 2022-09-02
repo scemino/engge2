@@ -558,7 +558,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
         let verbName = self.hud.actorSlot(self.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
           discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
-    elif self.walkFastState and self.mouseState.click() and not self.actor.isNil and scrPos.y > 172:
+    elif self.walkFastState and self.mouseState.pressed() and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
 
   # TODO: call callbacks
@@ -770,15 +770,18 @@ proc update*(self: Engine, elapsed: float) =
 
       # call clickedAt if any button down
       if self.dlg.state == DialogState.None:
-        if self.mouseState.click():
-          self.mouseDownTime = now()
-          self.clickedAt(scrPos)
-        elif self.mouseState.pressed():
-          let mouseDnDur = now() - self.mouseDownTime
-          if mouseDnDur > initDuration(milliseconds = 500):
-            self.walkFast()
-        elif self.mouseState.released():
+        if self.mouseState.pressed():
+          if self.mouseState.click():
+            self.mouseDownTime = now()
+          else:
+            let mouseDnDur = now() - self.mouseDownTime
+            if mouseDnDur > initDuration(milliseconds = 500):
+              echo "walkFast"
+              self.walkFast()
+        else:
           self.walkFast(false)
+        if self.mouseState.pressed() or self.mouseState.pressed(mbRight):
+          self.clickedAt(scrPos)
     else:
       self.hud.visible = false
       self.uiInv.visible = false
