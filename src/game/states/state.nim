@@ -76,6 +76,8 @@ proc popState*(num: int) =
     discard gStateManager.pop()
     dec n
 
+proc stateCount*(): int = gStateManager.states.len
+
 proc updateState*() =
   let elapsed = tmpPrefs().gameSpeedFactor / 60'f32
   gStateManager.update(elapsed)

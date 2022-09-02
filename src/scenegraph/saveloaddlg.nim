@@ -17,6 +17,7 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../game/gameloader
+import ../game/states/state
 import ../io/textdb
 import ../util/strutils
 import ../util/time
@@ -105,7 +106,7 @@ proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let data = cast[JsonNode](tag)
   case event:
   of Down:
-    src.getParent().remove()
+    popState(stateCount() - 1)
     loadGame(data)
   else:
     discard
