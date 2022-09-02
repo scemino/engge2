@@ -70,7 +70,7 @@ type
 var
   gDisabled: seq[int]
   gState: State
-  gSelf: OptionsDialog
+  gSelf: OptionsDialog  
 
 proc setState(state: State)
 
@@ -89,9 +89,12 @@ proc onLoadBackClick(node: Node, id: int) =
 proc onButtonDown(node: Node, id: int) =
   case id:
   of Quit:
-    pushState newDlgState(node.getParent, newQuitDialog(onQuitClick))
+    pushState newDlgState(newQuitDialog(onQuitClick))
   of Back:
-    setState(sOptions)
+    if gState == sOptions:
+      popState(1)
+    else:
+      setState(sOptions)
   of Video:
     setState(sVideo)
   of Controls:
@@ -101,7 +104,7 @@ proc onButtonDown(node: Node, id: int) =
   of Sound:
     setState(sSound)
   of LoadGame:
-    pushState newDlgState(node.getParent, newSaveLoadDialog(onLoadBackClick))
+    pushState newDlgState(newSaveLoadDialog(onLoadBackClick))
   else:
     discard
 

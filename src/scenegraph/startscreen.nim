@@ -22,35 +22,33 @@ const
   Help = 99961
   Quit = 99915
 
-type
-  StartScreen* = ref object of Node
+type StartScreen* = ref object of Node
 
 proc onQuitClick(node: Node, id: int) =
   case id:
   of Yes:
     quit()
   of No:
-    node.remove()
+    popState(1)
   else:
     discard
 
 proc newStartScreen*(): StartScreen
 
 proc onLoadBackClick(node: Node, id: int) =
-  node.getParent().addChild newStartScreen()
-  node.remove()
+  popState(1)
 
 proc onButtonDown(node: Node, id: int) =
   case id:
   of NewGame:
-    discard popState()
+    popState(1)
     sqCall("start", [1])
   of Options:
-    pushState newDlgState(node.getParent, newOptionsDialog())
+    pushState newDlgState(newOptionsDialog())
   of LoadGame:
-    pushState newDlgState(node.getParent,newSaveLoadDialog(onLoadBackClick))
+    pushState newDlgState(newSaveLoadDialog(onLoadBackClick))
   of Quit:
-    pushState newDlgState(node.getParent,newQuitDialog(onQuitClick))
+    pushState newDlgState(newQuitDialog(onQuitClick))
   else:
     discard
 

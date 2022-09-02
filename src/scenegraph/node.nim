@@ -1,10 +1,26 @@
-import glm
 import std/algorithm
+import std/sequtils
+import glm
 import ../gfx/color
 import ../gfx/recti
 import ../game/motors/motor
+import ../game/screen
+import ../game/states/state
+import ../sys/app
 
 type
+  EventKind* = enum
+    Enter,
+    Leave,
+    Up,
+    Down,
+    Drag
+  EventCallback* = proc(node: Node, event: EventKind, pos: Vec2f, tag: pointer)
+  Button = ref object of RootObj
+    callback*: EventCallback
+    inside*: bool
+    down*: bool
+    tag*: pointer
   Node* = ref object of RootObj
     ## Represents a node in a scene graph.
     name*: string                
@@ -26,18 +42,7 @@ type
     scaleFunc*: proc (): float32
     buttons*: seq[Button]
     shakeMotor*: Motor
-  EventCallback* = proc(node: Node, event: EventKind, pos: Vec2f, tag: pointer)
-  Button = ref object of RootObj
-    callback*: EventCallback
-    inside*: bool
-    down*: bool
-    tag*: pointer
-  EventKind* = enum
-    Enter,
-    Leave,
-    Up,
-    Down,
-    Drag
+  
 
 proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
   let button = Button(callback: callback, tag: tag)
@@ -211,3 +216,43 @@ method remove*(self: Node) {.base.} =
   ## Removes this node from its parent.
   if not self.isNil and not self.parent.isNil:
     self.parent.removeChild self
+
+proc winToScreen(pos: Vec2f): Vec2f =
+  result = (pos / vec2f(appGetWindowSize())) * vec2(ScreenWidth, ScreenHeight)
+  result = vec2(result.x, ScreenHeight - result.y)
+
+proc update*(self: Node, elapsed: float, mouseState: MouseState) =
+  if self.buttons.len > 0:
+    let scrPos = winToScreen(mousePos())
+    for btn in self.buttons.toSeq:
+      # mouse inside button ?
+      if self.getRect().contains(scrPos):
+        # enter button ?
+        if not btn.inside:
+          btn.inside = true
+          btn.callback(self, Enter, scrPos, btn.tag)
+        # mouse down on button ?
+        elif not btn.down and mouseState.click():
+          btn.down = true
+          btn.callback(self, Down, scrPos, btn.tag)
+        # mouse up on button ?
+        elif btn.down and mouseState.released():
+          btn.down = false
+          btn.callback(self, Up, scrPos, btn.tag)
+        elif btn.down and mouseState.pressed():
+          btn.callback(self, Drag, scrPos, btn.tag)
+      # mouse leave button ?
+      elif btn.inside:
+        btn.inside = false
+        btn.callback(self, Leave, scrPos, btn.tag)
+      elif btn.down and mouseState.released():
+        btn.down = false
+        btn.callback(self, Up, scrPos, btn.tag)
+      elif btn.down and mouseState.pressed():
+        btn.callback(self, Drag, scrPos, btn.tag)
+
+  if not self.shakeMotor.isNil and self.shakeMotor.enabled():
+    self.shakeMotor.update(elapsed)
+
+  for node in self.children.toSeq:
+    node.update(elapsed, mouseState)

@@ -35,6 +35,8 @@ type
     textNode: TextNode
     cursorShape: CursorShape
 
+var gInputNode*: Node
+
 proc newInputState*(): InputState =
   result = InputState(showCursor: true)
   let gameSheet = gResMgr.spritesheet("GameSheet")
@@ -50,6 +52,7 @@ proc newInputState*(): InputState =
   result.node.addChild result.cursorNode
   result.node.addChild result.textNode
   result.textNode.offset = vec2(0f, frame.sourceSize.y.float32)
+  gInputNode = result.node
 
 proc setText*(self: var InputState, text: string) =
   self.text.text = text

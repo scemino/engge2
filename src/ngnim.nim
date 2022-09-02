@@ -27,7 +27,7 @@ proc main() =
 
   if fileExists(PackageName):
     pushState newEngineState(PackageName, AppName)
-    pushState newDlgState(gEngine.ui, newStartScreen())
+    pushState newDlgState(newStartScreen())
     app.run(render)
   else:
     error fmt"{PackageName} not found"

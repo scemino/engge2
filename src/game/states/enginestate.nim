@@ -1,10 +1,6 @@
 import std/[logging, os, strformat, times]
 import sqnim
 import state
-import ../../script/vm
-import ../../script/script
-import ../../io/ggpackmanager
-import ../../io/textdb
 import ../engine
 import ../eventmanager
 import ../gameeventmanager
@@ -13,12 +9,16 @@ import ../resmanager
 import ../gameloader
 import ../savegame
 import ../inputmap
+import ../inputstate
+import ../../script/vm
+import ../../script/script
+import ../../io/ggpackmanager
+import ../../io/textdb
 import ../../scenegraph/node
 import ../../scenegraph/dlgenginetgt
 import ../../scenegraph/pathnode
 import ../../sys/debugtool
 import ../../sys/tools
-
 
 type
   EngineState = ref object of State
@@ -85,6 +85,15 @@ method init*(self: EngineState) =
 
 method deinit*(self: EngineState) =
   discard
+
+method activate*(self: EngineState) =
+  gEngine.screen.addChild gInputNode
+
+method deactivate*(self: EngineState) =
+  gEngine.mouseState = MouseState()
+
+method handleInput*(self: EngineState, mouseState: MouseState) =
+  gEngine.mouseState = mouseState
 
 method update*(self: EngineState, elapsed: float) =
   gEngine.update(elapsed)

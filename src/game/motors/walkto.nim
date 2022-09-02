@@ -87,9 +87,9 @@ proc actorArrived(self: WalkTo) =
         self.obj.exec = nil
         return
       # Did we get close enough?
-      let dist = distance(self.obj.node.pos, self.obj.exec.noun1.getUsePos)
+      let dist = distance(self.obj.getUsePos, self.obj.exec.noun1.getUsePos)
       let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun1.min_talk_dist else: self.obj.exec.noun1.min_use_dist
-      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.node.pos}, obj: {self.obj.exec.noun1.getUsePos}) ?"
+      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.getUsePos}, obj: {self.obj.exec.noun1.getUsePos}) ?"
       if not verbNotClose(self.obj.exec.verb) and dist > min_dist.float:
         self.obj.cantReach()
         return
@@ -100,7 +100,7 @@ proc actorArrived(self: WalkTo) =
         info "actorArrived: noun2 untouchable"
         self.obj.exec = nil
         return
-      let dist = distance(self.obj.node.pos, self.obj.exec.noun2.getUsePos)
+      let dist = distance(self.obj.getUsePos, self.obj.exec.noun2.getUsePos)
       let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun2.min_talk_dist else: self.obj.exec.noun2.min_use_dist
       info fmt"actorArrived: noun2 min_dist: {dist} > {min_dist} ?"
       if dist > min_dist.float:

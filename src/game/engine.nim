@@ -30,10 +30,10 @@ import ../scenegraph/parallaxnode
 import ../scenegraph/hud
 import ../scenegraph/walkboxnode
 import ../scenegraph/dialog
-import ../scenegraph/startscreen
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
 import ../scenegraph/inventory
+import ../game/states/state
 import ../sys/app
 import ../util/common
 
@@ -72,7 +72,6 @@ type
     cutscene*: ThreadBase
     roomShader: Shader
     followActor*: Object
-    buttons: MouseButtonMask
     mouseDownTime: DateTime
     walkFastState: bool
     walkboxNode*: WalkboxNode
@@ -81,6 +80,7 @@ type
     dlg*: Dialog
     uiInv*: Inventory
     actorswitcher*: Actorswitcher
+    mouseState*: MouseState
 
 var gEngine*: Engine
 
@@ -529,7 +529,7 @@ proc getVerb(self: Engine, id: int): Verb =
       if verb.id == id:
         return verb  
 
-proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
+proc clickedAt(self: Engine, scrPos: Vec2f) =
   # TODO: WIP
   if not self.room.isNil and self.inputState.inputActive:
     let roomPos = self.room.screenToRoom(scrPos)
@@ -537,7 +537,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
 
     if self.room.fullscreen == FullscreenCloseup:
       discard self.clickedAtHandled(roomPos)
-    elif mbLeft in btns and mbLeft notin self.buttons:
+    elif self.mouseState.click():
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
@@ -550,7 +550,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
           self.hud.verb = self.getVerb(VERB_WALKTO)
         # Just clicking on the ground
         self.cancelSentence(self.actor)
-    elif mbRight in btns and mbRight notin self.buttons:
+    elif self.mouseState.click(mbRight):
       # button right: execute default verb
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
@@ -558,7 +558,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f, btns: MouseButtonMask) =
         let verbName = self.hud.actorSlot(self.actor).verb(defVerbId.int).fun
         if obj.table.rawexists(verbName):
           discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
-    elif self.walkFastState and mbLeft in btns and not self.actor.isNil and scrPos.y > 172:
+    elif self.walkFastState and self.mouseState.click() and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
 
   # TODO: call callbacks
@@ -603,42 +603,7 @@ proc updateTriggers(self: Engine) =
         self.callTrigger(trigger, trigger.leave)
 
 proc update(self: Engine, node: Node, elapsed: float) =
-  let mouseState = mouseBtns()
-  let isMouseDn = mbLeft in mouseState and mbLeft notin self.buttons
-  if node.buttons.len > 0:
-    let scrPos = winToScreen(mousePos())
-    for btn in node.buttons.toSeq:
-      # mouse inside button ?
-      if node.getRect().contains(scrPos):
-        # enter button ?
-        if not btn.inside:
-          btn.inside = true
-          btn.callback(node, Enter, scrPos, btn.tag)
-        # mouse down on button ?
-        elif not btn.down and isMouseDn:
-          btn.down = true
-          btn.callback(node, Down, scrPos, btn.tag)
-        # mouse up on button ?
-        elif btn.down and mbLeft notin mouseState:
-          btn.down = false
-          btn.callback(node, Up, scrPos, btn.tag)
-        elif btn.down and mbLeft in mouseState:
-          btn.callback(node, Drag, scrPos, btn.tag)
-      # mouse leave button ?
-      elif btn.inside:
-        btn.inside = false
-        btn.callback(node, Leave, scrPos, btn.tag)
-      elif btn.down and mbLeft notin mouseState:
-        btn.down = false
-        btn.callback(node, Up, scrPos, btn.tag)
-      elif btn.down and mbLeft in mouseState:
-        btn.callback(node, Drag, scrPos, btn.tag)
-
-  if not node.shakeMotor.isNil and node.shakeMotor.enabled():
-    node.shakeMotor.update(elapsed)
-
-  for node in node.children.toSeq:
-    self.update(node, elapsed)
+  node.update(elapsed, self.mouseState)
 
 proc clampPos(self: Engine, at: Vec2f): Vec2f =
   let screenSize = self.room.getScreenSize()
@@ -757,8 +722,6 @@ proc update*(self: Engine, elapsed: float) =
   self.inputState.node.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
   self.inputState.node.pos = scrPos
 
-  let btns = mouseBtns()
-
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
     if self.room.fullScreen == FullscreenRoom:
@@ -807,17 +770,15 @@ proc update*(self: Engine, elapsed: float) =
 
       # call clickedAt if any button down
       if self.dlg.state == DialogState.None:
-        if mbLeft in btns:
-          if mbLeft notin self.buttons:
-            self.mouseDownTime = now()
-          else:
-            let mouseDnDur = now() - self.mouseDownTime
-            if mouseDnDur > initDuration(milliseconds = 500):
-              self.walkFast()
-        else:
+        if self.mouseState.click():
+          self.mouseDownTime = now()
+          self.clickedAt(scrPos)
+        elif self.mouseState.pressed():
+          let mouseDnDur = now() - self.mouseDownTime
+          if mouseDnDur > initDuration(milliseconds = 500):
+            self.walkFast()
+        elif self.mouseState.released():
           self.walkFast(false)
-        if btns.len > 0:
-          self.clickedAt(scrPos, btns)
     else:
       self.hud.visible = false
       self.uiInv.visible = false
@@ -825,8 +786,8 @@ proc update*(self: Engine, elapsed: float) =
       let cText = if self.noun1.isNil: "" else: getText(self.noun1.name)
       self.inputState.setText(cText)
       self.inputState.setCursorShape(CursorShape.Normal)
-      if mbLeft in btns and mbLeft notin self.buttons:
-        self.clickedAt(scrPos, btns)
+      if self.mouseState.click():
+        self.clickedAt(scrPos)
 
   # update cutscene
   if not self.cutscene.isNil:
@@ -883,7 +844,6 @@ proc update*(self: Engine, elapsed: float) =
     actor.update(elapsed)
 
   self.updateTriggers()
-  self.buttons = btns
 
 proc cameraPos*(self: Engine): Vec2f =
   ## Returns the camera position: the position of the middle of the screen.
@@ -895,9 +855,9 @@ proc render*(self: Engine) =
   self.frameCounter += 1
   
   # draw scene
-  gfxClear(Gray)
+  gfxClear(Black)
   if not self.room.isNil:
-    var camSize = self.room.getScreenSize()
+    let camSize = self.room.getScreenSize()
     camera(camSize.x.float32, camSize.y.float32)
 
     # update room effect
