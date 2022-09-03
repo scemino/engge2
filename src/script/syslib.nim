@@ -92,10 +92,19 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## while(isSoundPlaying(soundPhoneBusy)) {
   ##   breakhere(5)
   ##}
-  var numFrames: int
-  if SQ_FAILED(get(v, 2, numFrames)):
-    return sq_throwerror(v, "failed to get numFrames")
-  breakfunc(v, proc (t: ThreadBase) = t.numFrames = numFrames)
+  let t = sq_gettype(v, 2)
+  if t == OT_INTEGER:
+    var numFrames: int
+    if SQ_FAILED(get(v, 2, numFrames)):
+      return sq_throwerror(v, "failed to get numFrames")
+    return breakfunc(v, proc (t: ThreadBase) = t.numFrames = numFrames)
+  elif t == OT_FLOAT:
+    var time: float
+    if SQ_FAILED(get(v, 2, time)):
+      return sq_throwerror(v, "failed to get time")
+    return breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
+  else:
+    return sq_throwerror(v, fmt"failed to get numFrames (wrong type = {t})")
 
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for time seconds.
