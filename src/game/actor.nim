@@ -64,6 +64,7 @@ proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
   if head.len > 0:
     self.setHeadIndex(0)
     self.animNames[HeadAnimName] = head
+    self.showLayer(self.animNames[HeadAnimName], true)
     self.setHeadIndex(1)
   if stand.len > 0:
     self.animNames[StandAnimName] = stand

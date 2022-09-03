@@ -66,7 +66,11 @@ proc showProperties() =
       igText("Stand: %s", gActor.getAnimName(StandAnimName).cstring)
       igText("Walk: %s", gActor.getAnimName(WalkAnimName).cstring)
       igText("Reach: %s", gActor.getAnimName(ReachAnimName).cstring)
-    gActor.showNode(gActor.node)
+    if igCollapsingHeader("Hidden layers"):
+      for layer in gActor.hiddenLayers:
+        igText(layer.cstring)
+    if igCollapsingHeader("Node"):
+      gActor.showNode(gActor.node)
     igEnd()
 
 method render*(self: ActorTool) =
