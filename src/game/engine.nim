@@ -354,12 +354,15 @@ iterator objsAt*(self: Engine, pos: Vec2f): Object =
     yield self.uiInv.obj
   for layer in gEngine.room.layers:
     for obj in layer.objects.ritems:
-      if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
+      if obj != self.actor and (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
         yield obj
 
 proc objAt*(self: Engine, pos: Vec2f): Object =
+  var zOrder = int32.high
   for obj in self.objsAt(pos):
-    return obj
+    if obj.node.zOrder <= zOrder:
+      result = obj
+      zOrder = obj.node.zOrder
 
 proc objAt*(self: Engine, pos: Vec2f, pred: proc(x: Object): bool): Object =
   for obj in self.objsAt(pos):
