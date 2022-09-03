@@ -19,10 +19,10 @@ import motors/walkto
 import motors/blink
 
 const
-  StandAnimName = "stand"
-  HeadAnimName  = "head"
-  WalkAnimName  = "walk"
-  ReachAnimName = "reach"
+  StandAnimName* = "stand"
+  HeadAnimName*  = "head"
+  WalkAnimName*  = "walk"
+  ReachAnimName* = "reach"
 
 proc getFacing(dir: Direction): Facing =
   case dir:
@@ -33,11 +33,11 @@ proc getFacing(dir: Direction): Facing =
   else: 
       FACE_RIGHT
 
-proc setAnimName*(self: Object, key: string): string
+proc getAnimName*(self: Object, key: string): string
 
 proc setHeadIndex*(self: Object, head: int) =
   for i in 1..6:
-    self.showLayer(fmt"{self.setAnimName(HeadAnimName)}{i}", i == head)
+    self.showLayer(fmt"{self.getAnimName(HeadAnimName)}{i}", i == head)
 
 proc newActor*(): Object =
   result = newObject()
@@ -51,18 +51,20 @@ proc newActor*(): Object =
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
 
-proc setAnimName(self: Object, key: string): string =
+proc getAnimName*(self: Object, key: string): string =
   if self.animNames.contains(key):
     result = self.animNames[key]
   else:
     result = key
 
 proc stand*(self: Object) =
-  self.play(self.setAnimName(StandAnimName))
+  self.play(self.getAnimName(StandAnimName))
 
 proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
   if head.len > 0:
+    self.setHeadIndex(0)
     self.animNames[HeadAnimName] = head
+    self.setHeadIndex(1)
   if stand.len > 0:
     self.animNames[StandAnimName] = stand
   if walk.len > 0:

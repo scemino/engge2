@@ -1,8 +1,10 @@
 import std/strformat
+import std/tables
 import glm
 import ../debugtool
 import ../../game/engine
 import ../../game/room
+import ../../game/actor
 import ../../game/motors/motor
 import ../../libs/imgui
 import ../../script/squtils
@@ -59,6 +61,11 @@ proc showProperties() =
     igDragInt4("Hotspot", gActor.hotspot.arr)
     igDragFloat2("WalkSpeed", gActor.walkSpeed.arr)
     igSeparator()
+    if igCollapsingHeader("Animation names"):
+      igText("Head: %s", gActor.getAnimName(HeadAnimName).cstring)
+      igText("Stand: %s", gActor.getAnimName(StandAnimName).cstring)
+      igText("Walk: %s", gActor.getAnimName(WalkAnimName).cstring)
+      igText("Reach: %s", gActor.getAnimName(ReachAnimName).cstring)
     gActor.showNode(gActor.node)
     igEnd()
 
