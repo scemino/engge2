@@ -944,7 +944,7 @@ proc update*(self: Anim, elapsed: float) =
         else:
           self.disable()
       if self.anim.offsets.len > 0:
-        var off = self.anim.offsets[self.frameIndex]
+        var off = if self.frameIndex < self.anim.offsets.len: self.anim.offsets[self.frameIndex] else: Vec2i()
         if self.obj.getFacing() == FACE_LEFT:
           off.x = -off.x
         self.offset = vec2(off.x.float32, off.y.float32)
