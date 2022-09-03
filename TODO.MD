@@ -7,6 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [x] not possible to pickup money in ransome trailer
 * [x] change actor's facing do nothing
 * [x] lips don't move anymore
 * [x] we should reset actor's follow during cutscene

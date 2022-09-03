@@ -353,7 +353,7 @@ iterator objsAt*(self: Engine, pos: Vec2f): Object =
   if not self.uiInv.obj.isNil and self.room.fullscreen == FullscreenRoom:
     yield self.uiInv.obj
   for layer in gEngine.room.layers:
-    for obj in layer.objects:
+    for obj in layer.objects.ritems:
       if (obj.touchable or obj.inInventory()) and obj.node.visible and obj.objType == otNone and obj.contains(pos):
         yield obj
 
