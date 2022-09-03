@@ -301,6 +301,8 @@ proc running(self: Dialog, dt: float) =
         return
       else:
         self.run(statmt)
+        if not self.lbl.isNil and self.currentStatement == self.lbl.stmts.len:
+          self.gotoNextLabel()
     if self.choicesReady():
         self.updateChoiceStates()
     elif self.action.isNil or not self.action.enabled:
