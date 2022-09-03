@@ -7,6 +7,8 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [ ] Ransome can't take his makeup
+* [x] Ransome can't give his money to Carney
 * [x] not possible to pickup money in ransome trailer
 * [x] change actor's facing do nothing
 * [x] lips don't move anymore

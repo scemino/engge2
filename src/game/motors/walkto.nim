@@ -14,7 +14,7 @@ import ../../script/vm
 import ../../scenegraph/node
 
 const
-  MIN_USE_DIST  = 5
+  MIN_USE_DIST  = 10
   MIN_TALK_DIST = 60
 
 type WalkTo* = ref object of Motor
@@ -49,9 +49,22 @@ proc verbNotClose(id: VerbId): bool =
   ## true of you don't have to be close to the object
   id == VERB_LOOKAT
 
-proc cantReach(self: Object) =
+proc cantReach(self: Object, noun2: Object) =
   if self.table.exists("verbCantReach"):
-    self.table.call("verbCantReach")
+    let nParams = gVm.v.paramCount(self.table, "verbCantReach")
+    info fmt"verbCantReach found in obj '{self.key}' with {nParams} params"
+    if nParams == 1:
+      self.table.call("verbCantReach")
+    else:
+      var table: HSQOBJECT
+      sq_resetobject(table)
+      if not noun2.isNil: 
+        table = noun2.table
+      self.table.sqCall("verbCantReach", [self.table, table])
+  elif not noun2.isNil:
+    noun2.cantReach(nil)
+  else:
+    warn fmt"verbCantReach not found in obj '{self.key}'"
 
 proc actorArrived(self: WalkTo) =
   info "actorArrived"
@@ -91,7 +104,7 @@ proc actorArrived(self: WalkTo) =
       let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun1.min_talk_dist else: self.obj.exec.noun1.min_use_dist
       info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.getUsePos}, obj: {self.obj.exec.noun1.getUsePos}) ?"
       if not verbNotClose(self.obj.exec.verb) and dist > min_dist.float:
-        self.obj.cantReach()
+        self.obj.cantReach(self.obj.exec.noun2)
         return
       self.obj.setFacing(self.obj.exec.noun1.useDir.facing)
     if not self.obj.exec.noun2.isNil and not self.obj.exec.noun2.inInventory:
@@ -104,7 +117,7 @@ proc actorArrived(self: WalkTo) =
       let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun2.min_talk_dist else: self.obj.exec.noun2.min_use_dist
       info fmt"actorArrived: noun2 min_dist: {dist} > {min_dist} ?"
       if dist > min_dist.float:
-        self.obj.cantReach()
+        self.obj.cantReach(self.obj.exec.noun2)
         return
     
     info fmt"actorArrived: callVerb"

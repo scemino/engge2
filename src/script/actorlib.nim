@@ -427,7 +427,7 @@ proc actorPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Plays the specified animation from the player's costume JSON filename.
   ## If YES loop the animation. Default is NO.
-  var actor = actor(v, 2)
+  let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   var animation = ""
@@ -436,7 +436,7 @@ proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var loop = 0
   if sq_gettop(v) >= 4 and SQ_FAILED(get(v, 4, loop)):
     return sq_throwerror(v, "failed to get loop")
-  info fmt"Play anim {actor.name} {animation} loop={loop}"
+  info fmt"Play anim {actor.key} {animation} loop={loop}"
   actor.play(animation, loop != 0)
   0
 
