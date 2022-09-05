@@ -232,7 +232,11 @@ proc setActor(key: string) =
       return
 
 proc loadActor(actor: Object, json: JsonNode) =
-  for (k,v) in json.pairs:
+  var touchable = true
+  if json.hasKey("_untouchable"):
+    touchable = json["_untouchable"].getInt() == 0
+  actor.touchable = touchable
+  for (k, v) in json.pairs:
     case k:
     of "_pos":
       actor.node.pos = vec2f(parseVec2i(v.getStr()))
@@ -257,6 +261,8 @@ proc loadActor(actor: Object, json: JsonNode) =
       actor.node.renderOffset = vec2f(parseVec2i(v.getStr()))
     of "_roomKey":
       actor.setRoom(room(v.getStr))
+    of "_untouchable":
+      discard
     of "_volume":
       actor.volume = v.getFloat()
     elif not k.startsWith('_'):
@@ -435,7 +441,7 @@ proc newEngineGameLoader*(): GameLoader =
 
 proc cmpKey(x,y: tuple[key: string, val: JsonNode]): int = cmp(x.key, y.key)
 
-proc tojson(obj: var HSQOBJECT, checkId: bool): JsonNode =
+proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false): JsonNode =
   case obj.objType:
   of OT_INTEGER:
     result = newJInt(sq_objtointeger(obj))
@@ -470,9 +476,10 @@ proc tojson(obj: var HSQOBJECT, checkId: bool): JsonNode =
 
     for (k, v) in obj.mpairs:
       if k.len > 1 and k[0] != '_':
-        let json = tojson(v[], true)
-        if not json.isNil:
-          result[k] = json
+        if not skipObj or not v[].getId().isObject():
+          let json = tojson(v[], true)
+          if not json.isNil:
+            result[k] = json
     result.fields.sort(cmpKey)
   else:
     discard
@@ -667,7 +674,7 @@ proc createJPseudoObjects(room: Room): JsonNode =
   result.fields.sort(cmpKey)
 
 proc createJRoom(room: Room): JsonNode =
-  result = tojson(room.table, false)
+  result = tojson(room.table, false, true)
   if room.pseudo:
     result["_pseudoObjects"] = createJPseudoObjects(room)
 
