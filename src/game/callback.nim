@@ -4,10 +4,10 @@ import ../script/squtils
 
 type Callback* = ref object of RootObj
   id*: int
-  name: string
-  args: seq[HSQOBJECT]
-  duration: float
-  elapsed: float
+  name*: string
+  args*: seq[HSQOBJECT]
+  duration*: float
+  elapsed*: float
 
 proc newCallback*(id: int, duration: float, name: string, args: seq[HSQOBJECT]): Callback =
   result = Callback(id: id, name: name, args: args, duration: duration)

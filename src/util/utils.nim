@@ -12,7 +12,6 @@ proc soundDef*(id: int): SoundDefinition =
   for sound in gEngine.audio.soundDefs:
     if sound.id == id:
       return sound
-  nil
 
 proc soundDef*(v: HSQUIRRELVM, i: int): SoundDefinition =
   var id: int
@@ -23,7 +22,6 @@ proc sound*(id: int): SoundId =
   for sound in gEngine.audio.sounds:
     if not sound.isNil and sound.id == id:
       return sound
-  nil
 
 proc sound*(v: HSQUIRRELVM, i: int): SoundId =
   var id: int
@@ -34,13 +32,11 @@ proc room*(id: int): Room =
   for room in gEngine.rooms:
     if room.table.getId() == id:
       return room
-  nil
 
 proc room*(table: HSQOBJECT): Room =
   for room in gEngine.rooms:
     if room.table == table:
       return room
-  nil
 
 proc room*(v: HSQUIRRELVM, i: int): Room =
   var table: HSQOBJECT
@@ -51,7 +47,11 @@ proc actor*(table: HSQOBJECT): Object =
   for actor in gEngine.actors:
     if actor.table == table:
       return actor
-  nil
+
+proc actor*(id: int): Object =
+  for actor in gEngine.actors:
+    if actor.id == id:
+      return actor
 
 proc actor*(v: HSQUIRRELVM, i: int): Object =
   var table: HSQOBJECT
@@ -69,18 +69,14 @@ iterator objs*(): Object =
         yield o
 
 proc obj*(table: HSQOBJECT): Object =
-  for obj in gEngine.inventory:
+  for obj in objs():
     if obj.table == table:
       return obj
-  for actor in gEngine.actors:
-    if actor.table == table:
-      return actor
-  for room in gEngine.rooms:
-    for layer in room.layers:
-      for o in layer.objects:
-        if o.table == table:
-          return o
-  nil
+
+proc obj*(id: int): Object =
+  for obj in objs():
+    if obj.id == id:
+      return obj
 
 proc obj*(v: HSQUIRRELVM, i: int): Object =
   var table: HSQOBJECT
@@ -93,7 +89,6 @@ proc objRoom*(table: HSQOBJECT): Room =
       for o in layer.objects:
         if o.table == table:
           return room
-  nil
 
 proc thread*(v: HSQUIRRELVM): ThreadBase =
   if not gEngine.cutscene.isNil:
@@ -103,7 +98,6 @@ proc thread*(v: HSQUIRRELVM): ThreadBase =
   for t in threads:
     if t.getThread() == v:
       return t
-  nil
 
 proc thread*(id: int): ThreadBase =
   if not gEngine.cutscene.isNil:
@@ -113,7 +107,6 @@ proc thread*(id: int): ThreadBase =
   for t in threads:
     if t.getId() == id:
       return t
-  nil
 
 proc thread*(v: HSQUIRRELVM, i: int): ThreadBase =
   var id: int

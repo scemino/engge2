@@ -24,11 +24,16 @@ import ../util/time
 
 const
   LoadGame = 99910
+  SaveGame = 99911
   Back = 99904
 
 type
   ClickCallback* = proc(node: Node, id: int)
+  SaveLoadDialogMode* = enum
+    smLoad
+    smSave
   SaveLoadDialog* = ref object of Node
+    mode: SaveLoadDialogMode
     savegames: array[9, Savegame]
     clickCbk: ClickCallback
 
@@ -79,10 +84,10 @@ proc fmtGameTime(timeInSec: float): string =
   var min = timeInSec.int div 60
   if min < 2:
     # "%d minute"
-    discard snprintf(buf, 120, getText(99945), min)
+    discard snprintf(buf, 120, getText(99945).cstring, min)
   elif min < 60:
     # "%d minutes"
-    discard snprintf(buf, 120, getText(99946), min)
+    discard snprintf(buf, 120, getText(99946).cstring, min)
   else:
     var format: int
     var hour = min div 60
@@ -99,7 +104,7 @@ proc fmtGameTime(timeInSec: float): string =
     else:
       # "%d hours %d minutes";
       format = 99950
-    discard snprintf(buf, 120, getText(format), hour, min)
+    discard snprintf(buf, 120, getText(format).cstring, hour, min)
   $buf
 
 proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
@@ -107,14 +112,18 @@ proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Down:
     popState(stateCount() - 1)
-    loadGame(data)
+    let dlg = cast[SaveLoadDialog](src.getParent())
+    if dlg.mode == smLoad:
+      loadGame(data)
+    else:
+      saveGame(data)
   else:
     discard
 
-proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
-  result = SaveLoadDialog(clickCbk: clickCbk)
+proc newSaveLoadDialog*(mode: SaveLoadDialogMode, clickCbk: ClickCallback): SaveLoadDialog =
+  result = SaveLoadDialog(mode: mode, clickCbk: clickCbk)
   result.addChild newBackground()
-  result.addChild newHeader(LoadGame)
+  result.addChild newHeader(if mode == smLoad: LoadGame else: SaveGame)
 
   let sheet = gResMgr.spritesheet("SaveLoadSheet")
   let slotFrame = sheet.frame("saveload_slot_frame")

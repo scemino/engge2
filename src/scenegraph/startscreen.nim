@@ -44,9 +44,9 @@ proc onButtonDown(node: Node, id: int) =
     popState(1)
     sqCall("start", [1])
   of Options:
-    pushState newDlgState(newOptionsDialog())
+    pushState newDlgState(newOptionsDialog(FromStartScreen))
   of LoadGame:
-    pushState newDlgState(newSaveLoadDialog(onLoadBackClick))
+    pushState newDlgState(newSaveLoadDialog(smLoad, onLoadBackClick))
   of Quit:
     pushState newDlgState(newQuitDialog(onQuitClick))
   else:

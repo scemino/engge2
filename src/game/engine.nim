@@ -184,11 +184,8 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           obj.table.setId(newObjId())
           # info fmt"Create object with new table: {obj.name} #{obj.id}"
 
-          # assign a name
-          setf(obj.table, "name", obj.key)
-
           # adds the object to the room table
-          setf(result.table, obj.name, obj.table)
+          setf(result.table, obj.key, obj.table)
           obj.setRoom(result)
           obj.setState(0, true)
         else:
@@ -237,6 +234,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       if not v.rawexists("flags"):
         v.setf("flags", 0)
       let obj = Object(table: v, key: k)
+      obj.table.setId(newObjId())
       obj.node = newNode(k)
       obj.nodeAnim = newAnim(obj)
       obj.node.addChild obj.nodeAnim
@@ -714,7 +712,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
-    let selectFunc = proc() = self.ui.addChild newOptionsDialog()
+    let selectFunc = proc() = self.ui.addChild newOptionsDialog(FromGame)
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
 
 proc update*(self: Engine, elapsed: float) =

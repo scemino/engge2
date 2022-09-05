@@ -78,13 +78,13 @@ type
     obj*: Object
     color*: Color
   Object* = ref object of RootObj
-    n: string                     ## name of the object
-    key*: string                  ## key used to identify this object by script
-    usePos*: Vec2f                ## use position
-    useDir*: Direction            ## use direction
-    hotspot*: Recti               ## hotspot
-    objType*: ObjectType          ## object type: prop, trigger, object, spot
-    sheet*: string                ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
+    n: string                                    ## name of the object
+    key*: string                                 ## key used to identify this object by script
+    usePos*: Vec2f                               ## use position
+    useDir*: Direction                           ## use direction
+    hotspot*: Recti                              ## hotspot
+    objType*: ObjectType                         ## object type: prop, trigger, object, spot
+    costumeName*, costumeSheet*, sheet*: string  ## Spritesheet to use when a sprite is displayed in the room: "raw" means raw texture, empty string means use room texture
     triggerActive*: bool
     nodeAnim*: Anim
     animLoop: bool
@@ -159,6 +159,7 @@ type
     rotateTo*: Motor
     triggers*: seq[Object]        ## Triggers currently enabled in the room
     effect*: RoomEffect
+    pseudo*: bool
   RoomParser = object
     input: Stream
     filename: string

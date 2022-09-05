@@ -59,7 +59,11 @@ const
   varPrefDefFloatValues = {TextSpeed: prefs.SayLineSpeedDefValue}.toTable
 
 type
+  OptionsDialogMode* = enum
+    FromStartScreen
+    FromGame
   OptionsDialog* = ref object of Node
+    mode: OptionsDialogMode
   State = enum
     sOptions
     sVideo
@@ -68,7 +72,6 @@ type
     sSound
 
 var
-  gDisabled: seq[int]
   gState: State
   gSelf: OptionsDialog  
 
@@ -83,7 +86,7 @@ proc onQuitClick(node: Node, id: int) =
   else:
     discard
 
-proc onLoadBackClick(node: Node, id: int) =
+proc onSaveLoadBackClick(node: Node, id: int) =
   popState(2)
 
 proc onButtonDown(node: Node, id: int) =
@@ -104,20 +107,26 @@ proc onButtonDown(node: Node, id: int) =
   of Sound:
     setState(sSound)
   of LoadGame:
-    pushState newDlgState(newSaveLoadDialog(onLoadBackClick))
+    pushState newDlgState(newSaveLoadDialog(smLoad, onSaveLoadBackClick))
+  of SaveGame:
+    pushState newDlgState(newSaveLoadDialog(smSave, onSaveLoadBackClick))
   else:
     discard
+
+proc enabled(id: int): bool =
+  id != SaveGame or gSelf.mode == FromGame
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let id = cast[int](tag)
   case event:
   of Enter:
-    if not gDisabled.contains(id):
+    if enabled(id):
       src.color = Yellow
   of Leave:
     src.color = White
   of Down:
-    onButtonDown(src.getParent, id)
+    if enabled(id):
+      onButtonDown(src.getParent, id)
   else:
     discard
 
@@ -125,14 +134,14 @@ proc newHeader(id: int): TextNode =
   let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)
   result = newTextNode(titleTxt)
   result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, 680f)
-  result.alpha = if gDisabled.contains(id): 0.5f else: 1f
+  result.alpha = if enabled(id): 1f else: 0.5f
   result.addButton(onButton, cast[pointer](id))
 
 proc newButton(id: int, y: float, font = "UIFontLarge"): TextNode =
   let titleTxt = newText(gResMgr.font(font), getText(id), thCenter)
   result = newTextNode(titleTxt)
   result.pos = vec2(ScreenWidth/2f - titleTxt.bounds.x/2f, y)
-  result.alpha = if gDisabled.contains(id): 0.5f else: 1f
+  result.alpha = if enabled(id): 1f else: 0.5f
   result.addButton(onButton, cast[pointer](id))
 
 proc newBackground(): SpriteNode =
@@ -233,12 +242,10 @@ proc setState(state: State) =
   gState = state
   update()
 
-proc newOptionsDialog*(): OptionsDialog =
-  gSelf = OptionsDialog()
+proc newOptionsDialog*(mode: OptionsDialogMode): OptionsDialog =
+  gSelf = OptionsDialog(mode: mode)
   result = gSelf
   result.init()
-
-  gDisabled.add SaveGame
   update()
 
 method drawCore(self: OptionsDialog, transf: Mat4f) =
