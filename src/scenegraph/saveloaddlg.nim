@@ -108,15 +108,16 @@ proc fmtGameTime(timeInSec: float): string =
   $buf
 
 proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let data = cast[JsonNode](tag)
   case event:
   of Down:
     popState(stateCount() - 1)
     let dlg = cast[SaveLoadDialog](src.getParent())
     if dlg.mode == smLoad:
+      let data = cast[JsonNode](tag)
       loadGame(data)
     else:
-      saveGame(data)
+      let i = cast[int](tag)
+      saveGame(i)
   else:
     discard
 
@@ -148,7 +149,10 @@ proc newSaveLoadDialog*(mode: SaveLoadDialogMode, clickCbk: ClickCallback): Save
       sn.scale = scale
       sn.setAnchorNorm(vec2(0.5f, 0.5f))
       sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
-      sn.addButton(onGameButton, cast[pointer](result.savegames[i].data))
+      let tag = if mode == smLoad: cast[pointer](result.savegames[i].data) else: cast[pointer](i)
+      # don't allow to save on slot 0
+      if mode == smLoad or i != 0:
+        sn.addButton(onGameButton, tag)
       result.addChild sn
 
       # game time text

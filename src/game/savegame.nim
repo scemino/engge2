@@ -431,8 +431,9 @@ method load(self: EngineGameLoader, json: JsonNode) =
 
 proc saveGame*(path: string)
 
-method save(self: EngineGameLoader, json: JsonNode) =
-  saveGame("save.json")
+method save(self: EngineGameLoader, index: int) =
+  let path = fmt"Savegame{index+1}.save"
+  saveGame(path)
 
 proc newEngineGameLoader*(): GameLoader =
   EngineGameLoader()
@@ -713,5 +714,5 @@ proc createSaveGame(): Savegame =
 proc saveGame*(path: string) =
   call("preSave")
   let data = createSaveGame()
-  writeFile(path, data.data.pretty(2))
+  saveSaveGame(path, data)
   call("postSave")
