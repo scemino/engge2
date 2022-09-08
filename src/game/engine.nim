@@ -20,6 +20,7 @@ import ../gfx/graphics
 import ../gfx/shader
 import ../gfx/color
 import ../gfx/recti
+import ../gfx/texture
 import ../io/ggpackmanager
 import ../io/textdb
 import ../util/tween
@@ -92,6 +93,7 @@ proc seedWithTime*(self: Engine) =
 proc selectActor(index: int)
 proc selectNextActor()
 proc selectPrevActor()
+proc takeScreenshot()
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
@@ -122,6 +124,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   regCmdFunc(GameCommand.SelectActor6, proc () = selectActor(5))
   regCmdFunc(GameCommand.SelectNextActor, proc () = selectNextActor())
   regCmdFunc(GameCommand.SelectPreviousActor, proc () = selectPrevActor())
+  regCmdFunc(GameCommand.Screenshot, proc () = takeScreenshot())
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.randSeed = seed
@@ -860,8 +863,9 @@ proc cameraPos*(self: Engine): Vec2f =
     let screenSize = self.room.getScreenSize()
     result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
-proc render*(self: Engine) =
-  self.frameCounter += 1
+proc render*(self: Engine, capture = false) =
+  if not capture:
+    self.frameCounter += 1
   
   # draw scene
   gfxClear(Black)
@@ -880,9 +884,24 @@ proc render*(self: Engine) =
   self.scene.draw()
 
   # draw screen
+  let parent = self.ui.getParent
+  if capture:
+    self.ui.remove()
   camera(ScreenWidth, ScreenHeight)
   self.screen.draw()
+  if capture:
+    parent.addChild self.ui
 
   # draw fade
   let fade = if self.fade.enabled: self.fade.current() else: 0.0
   gfxDrawQuad(vec2f(0), camera(), rgbaf(Black, fade))
+
+proc capture*(self: Engine, filename: string, size: Vec2i) =
+  let rt = newRenderTexture(size)
+  rt.use()
+  self.render(true)
+  rt.use(false)
+  rt.capture(filename)
+
+proc takeScreenshot() =
+  gEngine.capture("screenshot.png", vec2i(ScreenWidth.int32, ScreenHeight.int32))

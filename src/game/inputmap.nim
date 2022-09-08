@@ -26,6 +26,7 @@ type
     ToggleHud
     ToggleDebug
     ShowHotspot
+    Screenshot
   Input* = object
     modf*: InputModifierKey
     key*: InputKey
@@ -39,6 +40,7 @@ var
     Input(modf: Control, key: InputKey.O): @[ShowOptions],
     Input(modf: Control, key: InputKey.U): @[ToggleHud],
     Input(modf: Control, key: InputKey.D): @[ToggleDebug],
+    Input(modf: Control, key: InputKey.S): @[Screenshot],
     }.toTable
   prefsMappings = [
     (KeySkipText, KeySkipTextDefValue, SkipText), 

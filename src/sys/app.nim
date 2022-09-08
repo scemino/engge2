@@ -2,6 +2,7 @@ import glm
 import sdl2
 import sdl2/mixer
 import ../gfx/graphics
+import ../gfx/texture
 import ../game/screen
 import ../sys/input
 import ../libs/opengl
@@ -66,6 +67,9 @@ proc init*(title = "", size = vec2(ScreenWidth, ScreenHeight)) =
   var wi, he: cint
   glGetDrawableSize(w, wi, he)
   glViewport(0.GLint, 0.GLint, wi.GLsizei, he.GLsizei)
+
+proc getWinHandle*(): WindowPtr =
+  w
 
 proc setFullscreen*(state: bool) =
   discard w.setFullscreen(if state: 1'u32 else: 0'u32)
@@ -173,3 +177,13 @@ proc appGetWindowSize*(): Vec2i =
   var width, height: cint
   getSize(w, width, height)
   vec2(width.int32, height.int32)
+
+proc use*(self: RenderTexture, enabled = true) =
+  if enabled:
+    glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+    glViewport(0.GLint, 0.GLint, self.size.x, self.size.y)
+  else:
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    var wi, he: cint
+    glGetDrawableSize(getWinHandle(), wi, he)
+    glViewport(0.GLint, 0.GLint, wi, he)

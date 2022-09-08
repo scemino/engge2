@@ -714,5 +714,7 @@ proc createSaveGame(): Savegame =
 proc saveGame*(path: string) =
   call("preSave")
   let data = createSaveGame()
+  let thumbnail = changeFileExt(path, ".png")
+  gEngine.capture(thumbnail, vec2i(320'i32, 200'i32))
   saveSaveGame(path, data)
   call("postSave")
