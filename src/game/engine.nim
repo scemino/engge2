@@ -20,6 +20,7 @@ import ../gfx/graphics
 import ../gfx/shader
 import ../gfx/color
 import ../gfx/recti
+import ../gfx/texture
 import ../io/ggpackmanager
 import ../io/textdb
 import ../util/tween
@@ -33,6 +34,7 @@ import ../scenegraph/dialog
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
 import ../scenegraph/inventory
+import ../game/states/dlgstate
 import ../game/states/state
 import ../sys/app
 import ../util/common
@@ -92,6 +94,7 @@ proc seedWithTime*(self: Engine) =
 proc selectActor(index: int)
 proc selectNextActor()
 proc selectPrevActor()
+proc takeScreenshot()
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
@@ -122,6 +125,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   regCmdFunc(GameCommand.SelectActor6, proc () = selectActor(5))
   regCmdFunc(GameCommand.SelectNextActor, proc () = selectNextActor())
   regCmdFunc(GameCommand.SelectPreviousActor, proc () = selectPrevActor())
+  regCmdFunc(GameCommand.Screenshot, proc () = takeScreenshot())
 
 proc `seed=`*(self: Engine, seed: int64) =
   self.randSeed = seed
@@ -184,11 +188,8 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           obj.table.setId(newObjId())
           # info fmt"Create object with new table: {obj.name} #{obj.id}"
 
-          # assign a name
-          setf(obj.table, "name", obj.key)
-
           # adds the object to the room table
-          setf(result.table, obj.name, obj.table)
+          setf(result.table, obj.key, obj.table)
           obj.setRoom(result)
           obj.setState(0, true)
         else:
@@ -237,6 +238,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       if not v.rawexists("flags"):
         v.setf("flags", 0)
       let obj = Object(table: v, key: k)
+      obj.table.setId(newObjId())
       obj.node = newNode(k)
       obj.nodeAnim = newAnim(obj)
       obj.node.addChild obj.nodeAnim
@@ -714,7 +716,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
-    let selectFunc = proc() = self.ui.addChild newOptionsDialog()
+    let selectFunc = proc() = pushState newDlgState(newOptionsDialog(FromGame))
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
 
 proc update*(self: Engine, elapsed: float) =
@@ -862,8 +864,9 @@ proc cameraPos*(self: Engine): Vec2f =
     let screenSize = self.room.getScreenSize()
     result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
-proc render*(self: Engine) =
-  self.frameCounter += 1
+proc render*(self: Engine, capture = false) =
+  if not capture:
+    self.frameCounter += 1
   
   # draw scene
   gfxClear(Black)
@@ -882,9 +885,24 @@ proc render*(self: Engine) =
   self.scene.draw()
 
   # draw screen
+  let parent = self.ui.getParent
+  if capture:
+    self.ui.remove()
   camera(ScreenWidth, ScreenHeight)
   self.screen.draw()
+  if capture:
+    parent.addChild self.ui
 
   # draw fade
   let fade = if self.fade.enabled: self.fade.current() else: 0.0
   gfxDrawQuad(vec2f(0), camera(), rgbaf(Black, fade))
+
+proc capture*(self: Engine, filename: string, size: Vec2i) =
+  let rt = newRenderTexture(size)
+  rt.use()
+  self.render(true)
+  rt.use(false)
+  rt.capture(filename)
+
+proc takeScreenshot() =
+  gEngine.capture("screenshot.png", vec2i(ScreenWidth.int32, ScreenHeight.int32))

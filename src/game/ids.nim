@@ -81,6 +81,9 @@ proc newCallbackId*(): int =
 proc setCallbackId*(id: int) =
   gCallbackId = id
 
+proc getCallbackId*(): int =
+  gCallbackId
+
 proc newLightId*(): int =
   result = gLightId
   gLightId += 1

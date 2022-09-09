@@ -198,7 +198,7 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   v.getf(table, "name", name)
   if name.len == 0:
     v.getf(table, "background", name)
-  var room = defineRoom(name, table)
+  let room = defineRoom(name, table)
   info fmt"Define room: {name}"
   gEngine.rooms.add room
   push(v, room.table)
@@ -225,7 +225,8 @@ proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(sq_getstackobj(v, -1, table)):
     return sq_throwerror(v, "failed to get room table")
   
-  var room = defineRoom(name, table)
+  let room = defineRoom(name, table)
+  room.pseudo = true
   info fmt"Define room: {name}"
   gEngine.rooms.add room
   push(v, room.table)

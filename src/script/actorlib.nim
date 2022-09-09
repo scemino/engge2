@@ -162,7 +162,7 @@ proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the actor's costume to the (JSON) filename animation file.
   ## If the actor is expected to preform the standard walk, talk, stand, reach animations, they need to exist in the file.
   ## If a sheet is given, this is a sprite sheet containing all the images needed for the animation. 
-  var actor = actor(v, 2)
+  let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   

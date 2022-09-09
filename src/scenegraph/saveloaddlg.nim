@@ -24,11 +24,16 @@ import ../util/time
 
 const
   LoadGame = 99910
+  SaveGame = 99911
   Back = 99904
 
 type
   ClickCallback* = proc(node: Node, id: int)
+  SaveLoadDialogMode* = enum
+    smLoad
+    smSave
   SaveLoadDialog* = ref object of Node
+    mode: SaveLoadDialogMode
     savegames: array[9, Savegame]
     clickCbk: ClickCallback
 
@@ -79,10 +84,10 @@ proc fmtGameTime(timeInSec: float): string =
   var min = timeInSec.int div 60
   if min < 2:
     # "%d minute"
-    discard snprintf(buf, 120, getText(99945), min)
+    discard snprintf(buf, 120, getText(99945).cstring, min)
   elif min < 60:
     # "%d minutes"
-    discard snprintf(buf, 120, getText(99946), min)
+    discard snprintf(buf, 120, getText(99946).cstring, min)
   else:
     var format: int
     var hour = min div 60
@@ -99,22 +104,27 @@ proc fmtGameTime(timeInSec: float): string =
     else:
       # "%d hours %d minutes";
       format = 99950
-    discard snprintf(buf, 120, getText(format), hour, min)
+    discard snprintf(buf, 120, getText(format).cstring, hour, min)
   $buf
 
 proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let data = cast[JsonNode](tag)
   case event:
   of Down:
+    let dlg = cast[SaveLoadDialog](src.getParent())
     popState(stateCount() - 1)
-    loadGame(data)
+    if dlg.mode == smLoad:
+      let data = cast[JsonNode](tag)
+      loadGame(data)
+    else:
+      let i = cast[int](tag)
+      saveGame(i)
   else:
     discard
 
-proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
-  result = SaveLoadDialog(clickCbk: clickCbk)
+proc newSaveLoadDialog*(mode: SaveLoadDialogMode, clickCbk: ClickCallback): SaveLoadDialog =
+  result = SaveLoadDialog(mode: mode, clickCbk: clickCbk)
   result.addChild newBackground()
-  result.addChild newHeader(LoadGame)
+  result.addChild newHeader(if mode == smLoad: LoadGame else: SaveGame)
 
   let sheet = gResMgr.spritesheet("SaveLoadSheet")
   let slotFrame = sheet.frame("saveload_slot_frame")
@@ -139,7 +149,6 @@ proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
       sn.scale = scale
       sn.setAnchorNorm(vec2(0.5f, 0.5f))
       sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
-      sn.addButton(onGameButton, cast[pointer](result.savegames[i].data))
       result.addChild sn
 
       # game time text
@@ -158,7 +167,14 @@ proc newSaveLoadDialog*(clickCbk: ClickCallback): SaveLoadDialog =
     let sn = newSpriteNode(gResMgr.texture(sheet.meta.image), slotFrame)
     sn.scale = vec2(4f, 4f)
     sn.setAnchorNorm(vec2(0.5f, 0.5f))
-    sn.pos = vec2f((1f + (i mod 3).float32) * 4f * (sn.size.x + 1f), 4f * (i div 3).float32 * (sn.size.y + 1f))
+    sn.pos = vec2f((1f + (i mod 3).float32) * 4f * (sn.size.x + 1f), 4f * ((8-i) div 3).float32 * (sn.size.y + 1f))
+    
+    # don't allow to save on slot 0
+    if (mode == smLoad and fileExists(savePath)) or (mode == smSave and i != 0):
+      echo fmt"file '{savePath}' exists #{i}" 
+      let tag = if mode == smLoad: cast[pointer](result.savegames[i].data) else: cast[pointer](i)
+      sn.addButton(onGameButton, tag)
+    
     result.addChild sn
 
   result.addChild newButton(Back, 80f, "UIFontMedium")

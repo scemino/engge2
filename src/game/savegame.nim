@@ -1,10 +1,14 @@
 import glm
+import std/os
 import std/json
+import std/times
 import std/tables
 import std/strformat
 import std/strutils
 import std/logging
+import std/algorithm
 import sqnim
+import nimyggpack
 import ../script/squtils
 import ../script/vm
 import ../io/ggpackmanager
@@ -22,6 +26,10 @@ import ../game/gameloader
 import ../game/inputstate
 import ../gfx/color
 import ../util/jsonutil
+import ../util/utils
+
+const
+  ThumbnailSize = vec2i(320'i32, 180'i32)
 
 proc actor(key: string): Object =
   for a in gEngine.actors:
@@ -227,7 +235,11 @@ proc setActor(key: string) =
       return
 
 proc loadActor(actor: Object, json: JsonNode) =
-  for (k,v) in json.pairs:
+  var touchable = true
+  if json.hasKey("_untouchable"):
+    touchable = json["_untouchable"].getInt() == 0
+  actor.touchable = touchable
+  for (k, v) in json.pairs:
     case k:
     of "_pos":
       actor.node.pos = vec2f(parseVec2i(v.getStr()))
@@ -252,6 +264,8 @@ proc loadActor(actor: Object, json: JsonNode) =
       actor.node.renderOffset = vec2f(parseVec2i(v.getStr()))
     of "_roomKey":
       actor.setRoom(room(v.getStr))
+    of "_untouchable":
+      discard
     of "_volume":
       actor.volume = v.getFloat()
     elif not k.startsWith('_'):
@@ -298,17 +312,23 @@ proc loadObj(obj: Object, json: JsonNode) =
     obj.setState(state, true)
   else:
     warn fmt"obj '{obj.key}' has no node !"
+  var touchable = true
+  if json.hasKey("_touchable"):
+    touchable = json["_touchable"].getInt == 1
+  obj.touchable = touchable
+  var hidden = false
+  if json.hasKey("_hidden"):
+    hidden = json["_hidden"].getInt == 1
+  obj.node.visible = not hidden
 
-  for (k,v) in json.pairs:
+  for (k, v) in json.pairs:
     case k:
-    of "_state":
+    of "_state", "_touchable", "_hidden":
       discard
     of "_pos":
       obj.node.pos = vec2f(parseVec2i(v.getStr()))
     of "_rotation":
       obj.node.rotation = v.getFloat()
-    of "_touchable":
-      obj.touchable = v.getInt() != 0
     of "_dir":
       obj.setFacing(v.getInt().Facing)
     of "_useDir":
@@ -351,7 +371,7 @@ proc loadPseudoObjects(room: Room, json: JsonNode) =
       loadObj(o, v)
 
 proc loadRoom(room: Room, json: JsonNode) =
-  for (k,v) in json.pairs:
+  for (k, v) in json.pairs:
     case k:
     of "_pseudoObjects":
       loadPseudoObjects(room, v)
@@ -409,7 +429,295 @@ type
   EngineGameLoader = ref object of GameLoader
 
 method load(self: EngineGameLoader, json: JsonNode) =
+  writeFile("load.json", json.pretty(2))
   loadGame(json)
+
+proc saveGame*(path: string)
+
+method save(self: EngineGameLoader, index: int) =
+  let path = fmt"Savegame{index+1}.save"
+  saveGame(path)
 
 proc newEngineGameLoader*(): GameLoader =
   EngineGameLoader()
+
+# SAVEGAME
+
+proc cmpKey(x,y: tuple[key: string, val: JsonNode]): int = cmp(x.key, y.key)
+
+proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false): JsonNode =
+  case obj.objType:
+  of OT_INTEGER:
+    result = newJInt(sq_objtointeger(obj))
+  of OT_FLOAT:
+    result = newJFloat(sq_objtofloat(obj))
+  of OT_STRING:
+    result = newJString($sq_objtostring(obj))
+  of OT_NULL:
+    result = newJNull()
+  of OT_ARRAY:
+    result = newJArray()
+    for item in obj.mitems:
+      result.add tojson(item[], true)
+  of OT_TABLE:
+    result = newJObject()
+    if checkId:
+      let id = obj.getId()
+      if id.isActor():
+        let actor = actor(id)
+        result["_actorKey"] = newJString(actor.key)
+        return result
+      elif id.isObject():
+        let obj = obj(id)
+        result["_objectKey"] = newJString(obj.key)
+        if not obj.room.isNil and obj.room.pseudo:
+          result["_roomKey"] = newJString(obj.room.name)
+        return result
+      elif id.isRoom():
+        let room = room(id)
+        result["_roomKey"] = newJString(obj.room.name)
+        return result
+
+    for (k, v) in obj.mpairs:
+      if k.len > 1 and k[0] != '_':
+        if not skipObj or not v[].getId().isObject():
+          let json = tojson(v[], true)
+          if not json.isNil:
+            result[k] = json
+    result.fields.sort(cmpKey)
+  else:
+    discard
+
+proc tostr(pos: Vec2f): string = 
+  let p = vec2i(pos)
+  fmt"{{{p.x},{p.y}}}"
+
+proc toint(c: Color) : int =
+  let r = (c.r * 255f).int
+  let g = (c.g * 255f).int
+  let b = (c.b * 255f).int
+  let a = (c.a * 255f).int
+  (r shl 16) or (g shl 8) or b or (a shl 24)
+
+proc createJActor(actor: Object): JsonNode =
+  result = tojson(actor.table, false)
+  if actor.node.color != White:
+    result["_color"] = newJInt(actor.node.color.toint)
+  result["_costume"] = newJString(changeFileExt(actor.costumeName, ""))
+  result["_dir"] = newJInt(actor.facing.int)
+  # TODO = json["_lockFacing"] = newJInt()
+  result["_pos"] = newJString(actor.node.pos.tostr)
+  if actor.useDir != dNone:
+    result["_useDir"] = newJInt(actor.useDir.int)
+  if actor.usePos != vec2(0f, 0f):
+    result["_usePos"] = newJString(actor.usePos.tostr)
+  if actor.node.renderOffset != vec2(0f, 45f):
+    result["_renderOffset"] = newJString(actor.node.renderOffset.tostr)
+  if actor.costumeSheet.len > 0:
+    result["_costumeSheet"] = newJString(actor.costumeSheet)
+  if not actor.room.isNil:
+    result["_roomKey"] = newJString(actor.room.name)
+  if not actor.touchable:
+    result["_untouchable"] = newJInt(1)
+  if actor.volume != 0f:
+    result["_volume"] = newJFloat(actor.volume)
+  result.fields.sort(cmpKey)
+
+proc createJActors(): JsonNode =
+  result = newJObject()
+  for actor in gEngine.actors:
+    if actor.key != "":
+      result[actor.key] = createJActor(actor)
+  result.fields.sort(cmpKey)
+
+proc createJCallback(callback: Callback): JsonNode =
+  result = newJObject()
+  result["function"] = newJString(callback.name)
+  result["guid"] = newJInt(callback.id)
+  result["time"] = newJFloat(max(0, callback.duration - callback.elapsed))
+  let jArgs = newJArray()
+  for arg in callback.args.mitems:
+    jArgs.add tojson(arg, false)
+
+proc createJCallbackArray(): JsonNode =
+  result = newJArray()
+  for callback in gEngine.callbacks:
+    result.add createJCallback(callback)
+
+proc createJCallbacks(): JsonNode =
+  result = newJObject()
+  result["callbacks"] = createJCallbackArray()
+  result["nextGuid"] = newJInt(getCallbackId())
+
+proc createJRoomKey(room: Room): JsonNode =
+  newJString(if room.isNil: "Void" else: room.name)
+
+proc createJDlgStateKey(state: DialogConditionState): string =
+  var s: string
+  case state.mode:
+  of OnceEver:
+    s = "&"
+  of ShowOnce:
+    s = "#"
+  of Once:
+    s = "?"
+  of ShowOnceEver:
+    s = "$"
+  else:
+    discard
+  fmt"{s}{state.dialog}{state.line}{state.actorKey}"
+
+proc createJDialog(): JsonNode =
+  result = newJObject()
+  for state in gEngine.dlg.states:
+    if state.mode !=  TempOnce:
+      # TODO: value should be 1 or another value ?
+      result[createJDlgStateKey(state)] = newJInt(if state.mode == ShowOnce: 2 else: 1)
+
+proc createJEasyMode(): JsonNode =
+  var g: HSQOBJECT
+  getf("g", g)
+  var easyMode: int
+  getf(g, "easy_mode", easyMode)
+  result = newJInt(easyMode)
+
+proc toint(b: bool): int =
+  if b: 1 else: 0
+
+proc createJSelectableActor(slot: ActorSlot): JsonNode =
+  result = newJObject()
+  result["_actorKey"] = newJString(slot.actor.key)
+  result["selectable"] = newJInt(slot.selectable.toint)
+
+proc createJSelectableActors(): JsonNode =
+  result = newJArray()
+  for slot in gEngine.hud.actorSlots:
+    if not slot.actor.isNil:
+      result.add createJSelectableActor(slot)
+
+proc createJGameScene(): JsonNode =
+  let actorsSelectable = asOn in gEngine.actorswitcher.mode
+  let actorsTempUnselectable = asTemporaryUnselectable in gEngine.actorswitcher.mode
+  result = newJObject()
+  result["actorsSelectable"] = newJInt(actorsSelectable.toint)
+  result["actorsTempUnselectable"] = newJInt(actorsTempUnselectable.toint)
+  result["forceTalkieText"] = newJInt(tmpPrefs().forceTalkieText.toint)
+  result["selectableActors"] = createJSelectableActors()
+
+proc createJGlobals(): JsonNode =
+  var g: HSQOBJECT
+  getf("g", g)
+  result = tojson(g, false)
+  result.fields.sort(cmpKey)
+
+proc createJInputState(): JsonNode =
+  newJInt(gEngine.inputState.getState().int)
+
+proc createJInventory(slot: ActorSlot): JsonNode =
+  result = newJObject()
+  if slot.actor.isNil:
+    result["scroll"] = newJInt(0)
+  else:
+    let objKeys = newJArray()
+    let jiggleArray = newJArray()
+    var anyJiggle: bool
+    for obj in slot.actor.inventory:
+      # TODO: jiggle
+      #let jiggle = obj.getJiggle()
+      let jiggle = false
+      if jiggle:
+        anyJiggle = true
+      jiggleArray.add newJInt(jiggle.toint)
+      objKeys.add newJString(obj.key)
+
+    if objKeys.len > 0:
+      result["objects"] = objKeys
+    result["scroll"] = newJInt(slot.actor.inventoryOffset)
+    if anyJiggle:
+      result["jiggle"] = jiggleArray
+
+proc createJInventory(): JsonNode =
+  let slots = newJArray()
+  for slot in gEngine.hud.actorSlots:
+    slots.add createJInventory(slot)
+  result = newJObject()
+  result["slots"] = slots
+
+proc createJObject(obj: Object): JsonNode =
+  result = tojson(obj.table, false)
+  if not obj.node.visible:
+    result["_hidden"] = newJInt(1)
+  if obj.state != 0:
+    result["_state"] = newJInt(obj.state)
+  if not obj.touchable:
+    result["_touchable"] = newJInt(0)
+  if obj.node.offset != Vec2f():
+    result["_offset"] = newJString(obj.node.offset.tostr)
+  result.fields.sort(cmpKey)
+
+proc createJObjects(): JsonNode =
+  result = newJObject()
+  for room in gEngine.rooms:
+    if not room.isNil and not room.pseudo:
+      for layer in room.layers:
+        for obj in layer.objects:
+          if not obj.temporary and obj.objType == otNone:
+            if obj.table.getId().isObject():
+              result[obj.key] = createJObject(obj)
+  for obj in gEngine.inventory:
+    if obj.table.getId().isObject():
+      result[obj.key] = createJObject(obj)
+  result.fields.sort(cmpKey)
+
+proc createJPseudoObjects(room: Room): JsonNode =
+  result = newJObject()
+  for layer in room.layers:
+    for obj in layer.objects:
+      if not obj.temporary and obj.objType == otNone and obj.table.getId().isObject():
+        result[obj.key] = createJObject(obj)
+  result.fields.sort(cmpKey)
+
+proc createJRoom(room: Room): JsonNode =
+  result = tojson(room.table, false, true)
+  if room.pseudo:
+    result["_pseudoObjects"] = createJPseudoObjects(room)
+
+proc createJRooms(): JsonNode =
+  result = newJObject()
+  for room in gEngine.rooms:
+    if not room.isNil:
+      result[room.name] = createJRoom(room)
+  result.fields.sort(cmpKey)
+
+proc createJActorKey(actor: Object): JsonNode =
+  newJString(if actor.isNil: "" else: actor.key)
+
+proc createSaveGame(): Savegame =
+  let t = getTime()
+  let json = newJObject()
+  json["actors"] = createJActors()
+  json["callbacks"] = createJCallbacks()
+  json["currentRoom"] = createJRoomKey(gEngine.room)
+  json["dialog"] = createJDialog()
+  json["easy_mode"] = createJEasyMode()
+  json["gameGUID"] = newJString("")
+  json["gameScene"] = createJGameScene()
+  json["gameTime"] = newJFloat(gEngine.time)
+  json["globals"] = createJGlobals()
+  json["inputState"] = createJInputState()
+  json["inventory"] = createJInventory()
+  json["objects"] = createJObjects()
+  json["rooms"] = createJRooms()
+  json["savebuild"] = newJInt(958)
+  json["savetime"] = newJInt(t.toUnix)
+  json["selectedActor"] = createJActorKey(gEngine.actor)
+  json["version"] = newJInt(2)
+  Savegame(data: json, time: t)
+
+proc saveGame*(path: string) =
+  call("preSave")
+  let data = createSaveGame()
+  let thumbnail = changeFileExt(path, ".png")
+  gEngine.capture(thumbnail, ThumbnailSize)
+  saveSaveGame(path, data)
+  call("postSave")

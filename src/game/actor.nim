@@ -77,8 +77,9 @@ proc setCostume*(self: Object, name, sheet: string) =
   let stream = gGGPackMgr.loadStream(name & ".json")
   let json = newGGTableDecoder(stream).hash
   self.anims = parseObjectAnimations(json["animations"])
-  var path = if sheet.len == 0: json["sheet"].str else: sheet 
-  self.sheet = path
+  self.costumeName = name
+  self.costumeSheet = sheet
+  self.sheet = if sheet.len == 0: json["sheet"].str else: sheet
   self.stand()
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
