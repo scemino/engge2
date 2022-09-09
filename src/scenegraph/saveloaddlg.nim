@@ -149,10 +149,6 @@ proc newSaveLoadDialog*(mode: SaveLoadDialogMode, clickCbk: ClickCallback): Save
       sn.scale = scale
       sn.setAnchorNorm(vec2(0.5f, 0.5f))
       sn.pos = vec2f(scale.x * (1f + (i mod 3).float32) * (sn.size.x + 4f), (scale.y * ((8-i) div 3).float32 * (sn.size.y + 4f)))
-      let tag = if mode == smLoad: cast[pointer](result.savegames[i].data) else: cast[pointer](i)
-      # don't allow to save on slot 0
-      if mode == smLoad or i != 0:
-        sn.addButton(onGameButton, tag)
       result.addChild sn
 
       # game time text
@@ -171,7 +167,14 @@ proc newSaveLoadDialog*(mode: SaveLoadDialogMode, clickCbk: ClickCallback): Save
     let sn = newSpriteNode(gResMgr.texture(sheet.meta.image), slotFrame)
     sn.scale = vec2(4f, 4f)
     sn.setAnchorNorm(vec2(0.5f, 0.5f))
-    sn.pos = vec2f((1f + (i mod 3).float32) * 4f * (sn.size.x + 1f), 4f * (i div 3).float32 * (sn.size.y + 1f))
+    sn.pos = vec2f((1f + (i mod 3).float32) * 4f * (sn.size.x + 1f), 4f * ((8-i) div 3).float32 * (sn.size.y + 1f))
+    
+    # don't allow to save on slot 0
+    if (mode == smLoad and fileExists(savePath)) or (mode == smSave and i != 0):
+      echo fmt"file '{savePath}' exists #{i}" 
+      let tag = if mode == smLoad: cast[pointer](result.savegames[i].data) else: cast[pointer](i)
+      sn.addButton(onGameButton, tag)
+    
     result.addChild sn
 
   result.addChild newButton(Back, 80f, "UIFontMedium")
