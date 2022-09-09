@@ -110,8 +110,8 @@ proc fmtGameTime(timeInSec: float): string =
 proc onGameButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Down:
-    popState(stateCount() - 1)
     let dlg = cast[SaveLoadDialog](src.getParent())
+    popState(stateCount() - 1)
     if dlg.mode == smLoad:
       let data = cast[JsonNode](tag)
       loadGame(data)

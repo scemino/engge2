@@ -28,6 +28,9 @@ import ../gfx/color
 import ../util/jsonutil
 import ../util/utils
 
+const
+  ThumbnailSize = vec2i(320'i32, 180'i32)
+
 proc actor(key: string): Object =
   for a in gEngine.actors:
     if a.key == key:
@@ -715,6 +718,6 @@ proc saveGame*(path: string) =
   call("preSave")
   let data = createSaveGame()
   let thumbnail = changeFileExt(path, ".png")
-  gEngine.capture(thumbnail, vec2i(320'i32, 200'i32))
+  gEngine.capture(thumbnail, ThumbnailSize)
   saveSaveGame(path, data)
   call("postSave")

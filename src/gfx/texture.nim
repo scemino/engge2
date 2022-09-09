@@ -1,5 +1,6 @@
 import std/strformat
 import glm
+import stb_image
 import image
 import ../libs/opengl
 
@@ -45,6 +46,7 @@ proc capture*(self: Texture): Image =
 
 proc capture*(self: Texture, filename: string) =
   let img = self.capture()
+  flipVerticallyOnWrite(true)
   img.writePNG(filename)
 
 proc destroy*(self: Texture) =

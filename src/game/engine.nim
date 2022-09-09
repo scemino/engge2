@@ -34,6 +34,7 @@ import ../scenegraph/dialog
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
 import ../scenegraph/inventory
+import ../game/states/dlgstate
 import ../game/states/state
 import ../sys/app
 import ../util/common
@@ -715,7 +716,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
-    let selectFunc = proc() = self.ui.addChild newOptionsDialog(FromGame)
+    let selectFunc = proc() = pushState newDlgState(newOptionsDialog(FromGame))
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
 
 proc update*(self: Engine, elapsed: float) =
