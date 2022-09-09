@@ -36,15 +36,18 @@ type
     loaded: bool        # indicates whether or not the sound buffer has been loaded
   SoundId* = ref object of RootObj
     id*: int
-    entityId: int
+    objId*: int
     sndDef*: SoundDefinition
     cat*: SoundCategory
     chan*: AudioChannel
+    pan*: float32
+  VolFunc = proc(id: SoundId): float32
   AudioSystem* = ref object of RootObj
     chans*: array[32, AudioChannel]
     soundDefs*: seq[SoundDefinition]
     sounds*: array[32, SoundId]
     volumes: Table[VolumeKind, float]
+    volFunc: VolFunc
 
 proc checkError() =
   let err = sdl2.getError()
@@ -130,29 +133,22 @@ proc stop*(self: AudioChannel, fadeOutTimeSec = 0.0) =
     discard mixer.fadeOutChannel(self.id, (fadeOutTimeSec * 1000).cint)
     checkError()
 
+proc setPan*(self: AudioChannel, panNorm: float32) =
+  let pan = clamp(panNorm * 128f, -127f, 128f)
+  let left = (128f - pan).byte
+  discard mixer.setPanning(self.id, left, 255 - left)
+
 proc volume*(self: AudioSystem, kind: VolumeKind): float
 
 # SoundId
-proc newSoundId(chan: AudioChannel, sndDef: SoundDefinition, cat: SoundCategory): SoundId =
-  result = SoundId(id: newSoundId(), chan: chan, sndDef: sndDef, cat: cat)
+proc newSoundId(chan: AudioChannel, sndDef: SoundDefinition, cat: SoundCategory, objId: int): SoundId =
+  result = SoundId(id: newSoundId(), chan: chan, sndDef: sndDef, cat: cat, objId: objId)
 
 proc update*(self: SoundId, audio: AudioSystem) =
-  var entityVolume = 1.0
-  # TODO: entityVolume
-  # var entity = if self.entityId == 0: entity(self.entityId) else: nil
-  # if not entity.isNil:
-  #   let at = cameraPos()
-  #   let room = gEngine.room
-  #   entityVolume = if room != entity.room: 0 else: entity.volume
-
-  #   if room == entity.room:
-  #     let width = room.screenSize.x
-  #     let diff = abs(at.x - entity.pos.x)
-  #     entityVolume = (1.5f - (diff / width)) / 1.5f
-  #     if entityVolume < 0:
-  #       entityVolume = 0
-  #     let pan = clamp((entity.pos.x - at.x) / (width / 2), -1.0, 1.0)
-  #     self.panning = pan
+  let objVolume = if self.objId == 0: 1f else: audio.volFunc(self)
+  
+  let pan = clamp(self.pan, -1f, 1f)
+  self.chan.setPan(pan)
 
   var volKind: VolumeKind
   case self.cat:
@@ -164,23 +160,22 @@ proc update*(self: SoundId, audio: AudioSystem) =
     volKind = vkTalk
   let categoryVolume = audio.volume(volKind)
   let masterVolume = audio.volume(vkMaster)
-  let volume = masterVolume * categoryVolume * entityVolume
+  let volume = masterVolume * categoryVolume * objVolume
   self.chan.volume = volume
 
 # AudioSystem
-proc newAudioSystem*(): AudioSystem =
-  new(result)
-  result.volumes = {vkMaster: 1.0, vkMusic: 1.0, vkSound: 1.0, vkTalk: 1.0}.toTable
+proc newAudioSystem*(volFunc: VolFunc): AudioSystem =
+  result = AudioSystem(volFunc: volFunc, volumes: {vkMaster: 1.0, vkMusic: 1.0, vkSound: 1.0, vkTalk: 1.0}.toTable)
   for i in 0..<result.chans.len:
     result.chans[i] = newAudioChannel(i)
 
-proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopTimes = 0; fadeInTimeMs = 0.0): SoundId =
+proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopTimes = 0; fadeInTimeMs = 0.0, objId = 0): SoundId =
   for chan in self.chans:
     if chan.status() == Stopped:
       sndDef.load()
       chan.buffer = sndDef.buffer
       chan.play(loopTimes, fadeInTimeMs)
-      var sound = newSoundId(chan, sndDef, cat)
+      var sound = newSoundId(chan, sndDef, cat, objId)
       self.sounds[chan.id] = sound
       # info fmt"[{chan.id}] loop {loopTimes} {cat} {sndDef.name}"
       return sound

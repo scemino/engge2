@@ -12,6 +12,7 @@ import verb
 import shaders
 import inputmap
 import motors/motor
+import ../audio/audio
 import ../script/squtils
 import ../script/flags
 import ../script/vm
@@ -95,12 +96,13 @@ proc selectActor(index: int)
 proc selectNextActor()
 proc selectPrevActor()
 proc takeScreenshot()
+proc soundObjVol(self: SoundId): float32
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
   gEngine = result
   result.v = v
-  result.audio = newAudioSystem()
+  result.audio = newAudioSystem(soundObjVol)
   result.scene = newScene()
   result.screen = newScene()
   result.hud = newHud()
@@ -350,6 +352,12 @@ proc setRoom*(self: Engine, room: Room) =
 
 proc inInventory*(obj: Object): bool =
   gEngine.inventory.contains obj
+
+iterator roomObjs*(self: Engine): Object =
+  for room in self.rooms:
+    for layer in room.layers:
+      for o in layer.objects:
+        yield o
 
 iterator objsAt*(self: Engine, pos: Vec2f): Object =
   if not self.uiInv.obj.isNil and self.room.fullscreen == FullscreenRoom:
@@ -906,3 +914,24 @@ proc capture*(self: Engine, filename: string, size: Vec2i) =
 
 proc takeScreenshot() =
   gEngine.capture("screenshot.png", vec2i(ScreenWidth.int32, ScreenHeight.int32))
+
+proc roomObjs(self: Engine, id: int): Object =
+  for obj in self.roomObjs():
+    if obj.id == id:
+      return obj
+
+proc soundObjVol(self: SoundId): float32 =
+  let obj = gEngine.roomObjs(self.objId)
+  result = 1'f32
+  if not obj.isNil:
+    let at = cameraPos()
+    let room = gEngine.room
+    result = if room != obj.room: 0'f32 else: obj.volume
+
+    if room == obj.room:
+      let width = gEngine.room.getScreenSize().x.float32
+      let diff = abs(at.x - obj.node.pos.x)
+      result = (1.5f - (diff / width)) / 1.5f
+      if result < 0:
+        result = 0
+      self.pan = clamp((obj.node.pos.x - at.x) / (width / 2), -1.0, 1.0)

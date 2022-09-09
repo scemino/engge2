@@ -128,7 +128,7 @@ proc playObjectSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if not obj.sound.isNil:
     gEngine.audio.fadeOut(obj.sound)
   
-  let soundId = gEngine.audio.play(soundDef, Sound, loopTimes, fadeInTime)
+  let soundId = gEngine.audio.play(soundDef, Sound, loopTimes, fadeInTime, obj.id)
   obj.sound = soundId
   let id = if soundId.isNil: 0 else: soundId.id
   push(v, id)
@@ -219,7 +219,7 @@ proc loopObjectSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   warn "loopObjectSound not fully implemented"
   if not obj.sound.isNil:
     gEngine.audio.fadeOut(obj.sound)
-  let soundId = gEngine.audio.play(sound, Sound, loopTimes, fadeInTime)
+  let soundId = gEngine.audio.play(sound, Sound, loopTimes, fadeInTime, obj.id)
   obj.sound = soundId
   let id = if soundId.isNil: 0 else: soundId.id
   push(v, id)

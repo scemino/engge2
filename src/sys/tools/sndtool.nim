@@ -24,13 +24,14 @@ method render*(self: SoundTool) =
   igText("# sounds: %d/%d", count, gEngine.audio.sounds.len)
   igSeparator()
     
-  if igBeginTable("Threads", 7, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
+  if igBeginTable("Threads", 8, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
     igTableSetupColumn("")
     igTableSetupColumn("Id")
     igTableSetupColumn("Category")
     igTableSetupColumn("Name")
     igTableSetupColumn("Loops")
     igTableSetupColumn("Volume")
+    igTableSetupColumn("Pan")
     igTableSetupColumn("Status")
     igTableHeadersRow()
 
@@ -50,6 +51,8 @@ method render*(self: SoundTool) =
         igText("%d", sound.chan.numLoops)
         igTableNextColumn()
         igText("%0.1f", sound.chan.vol)
+        igTableNextColumn()
+        igText("%0.1f", sound.pan)
         igTableNextColumn()
         igText("%s", ($status(sound.chan)).cstring)
         igSameLine()

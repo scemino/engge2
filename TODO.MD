@@ -62,10 +62,10 @@
 ## TODO
 
 * [ ] UI dialogs
-  * [ ] the background is greyed out (and is inactive)
+  * [x] the background is greyed out (and is inactive)
   * [x] Main menu (StartScreen) does not pause game
   * [ ] Options
-    * [ ] Save game (enabled only in game)
+    * [x] Save game (enabled only in game)
     * [x] Load game (back: go back to main menu or game)
     * [x] Sound
     * [x] Video
@@ -102,11 +102,6 @@
     * [x] ignore #M or #F at the end of a text
     * [x] sound
   * [x] actor walk fast
-* [ ] audio
-  * [ ] sound position
-  * [x] talk
-  * [x] sound
-  * [x] music
 * [ ] dialogs
   * [ ] choice anim
   * [ ] choice slide when too long
@@ -216,6 +211,11 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] audio
+  * [x] sound position
+  * [x] talk
+  * [x] sound
+  * [x] music
 * [x] triggers
   * [x] room trigger should be called in a thread (to be breakable)
   * [x] sound triggers
