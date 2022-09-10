@@ -96,6 +96,7 @@ proc selectActor(index: int)
 proc selectNextActor()
 proc selectPrevActor()
 proc takeScreenshot()
+proc selectChoice(index: int)
 proc soundObjVol(self: SoundId): float32
 
 proc newEngine*(v: HSQUIRRELVM): Engine =
@@ -127,6 +128,12 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   regCmdFunc(GameCommand.SelectActor6, proc () = selectActor(5))
   regCmdFunc(GameCommand.SelectNextActor, proc () = selectNextActor())
   regCmdFunc(GameCommand.SelectPreviousActor, proc () = selectPrevActor())
+  regCmdFunc(GameCommand.SelectChoice1, proc () = selectChoice(0))
+  regCmdFunc(GameCommand.SelectChoice2, proc () = selectChoice(1))
+  regCmdFunc(GameCommand.SelectChoice3, proc () = selectChoice(2))
+  regCmdFunc(GameCommand.SelectChoice4, proc () = selectChoice(3))
+  regCmdFunc(GameCommand.SelectChoice5, proc () = selectChoice(4))
+  regCmdFunc(GameCommand.SelectChoice6, proc () = selectChoice(5))
   regCmdFunc(GameCommand.Screenshot, proc () = takeScreenshot())
 
 proc `seed=`*(self: Engine, seed: int64) =
@@ -689,9 +696,13 @@ proc setCurrentActor*(self: Engine, actor: Object, userSelected = false) =
     self.follow(actor)
 
 proc selectActor(index: int) =
-  let slot = gEngine.hud.actorSlots[index]
-  if slot.selectable and not slot.actor.isNil and slot.actor.room.name != "Void":
-    gEngine.setCurrentActor(slot.actor, true)
+  if gEngine.dlg.state == DialogState.None:
+    let slot = gEngine.hud.actorSlots[index]
+    if slot.selectable and not slot.actor.isNil and slot.actor.room.name != "Void":
+      gEngine.setCurrentActor(slot.actor, true)
+
+proc selectChoice(index: int) =
+  gEngine.dlg.choose(index)
 
 proc selectNextActor() =
   for i in 0..<gEngine.hud.actorSlots.len:
@@ -712,6 +723,9 @@ proc actorSwitcherSlot(self: Engine, slot: ActorSlot): ActorSwitcherSlot =
   let selectFunc = proc() = self.setCurrentActor(slot.actor, true)
   ActorSwitcherSlot(icon: slot.actor.getIcon(), back: slot.verbUiColors.inventoryBackground, frame: slot.verbUiColors.inventoryFrame, selectFunc: selectFunc)
 
+proc showOptions*() =
+  pushState newDlgState(newOptionsDialog(FromGame))
+
 proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
   if not self.actor.isNil:
     # add current actor first
@@ -724,8 +738,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
-    let selectFunc = proc() = pushState newDlgState(newOptionsDialog(FromGame))
-    result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: selectFunc)
+    result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: showOptions)
 
 proc update*(self: Engine, elapsed: float) =
   self.time += elapsed

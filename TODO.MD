@@ -140,16 +140,16 @@
     * [ ] SkipText
     * [ ] SkipCutscene
     * [ ] PauseGame
-    * [ ] SelectChoice1
-    * [ ] SelectChoice2
-    * [ ] SelectChoice3
-    * [ ] SelectChoice4
-    * [ ] SelectChoice5
-    * [ ] SelectChoice6
-    * [ ] ShowOptions
     * [ ] ToggleHud
     * [ ] ToggleDebug
     * [ ] ShowHotspot
+    * [x] ShowOptions
+    * [x] SelectChoice1
+    * [x] SelectChoice2
+    * [x] SelectChoice3
+    * [x] SelectChoice4
+    * [x] SelectChoice5
+    * [x] SelectChoice6
     * [x] SelectActor1
     * [x] SelectActor2
     * [x] SelectActor3

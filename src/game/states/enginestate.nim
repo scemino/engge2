@@ -88,8 +88,10 @@ method deinit*(self: EngineState) =
 
 method activate*(self: EngineState) =
   gEngine.screen.addChild gInputNode
+  regCmdFunc(GameCommand.ShowOptions, proc () = showOptions())
 
 method deactivate*(self: EngineState) =
+  unregCmdFunc(GameCommand.ShowOptions)
   gEngine.mouseState = MouseState()
 
 method handleInput*(self: EngineState, mouseState: MouseState) =

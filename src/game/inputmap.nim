@@ -79,6 +79,9 @@ proc regCmds*() =
 proc regCmdFunc*(cmd: GameCommand, h: CommandHandler) =
   gHandlers[cmd] = h
 
+proc unregCmdFunc*(cmd: GameCommand) =
+  gHandlers.del cmd
+
 proc execCmd*(cmd: GameCommand) =
   if gHandlers.hasKey cmd:
     info "exec cmd handler: " & $cmd

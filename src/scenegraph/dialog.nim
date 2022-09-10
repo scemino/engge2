@@ -209,14 +209,8 @@ proc choice(self: YStatement): YChoice {.inline.} =
 proc choice(self: DialogSlot): YChoice {.inline.} =
   choice(self.stamt)
 
-proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let slot = cast[ptr DialogSlot](tag)[]
-  case event:
-  of Enter:
-    src.color = slot.dlg.tgt.actorColorHover(slot.dlg.context.actor)
-  of Leave:
-    src.color = slot.dlg.tgt.actorColor(slot.dlg.context.actor)
-  of Down:
+proc choose(slot: DialogSlot) =
+  if not slot.isNil:
     sqCall("onChoiceClick")
     for cond in slot.stamt.conds:
       let v = CondStateVisitor(dlg: slot.dlg, mode: DialogSelMode.Choose)
@@ -228,6 +222,20 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
       slot.dlg.clearSlots()
     else:
       slot.dlg.selectLabel(slot.choice.goto.name)
+
+proc choose*(self: Dialog, choice: int) =
+  if self.state == WaitingForChoice:
+    choose(self.slots[choice])
+
+proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
+  let slot = cast[ptr DialogSlot](tag)[]
+  case event:
+  of Enter:
+    src.color = slot.dlg.tgt.actorColorHover(slot.dlg.context.actor)
+  of Leave:
+    src.color = slot.dlg.tgt.actorColor(slot.dlg.context.actor)
+  of Down:
+    choose(slot)
   else:
     discard
 
