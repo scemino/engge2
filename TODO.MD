@@ -137,12 +137,12 @@
   * [x] input mapping
   * [ ] verbs shortcuts
   * [ ] command handlers
-    * [ ] SkipText
-    * [ ] SkipCutscene
     * [ ] PauseGame
     * [ ] ToggleHud
     * [ ] ToggleDebug
     * [ ] ShowHotspot
+    * [x] SkipCutscene
+    * [x] SkipText
     * [x] ShowOptions
     * [x] SelectChoice1
     * [x] SelectChoice2
@@ -158,9 +158,6 @@
     * [x] SelectActor6
     * [x] SelectPreviousActor
     * [x] SelectNextActor
-* [ ] cutscene
-  * [ ] cutscene UI (ESC)
-  * [x] cutscene override
 * [ ] preferences
   * [ ] private preferences (achievement)
   * [x] user preferences
@@ -211,6 +208,9 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] cutscene
+  * [x] cutscene UI (ESC)
+  * [x] cutscene override
 * [x] audio
   * [x] sound position
   * [x] talk

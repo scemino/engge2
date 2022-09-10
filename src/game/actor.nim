@@ -123,8 +123,9 @@ proc stopTalking*(self: Object) =
     self.setHeadIndex(1)
 
 proc stopTalking*() =
-  for actor in gEngine.actors:
-    actor.stopTalking()
+  for layer in gEngine.room.layers:
+    for obj in layer.objects:
+      obj.stopTalking()
 
 import motors/turnto
 

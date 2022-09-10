@@ -1,7 +1,9 @@
 import std/[logging, os, strformat, times]
 import sqnim
 import state
+import ../actor
 import ../engine
+import ../cutscene
 import ../eventmanager
 import ../gameeventmanager
 import ../prefs
@@ -17,12 +19,14 @@ import ../../io/textdb
 import ../../scenegraph/node
 import ../../scenegraph/dlgenginetgt
 import ../../scenegraph/pathnode
+import ../../scenegraph/nooverride
 import ../../sys/debugtool
 import ../../sys/tools
 
 type
   EngineState = ref object of State
     packageName, appName: string
+    noOverride: NoOverride
 
 proc newEngineState*(packageName, appName: string): EngineState =
   EngineState(packageName: packageName, appName: appName)
@@ -86,12 +90,27 @@ method init*(self: EngineState) =
 method deinit*(self: EngineState) =
   discard
 
+proc skipCutscene(self: EngineState) =
+  let cutscene = cast[Cutscene](gEngine.cutscene)
+  if not cutscene.isNil:
+    if cutscene.hasOverride:
+      cutscene.cutsceneOverride()
+    elif self.noOverride.isNil:
+      self.noOverride = newNoOverride()
+      gEngine.screen.addChild self.noOverride
+    else:
+      self.noOverride.reset()
+
 method activate*(self: EngineState) =
   gEngine.screen.addChild gInputNode
   regCmdFunc(GameCommand.ShowOptions, proc () = showOptions())
+  regCmdFunc(GameCommand.SkipText, proc () = stopTalking())
+  regCmdFunc(GameCommand.SkipCutscene, proc () = self.skipCutscene())
 
 method deactivate*(self: EngineState) =
   unregCmdFunc(GameCommand.ShowOptions)
+  unregCmdFunc(GameCommand.SkipText)
+  unregCmdFunc(GameCommand.SkipCutscene)
   gEngine.mouseState = MouseState()
 
 method handleInput*(self: EngineState, mouseState: MouseState) =
@@ -99,4 +118,8 @@ method handleInput*(self: EngineState, mouseState: MouseState) =
 
 method update*(self: EngineState, elapsed: float) =
   gEngine.update(elapsed)
+  if not self.noOverride.isNil:
+    if not self.noOverride.update(elapsed):
+      self.noOverride.remove()
+      self.noOverride = nil
   gEngine.render()

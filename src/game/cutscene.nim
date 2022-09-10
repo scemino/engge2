@@ -77,8 +77,11 @@ proc checkEndCutscene(self: Cutscene) =
 proc cutsceneOverride*(self: Cutscene) =
   self.state = csOverride
 
+proc hasOverride*(self: Cutscene): bool =
+  not sq_isnull(self.closureOverride)
+
 proc doCutsceneOverride(self: Cutscene) =
-  if not sq_isnull(self.closureOverride):
+  if self.hasOverride:
     self.state = csCheckOverride
     debug "start cutsceneOverride"
     sq_pushobject(self.getThread(), self.closureOverride)
