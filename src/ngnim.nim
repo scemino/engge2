@@ -14,9 +14,18 @@ const
   AppName = "engge II"
   PackageName = "ThimbleweedPark.ggpack1"
 
-proc onKey(key: InputKey, scancode: int32, action: InputAction,
-    mods: InputModifierKey) =
-  execCmd(Input(key: key, modf: mods))
+var
+  oldKeys: seq[InputKey]
+
+proc onKey(key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey) =
+  if action == iaPressed:
+    if not oldKeys.contains(key):
+      oldKeys.add key
+      execCmd(Input(key: key, modf: mods))
+  else:
+    let i = oldKeys.find(key)
+    if i != -1:
+      oldKeys.del i
 
 proc render() =
   updateState()

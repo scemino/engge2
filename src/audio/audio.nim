@@ -133,6 +133,12 @@ proc stop*(self: AudioChannel, fadeOutTimeSec = 0.0) =
     discard mixer.fadeOutChannel(self.id, (fadeOutTimeSec * 1000).cint)
     checkError()
 
+proc pause*(self: AudioChannel) =
+  mixer.pause(self.id)
+
+proc resume*(self: AudioChannel) =
+  mixer.resume(self.id)
+
 proc setPan*(self: AudioChannel, panNorm: float32) =
   let pan = clamp(panNorm * 128f, -127f, 128f)
   let left = (128f - pan).byte
@@ -208,6 +214,14 @@ proc playing*(self: AudioSystem, snd: SoundDefinition): bool =
 proc stopAll*(self: AudioSystem) =
   for chan in self.chans:
     chan.stop()
+
+proc pauseAll*(self: AudioSystem) =
+  for chan in self.chans:
+    chan.pause()
+
+proc resumeAll*(self: AudioSystem) =
+  for chan in self.chans:
+    chan.resume()
 
 proc volume*(self: AudioSystem, snd: SoundId, vol: float) =
   let volume = clamp(vol, 0.0, 1.0)

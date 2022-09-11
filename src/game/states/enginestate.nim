@@ -1,6 +1,7 @@
 import std/[logging, os, strformat, times]
 import sqnim
 import state
+import pausestate
 import ../actor
 import ../engine
 import ../cutscene
@@ -104,10 +105,12 @@ proc skipCutscene(self: EngineState) =
 method activate*(self: EngineState) =
   gEngine.screen.addChild gInputNode
   regCmdFunc(GameCommand.ShowOptions, proc () = showOptions())
+  regCmdFunc(GameCommand.PauseGame, proc () = pushState newPauseState())
   regCmdFunc(GameCommand.SkipText, proc () = stopTalking())
   regCmdFunc(GameCommand.SkipCutscene, proc () = self.skipCutscene())
 
 method deactivate*(self: EngineState) =
+  unregCmdFunc(GameCommand.PauseGame)
   unregCmdFunc(GameCommand.ShowOptions)
   unregCmdFunc(GameCommand.SkipText)
   unregCmdFunc(GameCommand.SkipCutscene)

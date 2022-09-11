@@ -137,10 +137,10 @@
   * [x] input mapping
   * [ ] verbs shortcuts
   * [ ] command handlers
-    * [ ] PauseGame
     * [ ] ToggleHud
     * [ ] ToggleDebug
     * [ ] ShowHotspot
+    * [x] PauseGame
     * [x] SkipCutscene
     * [x] SkipText
     * [x] ShowOptions
