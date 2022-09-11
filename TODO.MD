@@ -184,7 +184,7 @@
   * [x] sounds
 * [ ] sentence
   * [ ] classic sentence
-  * [ ] use lookat verb for inventory object 
+  * [x] use lookat verb for inventory object 
   * [x] use flag: with, in, on
   * [x] use flag: giveto
   * [x] cursor verb should be reset (walk to) when action is executed or cancelled
@@ -192,16 +192,15 @@
   * [ ] verbs
     * [ ] highlight default verb
     * [x] draw verbs
-  * [ ] inventory
-    * [ ] use default verb
-    * [x] scroll
-    * [x] inventory item animation
   * [ ] fade
   * [ ] mouse text repositioned
   * [ ] when sentence is set to classic the cursor change over objects/actors
   * [ ] actor selection
     * [ ] fade transition when switchin actors
     * [x] actor switch
+  * [x] inventory
+    * [x] scroll
+    * [x] inventory item animation
   * [x] mouse zsort
   * [x] mouse cursor
 * [ ] logging

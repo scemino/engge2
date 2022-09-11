@@ -587,9 +587,10 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
         self.cancelSentence(self.actor)
     elif self.mouseState.click(mbRight):
       # button right: execute default verb
-      if not obj.isNil and obj.table.rawexists("defaultVerb"):
-        var defVerbId: int
-        obj.table.getf("defaultVerb", defVerbId)
+      if not obj.isNil:
+        var defVerbId = VERB_LOOKAT
+        if obj.table.rawexists("defaultVerb"):
+          obj.table.getf("defaultVerb", defVerbId)
         discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
     elif self.walkFastState and self.mouseState.pressed() and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
