@@ -7,6 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [ ] (drinking sound)sip sip sip sip in dialog
 * [x] Ransome has no face when using gel
 * [x] Ransome loses his makeup
 * [x] Ransome can't take his makeup
@@ -188,6 +189,13 @@
   * [x] use flag: giveto
   * [x] cursor verb should be reset (walk to) when action is executed or cancelled
 * [ ] HUD
+  * [ ] verbs
+    * [ ] highlight default verb
+    * [x] draw verbs
+  * [ ] inventory
+    * [ ] use default verb
+    * [x] scroll
+    * [x] inventory item animation
   * [ ] fade
   * [ ] mouse text repositioned
   * [ ] when sentence is set to classic the cursor change over objects/actors
@@ -195,10 +203,6 @@
     * [ ] fade transition when switchin actors
     * [x] actor switch
   * [x] mouse zsort
-  * [x] verbs
-  * [x] inventory
-    * [x] scroll
-    * [x] inventory item animation
   * [x] mouse cursor
 * [ ] logging
   * [ ] add colors to console

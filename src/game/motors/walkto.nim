@@ -64,7 +64,8 @@ proc cantReach(self: Object, noun2: Object) =
   elif not noun2.isNil:
     noun2.cantReach(nil)
   else:
-    warn fmt"verbCantReach not found in obj '{self.key}'"
+    var nilTbl: HSQOBJECT
+    gEngine.defaultObj.call("verbCantReach", [self.table, if noun2.isnil: nilTbl else: noun2.table])
 
 proc actorArrived(self: WalkTo) =
   info "actorArrived"

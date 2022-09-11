@@ -455,9 +455,20 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
     return
 
   if noun2.isNil:
-    call(noun1.table, verbFuncName)
+    if noun1.table.rawExists(verbFuncName):
+      info fmt"call {noun1.key}.{verbFuncName}"
+      call(noun1.table, verbFuncName)
+    else:
+      info fmt"call defaultObject.{verbFuncName}"
+      var nilObj: HSQOBJECT
+      call(self.defaultObj, verbFuncName, [noun1.table, nilObj])
   else:
-    call(noun1.table, verbFuncName, [noun2.table])
+    if noun1.table.rawExists(verbFuncName):
+      info fmt"call {noun1.key}.{verbFuncName}"
+      call(noun1.table, verbFuncName, [noun2.table])
+    else:
+      info fmt"call defaultObject.{verbFuncName}"
+      call(self.defaultObj, verbFuncName, [noun1.table, noun2.table])
 
   # TODO: finish this
 
@@ -567,8 +578,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
       var handled = false
       if not obj.isNil:
         let verb = self.hud.verb
-        if obj.table.exists(verb.fun) or verb.id == VERB_GIVE:
-          handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
+        handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled and not self.clickedAtHandled(roomPos):
         if not self.actor.isNil and scrPos.y > 172:
           self.actor.walk(room_pos)
@@ -580,9 +590,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
       if not obj.isNil and obj.table.rawexists("defaultVerb"):
         var defVerbId: int
         obj.table.getf("defaultVerb", defVerbId)
-        let verbName = self.hud.actorSlot(self.actor).verb(defVerbId.int).fun
-        if obj.table.rawexists(verbName):
-          discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
+        discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
     elif self.walkFastState and self.mouseState.pressed() and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
 
