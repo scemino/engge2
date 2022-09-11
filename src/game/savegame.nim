@@ -286,18 +286,19 @@ proc loadInventory(json: JsonNode) =
     let jSlots = json["slots"]
     for i in 0..<gEngine.hud.actorSlots.len:
       let actor = gEngine.hud.actorSlots[i].actor
-      actor.inventory.setLen 0
-      let jSlot = jSlots[i]
-      if jSlot.hasKey "objects":
-        if jSlot["objects"].kind != JNull:
-          for jObj in jSlot["objects"]:
-            let obj = invObj(jObj.getStr())
-            if obj.isNil:
-              warn fmt"inventory obj '{jObj.getStr()}' not found"
-            else:
-              actor.pickupObject obj
-        # TODO: "jiggle"
-      actor.inventoryOffset = jSlot["scroll"].getInt()
+      if not actor.isNil:
+        actor.inventory.setLen 0
+        let jSlot = jSlots[i]
+        if jSlot.hasKey "objects":
+          if jSlot["objects"].kind != JNull:
+            for jObj in jSlot["objects"]:
+              let obj = invObj(jObj.getStr())
+              if obj.isNil:
+                warn fmt"inventory obj '{jObj.getStr()}' not found"
+              else:
+                actor.pickupObject obj
+          # TODO: "jiggle"
+        actor.inventoryOffset = jSlot["scroll"].getInt()
 
 proc loadActors(json: JsonNode) =
   for actor in gEngine.actors:
