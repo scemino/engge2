@@ -121,7 +121,7 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
 
 proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
-  var curThread = thread(v)
+  let curThread = thread(v)
   if curThread.isNil:
     return sq_throwerror(v, "Current thread should be created with startthread")
   
@@ -141,7 +141,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## actorPlayAnimation(ray, "vomit")
   ## breakwhileanimating(ray)
   ## actorCostume(ray, "RayAnimation")
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.disabled)
@@ -263,7 +263,7 @@ proc breakwhilesound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if not soundDef.isNil:
       result = breakwhilecond(v, fmt"breakwhilesound({soundDef.id})", proc (): bool = gEngine.audio.playing(soundDef))
 
-proc fcutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+proc cutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let nArgs = sq_gettop(v)
 
   var envObj: HSQOBJECT
@@ -372,13 +372,14 @@ proc inputHUD(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.inputHUD = on
 
 proc inputOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  gEngine.inputState.inputActive = false
-  gEngine.inputState.showCursor = false
+  if gEngine.cutscene.isNil:
+    gEngine.inputState.inputActive = false
+    gEngine.inputState.showCursor = false
 
 proc inputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  info "inputOn"
-  gEngine.inputState.inputActive = true
-  gEngine.inputState.showCursor = true
+  if gEngine.cutscene.isNil:
+    gEngine.inputState.inputActive = true
+    gEngine.inputState.showCursor = true
 
 proc inputSilentOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.inputActive = false
@@ -634,7 +635,7 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(breakwhilesound, "breakwhilesound")
   v.regGblFun(breakwhiletalking, "breakwhiletalking")
   v.regGblFun(breakwhilewalking, "breakwhilewalking")
-  v.regGblFun(fcutscene, "cutscene")
+  v.regGblFun(cutscene, "cutscene")
   v.regGblFun(cutsceneOverride, "cutsceneOverride")
   v.regGblFun(dumpvar, "dumpvar")
   v.regGblFun(exCommand, "exCommand")

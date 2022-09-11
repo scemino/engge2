@@ -411,9 +411,9 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
   sqCall("onObjectClick", [noun1.table])
 
   # Called after the actor has walked to the object.
-  let name = if actor.isNil: "currentActor" else: actor.name
-  let noun1name = if noun1.isNil: "null" else: noun1.name
-  let noun2name = if noun2.isNil: "null" else: noun2.name
+  let name = if actor.isNil: "currentActor" else: actor.key
+  let noun1name = if noun1.isNil: "null" else: noun1.key
+  let noun2name = if noun2.isNil: "null" else: noun2.key
   let verbFuncName = gEngine.hud.actorSlot(actor).verb(verbId).fun
   info fmt"callVerb({name},{verbFuncName},{noun1name},{noun2name})"
 
