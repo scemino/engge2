@@ -239,10 +239,22 @@ proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   else:
     discard
 
+proc remove(txt: string, startC, endC: char): string =
+  result = txt
+  if result[0] == startC:
+    let i = result.find(endC)
+    if i != -1:
+      result = result[i+1..^1]
+
+proc text(txt: string): string =
+  result = getText(txt)
+  result = remove(result, '(', ')')
+  result = remove(result, '{', '}')
+
 proc addSlot(self: Dialog, stamt: YStatement) =
   let choice = stamt.choice
   if self.slots[choice.number - 1].isNil and self.numSlots() < self.context.limit:
-    let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & getText(choice.text), thLeft))
+    let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & text(choice.text), thLeft))
     textNode.color = self.tgt.actorColor(self.context.actor)
     let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
     textNode.pos = vec2(8'f32, y)

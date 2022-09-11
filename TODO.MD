@@ -7,7 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
-* [ ] (drinking sound)sip sip sip sip in dialog
+* [x] (drinking sound)sip sip sip sip in dialog
 * [x] Ransome has no face when using gel
 * [x] Ransome loses his makeup
 * [x] Ransome can't take his makeup
