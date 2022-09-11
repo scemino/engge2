@@ -19,7 +19,6 @@ import ../../io/ggpackmanager
 import ../../io/textdb
 import ../../scenegraph/node
 import ../../scenegraph/dlgenginetgt
-import ../../scenegraph/pathnode
 import ../../scenegraph/nooverride
 import ../../sys/debugtool
 import ../../sys/tools
@@ -66,7 +65,6 @@ method init*(self: EngineState) =
   let vm = vm.newVM()
   discard newEngine(vm.v)
   gEngine.dlg.tgt = EngineDialogTarget()
-  gEngine.screen.addChild newPathNode()
 
   sq_pushroottable(vm.v)
   sqstd_register_stringlib(vm.v)

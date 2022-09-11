@@ -11,6 +11,8 @@ import ../../game/motors/motor
 import ../../game/shaders
 import ../../scenegraph/dialog
 import ../../scenegraph/walkboxnode
+import ../../scenegraph/node
+import ../../scenegraph/pathnode
 import ../../libs/imgui
 import ../../sys/app
 import ../../script/vm
@@ -24,6 +26,7 @@ type
 
 var 
   gGeneralVisible = true
+  gPathNode: PathNode
 
 proc newGeneralTool*(): GeneralTool =
   result = GeneralTool()
@@ -106,6 +109,11 @@ method render*(self: GeneralTool) =
     var mode = gEngine.walkboxNode.mode.int32
     if igCombo("Walkbox", mode.addr, WalkboxModes):
       gEngine.walkboxNode.mode = mode.WalkboxMode
+      if gEngine.walkboxNode.mode != WalkboxMode.None and gPathNode.isNil:
+        gPathNode = newPathNode()
+        gEngine.screen.addChild gPathNode
+      elif gEngine.walkboxNode.mode == WalkboxMode.None:
+        gPathNode.remove()
 
     var effect = room.effect.int32
     if igCombo("Shader", effect.addr, RoomEffects):
