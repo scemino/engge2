@@ -888,6 +888,7 @@ proc newAnim*(obj: Object): Anim =
 
 proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant = false) =
   self.anim = anim
+  self.disabled = false
   self.name = anim.name
   self.frames = self.obj.getFrames(anim.frames)
   self.frameIndex = if instant and self.frames.len > 0: self.frames.len - 1 else: 0
