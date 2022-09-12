@@ -86,14 +86,14 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if not spot.isNil:
       let pos = spot.node.pos + spot.usePos
       actor.room = spot.room
-      info fmt"actorAt {actor.name} at {spot.name}, room '{spot.room.name}'"
+      info fmt"actorAt {actor.key} at {spot.key}, room '{spot.room.name}'"
       actor.node.pos = pos
       actor.setFacing(getFacing(spot.useDir.SQInteger, actor.getFacing))
     else:
       let room = room(v, 3)
       if room.isNil:
         return sq_throwerror(v, "failed to get spot or room")
-      info fmt"actorAt {actor.name} room '{room.name}'"
+      info fmt"actorAt {actor.key} room '{room.name}'"
       actor.room = room
     0
   of 4:
@@ -105,7 +105,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    info fmt"actorAt {actor.name} room {x}, {y}"
+    info fmt"actorAt {actor.key} room {x}, {y}"
     actor.node.pos = vec2f(x.float32, y.float32)
     0
   of 5, 6:
@@ -123,7 +123,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var dir = 0
     if numArgs == 6 and SQ_FAILED(get(v, 6, dir)):
       return sq_throwerror(v, "failed to get direction")
-    info fmt"actorAt {actor.name}, pos = ({x},{y}), dir = {dir}"
+    info fmt"actorAt {actor.key}, pos = ({x},{y}), dir = {dir}"
     actor.node.pos = vec2f(x.float32, y.float32)
     actor.setFacing(getFacing(dir, actor.getFacing))
     actor.room = room
@@ -246,6 +246,8 @@ proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var hidden = 0
   if SQ_FAILED(get(v, 3, hidden)):
     return sq_throwerror(v, "failed to get hidden")
+  if hidden == 1 and gEngine.actor == actor:
+    gEngine.follow(nil)
   actor.node.visible = hidden == 0
 
 proc actorInTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =

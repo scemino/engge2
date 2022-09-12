@@ -33,6 +33,8 @@ proc update*[T](self: var Tween[T], elapsed: float) =
     if not self.easing.isNil:
       f = self.easing(f)
       self.value = self.frm + f * self.delta
+  else:
+    self.value = self.to
 
 proc current*[T](self: Tween[T]): T {.inline.} =
   self.value
