@@ -144,7 +144,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  breakwhilecond(v, fmt"breakwhileanimating({obj.name})", proc (): bool = not obj.nodeAnim.disabled)
+  breakwhilecond(v, fmt"breakwhileanimating({obj.key})", proc (): bool = not obj.nodeAnim.disabled)
 
 proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.
