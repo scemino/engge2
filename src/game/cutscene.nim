@@ -101,7 +101,9 @@ method stop*(self: Cutscene) =
   debug "End cutscene"
   gEngine.inputState.setState(self.inputState)
   gEngine.inputState.showCursor = self.showCursor
-  info fmt"Restore cutscene input: {self.inputState}"
+  if self.showCursor:
+    gEngine.inputState.inputActive = true
+  info fmt"Restore cutscene input: {self.inputState.int:X}"
   gEngine.follow(gEngine.actor)
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)

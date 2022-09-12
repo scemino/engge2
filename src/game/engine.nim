@@ -502,10 +502,10 @@ proc preWalk(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: 
 proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; noun2: Object = nil): bool =
   ## Called to execute a sentence and, if needed, start the actor walking.
   ## If `actor` is `null` then the selectedActor is assumed.
-  let name = if actor.isNil: "currentActor" else: actor.name
-  let noun1name = if noun1.isNil: "null" else: noun1.name
-  let noun2name = if noun2.isNil: "null" else: noun2.name
-  info fmt"exec({name},{verbId},{noun1name},{noun2name})"
+  let name = if actor.isNil: "currentActor" else: actor.key
+  let noun1name = if noun1.isNil: "null" else: noun1.key
+  let noun2name = if noun2.isNil: "null" else: noun2.key
+  info fmt"exec({name},{verbId.VerbId},{noun1name},{noun2name})"
   var actor = if actor.isNil: gEngine.currentActor else: actor
   if verbId <= 0 and verbId > 13 or noun1.isNil:
     return false

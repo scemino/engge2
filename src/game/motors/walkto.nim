@@ -82,48 +82,51 @@ proc actorArrived(self: WalkTo) =
 
   # we need to execute a sentence when arrived ?
   if not self.obj.exec.isNil:
+    let verb = self.obj.exec.verb
+    let noun1 = self.obj.exec.noun1
+    let noun2 = self.obj.exec.noun2
     # call `postWalk`callback
-    let funcName = if self.obj.exec.noun1.id.isActor: "actorPostWalk" else: "objectPostWalk"
+    let funcName = if noun1.id.isActor: "actorPostWalk" else: "objectPostWalk"
     if self.obj.table.rawExists(funcName):
       info fmt"call {funcName} callback"
       var n2Table: HSQOBJECT
-      if not self.obj.exec.noun2.isNil:
-        n2Table = self.obj.exec.noun2.table
+      if not noun2.isNil:
+        n2Table = noun2.table
       else:
         sq_resetobject(n2Table)
-      sqCall(self.obj.table, funcName, [self.obj.exec.verb, self.obj.exec.noun1.table, n2Table])
+      sqCall(self.obj.table, funcName, [verb, noun1.table, n2Table])
     
     info "actorArrived: exec sentence"
-    if not self.obj.exec.noun1.inInventory:
+    if not noun1.inInventory:
       # Object became untouchable as we were walking there
-      if not self.obj.exec.noun1.touchable:
+      if not noun1.touchable:
         info "actorArrived: noun1 untouchable"
         self.obj.exec = nil
         return
       # Did we get close enough?
-      let dist = distance(self.obj.getUsePos, self.obj.exec.noun1.getUsePos)
-      let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun1.min_talk_dist else: self.obj.exec.noun1.min_use_dist
-      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.getUsePos}, obj: {self.obj.exec.noun1.getUsePos}) ?"
-      if not verbNotClose(self.obj.exec.verb) and dist > min_dist.float:
-        self.obj.cantReach(self.obj.exec.noun2)
+      let dist = distance(self.obj.getUsePos, noun1.getUsePos)
+      let min_dist = if verb == VERB_TALKTO: noun1.min_talk_dist else: noun1.min_use_dist
+      info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.obj.getUsePos}, obj: {noun1.getUsePos}) ?"
+      if not verbNotClose(verb) and dist > min_dist.float:
+        self.obj.cantReach(noun2)
         return
-      self.obj.setFacing(self.obj.exec.noun1.useDir.facing)
-    if not self.obj.exec.noun2.isNil and not self.obj.exec.noun2.inInventory:
-      if not self.obj.exec.noun2.touchable:
+      self.obj.setFacing(noun1.useDir.facing)
+    if not noun2.isNil and not noun2.inInventory:
+      if not noun2.touchable:
         # Object became untouchable as we were walking there.
         info "actorArrived: noun2 untouchable"
         self.obj.exec = nil
         return
-      let dist = distance(self.obj.getUsePos, self.obj.exec.noun2.getUsePos)
-      let min_dist = if self.obj.exec.verb == VERB_TALKTO: self.obj.exec.noun2.min_talk_dist else: self.obj.exec.noun2.min_use_dist
+      let dist = distance(self.obj.getUsePos, noun2.getUsePos)
+      let min_dist = if verb == VERB_TALKTO: noun2.min_talk_dist else: noun2.min_use_dist
       info fmt"actorArrived: noun2 min_dist: {dist} > {min_dist} ?"
       if dist > min_dist.float:
-        self.obj.cantReach(self.obj.exec.noun2)
+        self.obj.cantReach(noun2)
         return
     
     info fmt"actorArrived: callVerb"
-    discard gEngine.callVerb(self.obj, self.obj.exec.verb, self.obj.exec.noun1, self.obj.exec.noun2)
     self.obj.exec = nil
+    discard gEngine.callVerb(self.obj, verb, noun1, noun2)
 
 method disable*(self: WalkTo) =
   procCall self.Motor.disable()

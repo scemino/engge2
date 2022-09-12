@@ -7,6 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [x] Fix delores using letter on mailbox
 * [x] ransome can't pickup his money in the safe (again)
 * [x] loading a game can crash when loading selectableActors
 * [x] fix camera position when delores use doors in the mansion hall

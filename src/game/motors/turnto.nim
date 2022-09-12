@@ -58,7 +58,7 @@ proc getAnims(src, dst: Facing): seq[Facing] =
 proc newTurnTo*(actor: Object, dstFacing: Facing): TurnTo =
   result = TurnTo(actor: actor, facings: getAnims(actor.facing, dstFacing))
   result.init()
-  info fmt"Actor {actor.name} turn to {result.facings}"
+  info fmt"Actor {actor.key} turn to {result.facings}"
 
 method update(self: TurnTo, el: float) =
   self.elapsed += el
