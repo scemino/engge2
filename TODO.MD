@@ -7,6 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [x] it's not possible to give the letter to chuck
 * [x] Delores dance never ends
 * [x] Delores dance is buggy
 * [x] Fix delores using letter on mailbox
