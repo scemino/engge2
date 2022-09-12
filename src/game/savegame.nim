@@ -44,9 +44,11 @@ proc loadGameScene(json: JsonNode) =
     mode.incl asTemporaryUnselectable
   gEngine.actorswitcher.mode = mode
   tmpPrefs().forceTalkieText = json["forceTalkieText"].getInt() != 0
-  for jSelectableActor in json["selectableActors"]:
-    let actor = actor(jSelectableActor["_actorKey"].getStr())
-    gEngine.hud.actorSlot(actor).selectable = jSelectableActor["selectable"].getInt() != 0
+  for i in 0..<json["selectableActors"].len:
+    let jSelectableActor =json["selectableActors"][i]
+    let actor = if jSelectableActor.hasKey("_actorKey"): actor(jSelectableActor["_actorKey"].getStr()) else: nil
+    gEngine.hud.actorSlots[i].actor = actor
+    gEngine.hud.actorSlots[i].selectable = jSelectableActor["selectable"].getInt() != 0
 
 proc parseMode(mode: char): DialogConditionMode =
   case mode:
@@ -587,14 +589,14 @@ proc toint(b: bool): int =
 
 proc createJSelectableActor(slot: ActorSlot): JsonNode =
   result = newJObject()
-  result["_actorKey"] = newJString(slot.actor.key)
+  if not slot.actor.isNil:
+    result["_actorKey"] = newJString(slot.actor.key)
   result["selectable"] = newJInt(slot.selectable.toint)
 
 proc createJSelectableActors(): JsonNode =
   result = newJArray()
   for slot in gEngine.hud.actorSlots:
-    if not slot.actor.isNil:
-      result.add createJSelectableActor(slot)
+    result.add createJSelectableActor(slot)
 
 proc createJGameScene(): JsonNode =
   let actorsSelectable = asOn in gEngine.actorswitcher.mode
