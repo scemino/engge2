@@ -743,7 +743,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
 
     # then other selectable actors
     for slot in self.hud.actorSlots:
-      if slot.selectable and slot.actor != self.actor and slot.actor.room.name != "Void":
+      if slot.selectable and slot.actor != nil and slot.actor != self.actor and slot.actor.room.name != "Void":
         result.add self.actorSwitcherSlot(slot)
   
     # add gear icon
