@@ -377,7 +377,7 @@ iterator objsAt*(self: Engine, pos: Vec2f): Object =
 proc objAt*(self: Engine, pos: Vec2f): Object =
   var zOrder = int32.high
   for obj in self.objsAt(pos):
-    if obj.node.zOrder <= zOrder:
+    if obj.node.zOrder < zOrder:
       result = obj
       zOrder = obj.node.zOrder
 
