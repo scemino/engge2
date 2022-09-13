@@ -118,7 +118,10 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var time: float
   if SQ_FAILED(get(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
-  breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
+  if time == 0f:
+    breakfunc(v, proc (t: ThreadBase) = t.numFrames = 1)  
+  else:
+    breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
 
 proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   let curThread = thread(v)
