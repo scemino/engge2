@@ -9,6 +9,7 @@ import ../../util/utils
 
 type 
   StackTool = ref object of DebugTool
+    visible*: bool
 
 proc newStackTool*(): StackTool =
   result = StackTool()
@@ -59,14 +60,15 @@ proc typeToStr(obj: var HSQOBJECT): string =
     result = fmt"{obj.objType:X}"
 
 method render*(self: StackTool) =
-  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
-  igBegin("Stack")
-  igBeginChild("ScrollingRegion")
-  let size = sq_gettop(gVm.v)
-  igText(fmt"size: {size}".cstring)
-  var obj: HSQOBJECT
-  for i in 1..size:
-    discard sq_getstackobj(gVm.v, -i, obj)
-    igText(fmt"obj type: {typeToStr(obj)}".cstring)
-  igEndChild()
-  igEnd()
+  if self.visible:
+    igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+    igBegin("Stack", addr self.visible)
+    igBeginChild("ScrollingRegion")
+    let size = sq_gettop(gVm.v)
+    igText(fmt"size: {size}".cstring)
+    var obj: HSQOBJECT
+    for i in 1..size:
+      discard sq_getstackobj(gVm.v, -i, obj)
+      igText(fmt"obj type: {typeToStr(obj)}".cstring)
+    igEndChild()
+    igEnd()

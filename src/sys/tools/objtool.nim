@@ -11,12 +11,12 @@ import ../../scenegraph/node
 
 type ObjectTool = ref object of DebugTool
   gFilterObject: ImGuiTextFilter
+  visible*: bool
 
 proc newObjectTool*(): ObjectTool =
   result = ObjectTool()
 
 var 
-  gObjectsVisible = true
   gObject: Object
   gShowProperties = true
 
@@ -75,10 +75,11 @@ proc showProperties() =
     igEnd()
 
 method render*(self: ObjectTool) =
-  if gEngine.isNil or not gObjectsVisible:
+  if gEngine.isNil or not self.visible:
     return
 
-  igBegin("Objects".cstring, addr gObjectsVisible)
+  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+  igBegin("Objects".cstring, addr self.visible)
   self.gFilterObject.addr.draw()
 
   # show object list

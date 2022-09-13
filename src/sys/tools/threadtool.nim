@@ -4,11 +4,10 @@ import ../../game/thread
 import ../debugtool
 
 type ThreadTool = ref object of DebugTool
+  visible*: bool
 
 proc newThreadTool*(): ThreadTool =
   result = ThreadTool()
-
-var gThreadsVisible = true
 
 proc getState(thread: ThreadBase): string =
   if thread.isSuspended():
@@ -30,11 +29,12 @@ proc showControls(thread: ThreadBase) =
     thread.stop()
 
 method render*(self: ThreadTool) =
-  if gEngine.isNil or not gThreadsVisible:
+  if gEngine.isNil or not self.visible:
     return
 
   let threads = gEngine.threads
-  igBegin("Threads", addr gThreadsVisible)
+  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+  igBegin("Threads", addr self.visible)
   igText("# threads: %lu", threads.len)
   igSeparator()
 

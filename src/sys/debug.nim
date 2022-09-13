@@ -1,6 +1,6 @@
-import ../libs/imgui
 import debugtool
 
 proc imguiRender*() =
-  for tool in debugTools():
-    tool.render()
+  if gGeneralVisible:
+    for tool in debugTools():
+      tool.render()

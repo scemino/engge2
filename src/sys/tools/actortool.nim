@@ -12,12 +12,12 @@ import ../../io/textdb
 import ../../scenegraph/node
 
 type ActorTool = ref object of DebugTool
+  visible*: bool
 
 proc newActorTool*(): ActorTool =
   result = ActorTool()
 
 var 
-  gActorsVisible = true
   gActor: Object
   gShowProperties = true
 
@@ -74,10 +74,11 @@ proc showProperties() =
     igEnd()
 
 method render*(self: ActorTool) =
-  if gEngine.isNil or not gActorsVisible:
+  if gEngine.isNil or not self.visible:
     return
 
-  igBegin("Actors".cstring, addr gActorsVisible)
+  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+  igBegin("Actors".cstring, addr self.visible)
 
   # show actor list
   for actor in gEngine.actors:

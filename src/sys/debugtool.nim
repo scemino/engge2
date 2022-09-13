@@ -3,6 +3,7 @@ type
 
 var 
   gDebugTools: seq[DebugTool]
+  gGeneralVisible*: bool
 
 proc addDebugTool*(tool: DebugTool) =
   gDebugTools.add tool

@@ -38,15 +38,29 @@ method init*(self: EngineState) =
   addHandler(newRollingFileLogger("ng.log"))
   
   let consoleTool = newConsoleTool()
+  let threadTool = newThreadTool()
+  let soundTool = newSoundTool()
+  let textureTool = newTextureTool()
+  let actorTool = newActorTool()
+  let objectTool = newObjectTool()
+  let stackTool = newStackTool()
   addHandler(newConsoleToolLogger(consoleTool))
   addDebugTool(consoleTool)
-  addDebugTool(newThreadTool())
-  addDebugTool(newSoundTool())
-  addDebugTool(newTextureTool())
-  addDebugTool(newActorTool())
+  addDebugTool(threadTool)
+  addDebugTool(soundTool)
+  addDebugTool(textureTool)
+  addDebugTool(actorTool)
+  addDebugTool(objectTool)
+  addDebugTool(stackTool)
   addDebugTool(newGeneralTool())
-  addDebugTool(newObjectTool())
-  addDebugTool(newStackTool())
+
+  addTool("console", consoleTool.visible.addr)
+  addTool("threads", threadTool.visible.addr)
+  addTool("sounds", soundTool.visible.addr)
+  addTool("textures", textureTool.visible.addr)
+  addTool("actors", actorTool.visible.addr)
+  addTool("objects", objectTool.visible.addr)
+  addTool("stack", stackTool.visible.addr)
 
   info fmt"# Welcome to {self.appName}"
   info fmt"Host: {hostCPU} / {hostOS}"
@@ -102,6 +116,7 @@ proc skipCutscene(self: EngineState) =
 
 method activate*(self: EngineState) =
   gEngine.screen.addChild gInputNode
+  regCmdFunc(GameCommand.ToggleDebug, proc () = gGeneralVisible = not gGeneralVisible)
   regCmdFunc(GameCommand.ShowOptions, proc () = showOptions())
   regCmdFunc(GameCommand.PauseGame, proc () = pushState newPauseState())
   regCmdFunc(GameCommand.SkipText, proc () = stopTalking())

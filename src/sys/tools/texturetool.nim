@@ -6,11 +6,10 @@ import ../../gfx/texture
 import ../../libs/imgui
 
 type TextureTool = ref object of DebugTool
+  visible*: bool
 
 proc newTextureTool*(): TextureTool =
   result = TextureTool()
-
-var gTexturesVisible = true
 
 proc convertSize(size: int): string =
   const suffix = ["B", "KB", "MB", "GB", "TB"]
@@ -25,14 +24,15 @@ proc convertSize(size: int): string =
   return fmt"{dblBytes:.2f} {suffix[i]}"
 
 method render*(self: TextureTool) =
-  if gResMgr.isNil or not gTexturesVisible:
+  if gResMgr.isNil or not self.visible:
     return
 
   var total = 0
   for (k,tex) in gResMgr.textures.pairs:
     total += tex.width * tex.height * 4
 
-  igBegin("Textures".cstring, addr gTexturesVisible)
+  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+  igBegin("Textures".cstring, addr self.visible)
   igText("# textures: %d", gResMgr.textures.len)
   igText("Total memory: %s", convertSize(total))
   igSeparator()

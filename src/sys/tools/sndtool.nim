@@ -4,23 +4,23 @@ import ../../audio/audio
 import ../../libs/imgui
 
 type SoundTool = ref object of DebugTool
+  visible*: bool
 
 proc newSoundTool*(): SoundTool =
   result = SoundTool()
 
-var gSoundsVisible = true
-
 method render*(self: SoundTool) =
-  if gEngine.isNil or not gSoundsVisible:
+  if gEngine.isNil or not self.visible:
     return
 
   # count the number of active sounds
   var count = 0
   for s in gEngine.audio.sounds:
     if not s.isNil:
-      count += 1
+      inc count
 
-  igBegin("Sounds".cstring, addr gSoundsVisible)
+  igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
+  igBegin("Sounds".cstring, addr self.visible)
   igText("# sounds: %d/%d", count, gEngine.audio.sounds.len)
   igSeparator()
     

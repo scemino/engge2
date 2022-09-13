@@ -5,16 +5,17 @@ import console
 type 
   ConsoleTool = ref object of DebugTool
     console*: Console
-    visible: bool
+    visible*: bool
 
   ConsoleToolLogger = ref object of Logger
     tool: ConsoleTool
 
 proc newConsoleTool*(): ConsoleTool =
-  result = ConsoleTool(console: newConsole(), visible: true)
+  result = ConsoleTool(console: newConsole())
 
 method render*(self: ConsoleTool) =
-  self.console.draw(self.visible.addr)
+  if self.visible:
+    self.console.draw(self.visible.addr)
 
 proc newConsoleToolLogger*(tool: ConsoleTool): ConsoleToolLogger =
   ## Creates a logger that logs to a ConsoleTool.
