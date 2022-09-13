@@ -383,6 +383,7 @@ proc removeInventory(self: Object, obj: Object) =
   let i = self.inventory.find(obj)
   if i >= 0:
     self.inventory.del i
+    obj.owner = nil
 
 proc removeInventory*(self: Object) =
   if not self.owner.isNil:

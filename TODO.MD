@@ -7,6 +7,7 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [x] if you take once the map in the Nickel news then you can't leave the room
 * [x] hide debug tools by default and allow toggle
 * [x] it's not possible to give the letter to chuck
 * [x] Delores dance never ends
