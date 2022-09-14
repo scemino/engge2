@@ -97,7 +97,8 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if not gEngine.cameraPanTo.isNil:
     gEngine.cameraPanTo.disable()
   let screenSize = gEngine.room.getScreenSize()
-  let at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
+  let at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2f
+  gEngine.follow(nil)
   gEngine.cameraAt(at)
   0
 
@@ -213,6 +214,7 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   info fmt"cameraPanTo: {pos}, dur={duration}, method={interpolation}"
+  gEngine.follow(nil)
   gEngine.cameraPanTo = newCameraPanTo(duration, pos, interpolation)
   0
 
