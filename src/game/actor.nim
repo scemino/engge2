@@ -79,7 +79,10 @@ proc setCostume*(self: Object, name, sheet: string) =
   self.anims = parseObjectAnimations(json["animations"])
   self.costumeName = name
   self.costumeSheet = sheet
-  self.sheet = if sheet.len == 0: json["sheet"].str else: sheet
+  if sheet.len == 0 and json.hasKey("sheet"):
+    self.sheet = json["sheet"].str
+  else:
+    self.sheet = sheet
   self.stand()
 
 proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =

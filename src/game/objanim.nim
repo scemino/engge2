@@ -5,6 +5,7 @@ import ../util/jsonutil
 type
   ObjectAnimation* = ref object of RootObj
     name*: string
+    sheet*: string
     frames*: seq[string]
     layers*: seq[ObjectAnimation]
     triggers*: seq[string]
@@ -16,6 +17,8 @@ type
 
 proc parseObjectAnimation(jAnim: JsonNode): ObjectAnimation =
   new(result)
+  if jAnim.hasKey("sheet"):
+    result.sheet = jAnim["sheet"].getStr()
   result.name = jAnim["name"].getStr()
   result.loop = toBool(jAnim, "loop")
   result.fps = if jAnim.hasKey("fps") and (jAnim["fps"].kind == JFloat or jAnim["fps"].kind == JInt): jAnim["fps"].getFloat else: 0

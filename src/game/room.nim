@@ -168,6 +168,7 @@ type
     noun1*, noun2*: Object
   Anim* = ref object of Node
     frames: seq[SpriteFrame]
+    sheet*: string
     frameIndex: int
     elapsed: float
     frameDuration: float
@@ -301,14 +302,16 @@ proc flip*(facing: Facing): Facing =
     result = FACE_LEFT
 
 # Object
-proc `getSpriteSheet`*(self: Object): SpriteSheet =
+proc `getSpriteSheet`*(self: Object, sheet: string): SpriteSheet =
+  if sheet.len > 0:
+    result = gResMgr.spritesheet(sheet)
   if self.sheet.len == 0:
-    self.r.spriteSheet
+    result = self.r.spriteSheet
   elif self.sheet == "raw":
     # use raw texture, don't use spritesheet
-    nil
+    result = nil
   else:
-    gResMgr.spritesheet(self.sheet)
+    result = gResMgr.spritesheet(self.sheet)
 
 proc `name`*(self: Object): string =
   if self.table.objType == OT_TABLE and rawexists(self.table, "name"):
@@ -350,7 +353,7 @@ proc `room=`*(self: Object, room: Room) =
   if self.room != room:
     let oldRoom = self.r
     if not oldRoom.isNil:
-      info fmt"Remove {self.name} from room {oldRoom.name}"
+      info fmt"Remove {self.key} from room {oldRoom.name}"
       let layer = oldRoom.layer(0)
       if not layer.isNil:
         let index = layer.objects.find(self)
@@ -359,7 +362,7 @@ proc `room=`*(self: Object, room: Room) =
         if not layer.node.isNil:
           layer.node.removeChild self.node
     if not room.isNil and not room.layer(0).isNil and not room.layer(0).node.isNil:
-      info fmt"Add {self.name} in room {room.name}"
+      info fmt"Add {self.key} in room {room.name}"
       let layer = room.layer(0)
       if not layer.isNil:
         layer.objects.add self
@@ -864,8 +867,8 @@ proc `overlay=`*(self: Room, color: Color) =
 proc `overlay`*(self: Room): Color =
   self.overlayNode.ovlColor
 
-proc getFrames(self: Object, frames: seq[string]): seq[SpriteFrame] =
-  let ss = self.getSpriteSheet()
+proc getFrames(self: Object, sheet: string, frames: seq[string]): seq[SpriteFrame] =
+  let ss = self.getSpriteSheet(sheet)
   if ss.isNil:
     for frame in frames:
       result.add(newSpriteRawFrame(gResMgr.texture(frame)))
@@ -891,7 +894,8 @@ proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant
   self.anim = anim
   self.disabled = false
   self.name = anim.name
-  self.frames = self.obj.getFrames(anim.frames)
+  self.sheet = anim.sheet
+  self.frames = self.obj.getFrames(self.sheet, anim.frames)
   self.frameIndex = if instant and self.frames.len > 0: self.frames.len - 1 else: 0
   self.frameDuration = 1.0 / getFps(fps, anim.fps)
   self.loop = loop or anim.loop
