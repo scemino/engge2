@@ -507,13 +507,14 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get x")
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
-    var duration = 0.0
-    if SQ_FAILED(get(v, 5, duration)):
-      return sq_throwerror(v, "failed to get duration")
+    var duration = 0.5
+    if sq_gettop(v) >= 5:
+      if SQ_FAILED(get(v, 5, duration)):
+        return sq_throwerror(v, "failed to get duration")
     var interpolation = 0.SQInteger
     if sq_gettop(v) >= 6 and SQ_FAILED(sq_getinteger(v, 6, interpolation)):
       interpolation = 0
-    var destPos = vec2(x.float32, y.float32)
+    let destPos = vec2(x.float32, y.float32)
     obj.moveTo = newOffsetTo(duration, obj, destPos, interpolation)
   0
 

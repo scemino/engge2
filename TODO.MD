@@ -7,6 +7,9 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [ ] actor in countymap does not follow the path
+* [ ] cannot press buttons in the elevator
+* [x] wrong number of args when opening elevator
 * [x] actor is not visible in countymap
 * [x] no camera pan in the hotel
 * [x] actor is not moving in countymap
