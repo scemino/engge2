@@ -7,6 +7,9 @@
 * [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
+* [ ] actor is not visible in countymap
+* [ ] no camera pan in the hotel
+* [x] actor is not moving in countymap
 * [x] crash when using countymap
 * [x] when using copytron, the game is frozen
 * [x] if you take once the map in the Nickel news then you can't leave the room

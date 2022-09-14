@@ -575,9 +575,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.objAt(roomPos)
 
-    if self.room.fullscreen == FullscreenCloseup:
-      discard self.clickedAtHandled(roomPos)
-    elif self.mouseState.click():
+    if self.mouseState.click():
       # button left: execute selected verb
       var handled = false
       if not obj.isNil:
