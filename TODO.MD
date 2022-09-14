@@ -9,6 +9,7 @@
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
 * [ ] cannot press buttons in the elevator
+* [x] Franklin cannot put on his glasses
 * [x] wrong number of args when opening elevator
 * [x] actor is not visible in countymap
 * [x] no camera pan in the hotel

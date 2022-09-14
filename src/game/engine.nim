@@ -460,8 +460,12 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
 
   if noun2.isNil:
     if noun1.table.rawExists(verbFuncName):
+      let count = gVm.v.paramCount(noun1.table, verbFuncName)
       info fmt"call {noun1.key}.{verbFuncName}"
-      call(noun1.table, verbFuncName)
+      if count == 1:
+        call(noun1.table, verbFuncName)
+      else:
+        call(noun1.table, verbFuncName, [actor.table])
     else:
       info fmt"call defaultObject.{verbFuncName}"
       var nilObj: HSQOBJECT
@@ -855,7 +859,9 @@ proc update*(self: Engine, elapsed: float) =
   # update callbacks  
   for cb in self.callbacks.toSeq:
     if cb.update(elapsed):
-      self.callbacks.del self.callbacks.find(cb)
+      let index = self.callbacks.find(cb)
+      if index != -1:
+        self.callbacks.del index
 
   # update tasks
   for t in self.tasks.toSeq:
