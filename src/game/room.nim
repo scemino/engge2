@@ -305,7 +305,7 @@ proc flip*(facing: Facing): Facing =
 proc `getSpriteSheet`*(self: Object, sheet: string): SpriteSheet =
   if sheet.len > 0:
     result = gResMgr.spritesheet(sheet)
-  if self.sheet.len == 0:
+  elif self.sheet.len == 0:
     result = self.r.spriteSheet
   elif self.sheet == "raw":
     # use raw texture, don't use spritesheet
