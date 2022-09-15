@@ -581,11 +581,11 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
 
     if self.mouseState.click():
       # button left: execute selected verb
-      var handled = false
-      if not obj.isNil:
+      var handled = self.clickedAtHandled(roomPos)
+      if not handled and not obj.isNil:
         let verb = self.hud.verb
         handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
-      if not handled and not self.clickedAtHandled(roomPos):
+      if not handled:
         if not self.actor.isNil and scrPos.y > 172:
           self.actor.walk(room_pos)
           self.hud.verb = self.getVerb(VERB_WALKTO)
