@@ -188,7 +188,7 @@ proc toSquirrel(json: JsonNode, obj: var HSQObject) =
         obj = o.table
     else:
       sq_newtable(gVm.v)
-      for (k,v) in json.getFields().pairs:
+      for (k, v) in json.getFields().pairs:
         push(gVm.v, k)
         var tmp: HSQOBJECT
         toSquirrel(v, tmp)
@@ -353,7 +353,7 @@ proc loadObj(obj: Object, json: JsonNode) =
         obj.table.newf(k, tmp)
     else:
       warn fmt"load object: key '{k}' is unknown"
-  
+
   if obj.table.rawexists("postLoad"):
     sqCall(obj.table, "postLoad", [])
 
@@ -380,9 +380,16 @@ proc loadRoom(room: Room, json: JsonNode) =
       loadPseudoObjects(room, v)
     else:
       if not k.startsWith('_'):
-        var tmp: HSQOBJECT
-        toSquirrel(v, tmp)
-        room.table.setf(k, tmp)
+        let o = obj(room, k)
+        if o.isNil:
+          var tmp: HSQOBJECT
+          toSquirrel(v, tmp)
+          if room.table.rawexists(k):
+            room.table.setf(k, tmp)
+          else:
+            room.table.newf(k, tmp)
+        else:
+          loadObj(o, v)
       else:
         warn fmt"Load room: key '{k}' is unknown"
   
@@ -448,7 +455,8 @@ proc newEngineGameLoader*(): GameLoader =
 
 proc cmpKey(x,y: tuple[key: string, val: JsonNode]): int = cmp(x.key, y.key)
 
-proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false): JsonNode =
+proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false, pseudo = false): JsonNode =
+  let rootTbl = rootTbl(gVm.v)
   case obj.objType:
   of OT_INTEGER:
     result = newJInt(sq_objtointeger(obj))
@@ -483,7 +491,7 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false): JsonNode =
 
     for (k, v) in obj.mpairs:
       if k.len > 1 and k[0] != '_':
-        if not skipObj or not v.getId().isObject():
+        if not (skipObj and v.getId().isObject() and (pseudo or rootTbl.rawexists(k))):
           let json = tojson(v, true)
           if not json.isNil:
             result[k] = json
@@ -679,7 +687,7 @@ proc createJPseudoObjects(room: Room): JsonNode =
   result.fields.sort(cmpKey)
 
 proc createJRoom(room: Room): JsonNode =
-  result = tojson(room.table, false, true)
+  result = tojson(room.table, false, true, room.pseudo)
   if room.pseudo:
     result["_pseudoObjects"] = createJPseudoObjects(room)
   result.fields.sort(cmpKey)

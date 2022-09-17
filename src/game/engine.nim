@@ -242,12 +242,13 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
         var obj = result.getObj(k)
         if obj.isNil:
           info fmt"object: {k} not found in wimpy"
-          obj = newObject()
-          obj.key = k
-          obj.layer = result.layer(0)
-          result.layer(0).objects.add obj
-        elif k == "jumperRedPlug":
-          info fmt"object: {k} not found in wimpy, obj.table={$(v)}"
+          if v.rawexists("name"):
+            obj = newObject()
+            obj.key = k
+            obj.layer = result.layer(0)
+            result.layer(0).objects.add obj
+          else:
+            continue
         
         getf(result.table, k, obj.table)
         obj.table.setId(newObjId())
