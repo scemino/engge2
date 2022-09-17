@@ -483,8 +483,8 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false): JsonNode =
 
     for (k, v) in obj.mpairs:
       if k.len > 1 and k[0] != '_':
-        if not skipObj or not v[].getId().isObject():
-          let json = tojson(v[], true)
+        if not skipObj or not v.getId().isObject():
+          let json = tojson(v, true)
           if not json.isNil:
             result[k] = json
     result.fields.sort(cmpKey)
@@ -646,44 +646,43 @@ proc createJInventory(): JsonNode =
   result = newJObject()
   result["slots"] = slots
 
-proc createJObject(obj: Object): JsonNode =
-  result = tojson(obj.table, false)
-  if not obj.node.visible:
-    result["_hidden"] = newJInt(1)
-  if obj.state != 0:
-    result["_state"] = newJInt(obj.state)
-  if not obj.touchable:
-    result["_touchable"] = newJInt(0)
-  if obj.node.offset != Vec2f():
-    result["_offset"] = newJString(obj.node.offset.tostr)
+proc createJObject(table: var HSQOBJECT, obj: Object): JsonNode =
+  result = tojson(table, false)
+  if not obj.isNil:
+    if not obj.node.visible:
+      result["_hidden"] = newJInt(1)
+    if obj.state != 0:
+      result["_state"] = newJInt(obj.state)
+    if not obj.touchable:
+      result["_touchable"] = newJInt(0)
+    if obj.node.offset != Vec2f():
+      result["_offset"] = newJString(obj.node.offset.tostr)
   result.fields.sort(cmpKey)
 
 proc createJObjects(): JsonNode =
   result = newJObject()
-  for room in gEngine.rooms:
-    if not room.isNil and not room.pseudo:
-      for layer in room.layers:
-        for obj in layer.objects:
-          if not obj.temporary and obj.objType == otNone:
-            if obj.table.getId().isObject():
-              result[obj.key] = createJObject(obj)
-  for obj in gEngine.inventory:
-    if obj.table.getId().isObject():
-      result[obj.key] = createJObject(obj)
+  for (k, v) in rootTbl(gVm.v).mpairs:
+    if v.getId().isObject():
+      let obj = obj(v)
+      if obj.isNil or obj.objType == otNone:
+        info fmt"obj: createJObject({k})"
+        result[k] = createJObject(v, obj)
   result.fields.sort(cmpKey)
 
 proc createJPseudoObjects(room: Room): JsonNode =
   result = newJObject()
-  for layer in room.layers:
-    for obj in layer.objects:
-      if not obj.temporary and obj.objType == otNone and obj.table.getId().isObject():
-        result[obj.key] = createJObject(obj)
+  for (k, v) in room.table.mpairs:
+    if v.getId().isObject():
+      let obj = obj(v)
+      info fmt"pseudoObj: createJObject({k})"
+      result[k] = createJObject(v, obj)
   result.fields.sort(cmpKey)
 
 proc createJRoom(room: Room): JsonNode =
   result = tojson(room.table, false, true)
   if room.pseudo:
     result["_pseudoObjects"] = createJPseudoObjects(room)
+  result.fields.sort(cmpKey)
 
 proc createJRooms(): JsonNode =
   result = newJObject()
@@ -721,6 +720,8 @@ proc saveGame*(path: string) =
   call("preSave")
   let data = createSaveGame()
   let thumbnail = changeFileExt(path, ".png")
+  let jsonFile = changeFileExt(path, ".json")
+  writeFile(jsonFile, pretty(data.data))
   gEngine.capture(thumbnail, ThumbnailSize)
   saveSaveGame(path, data)
   call("postSave")

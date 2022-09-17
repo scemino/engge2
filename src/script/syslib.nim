@@ -306,36 +306,6 @@ proc cutsceneOverride(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   cast[Cutscene](gEngine.cutscene).cutsceneOverride()
   0
 
-proc `$`(obj: var HSQOBJECT): string =
-  case obj.objType:
-  of OT_INTEGER:
-    result = $sq_objtointeger(obj)
-  of OT_FLOAT:
-    result = $sq_objtofloat(obj)
-  of OT_STRING:
-    result = $sq_objtostring(obj)
-  of OT_ARRAY:
-    var strings: seq[string]
-    for item in obj.mitems:
-      strings.add $item[]
-    result = join(strings, ", ")
-    result = fmt"[{result}]"
-  of OT_TABLE:
-    var strings: seq[string]
-    for (k, item) in obj.mpairs:
-      strings.add "{" & k & ": " & $item[] & "}"
-    result = "{" & join(strings, ", ") & "}"
-  of OT_CLOSURE:
-    result = "closure"
-  of OT_NATIVECLOSURE:
-    result = "native closure"
-  of OT_THREAD:
-    result = "thread"
-  of OT_NULL:
-    result = "null"
-  else:
-    result = $obj.objType
-
 proc dumpvar(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj: HSQOBJECT
   discard get(v, 2, obj)

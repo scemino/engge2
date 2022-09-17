@@ -1,6 +1,7 @@
 import std/macros
 import std/logging
 import std/strformat
+import std/strutils
 import sqnim
 import vm
 
@@ -306,7 +307,7 @@ iterator pairs*(obj: HSQOBJECT): (string, HSQOBJECT) =
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
 
-iterator mpairs*(obj: HSQOBJECT): (string, ptr HSQOBJECT) =
+iterator mpairs*(obj: HSQOBJECT): (string, var HSQOBJECT) =
   sq_pushobject(gVm.v, obj)
   sq_pushnull(gVm.v)
   while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
@@ -314,9 +315,39 @@ iterator mpairs*(obj: HSQOBJECT): (string, ptr HSQOBJECT) =
     var obj: HSQOBJECT
     discard get(gVm.v, -1, obj)
     discard get(gVm.v, -2, key)
-    yield (key, obj.addr)
+    yield (key, obj.addr[])
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
+
+proc `$`*(obj: var HSQOBJECT): string =
+  case obj.objType:
+  of OT_INTEGER:
+    result = $sq_objtointeger(obj)
+  of OT_FLOAT:
+    result = $sq_objtofloat(obj)
+  of OT_STRING:
+    result = $sq_objtostring(obj)
+  of OT_ARRAY:
+    var strings: seq[string]
+    for item in obj.mitems:
+      strings.add $item[]
+    result = join(strings, ", ")
+    result = fmt"[{result}]"
+  of OT_TABLE:
+    var strings: seq[string]
+    for (k, item) in obj.mpairs:
+      strings.add "{" & k & ": " & $item & "}"
+    result = "{" & join(strings, ", ") & "}"
+  of OT_CLOSURE:
+    result = "closure"
+  of OT_NATIVECLOSURE:
+    result = "native closure"
+  of OT_THREAD:
+    result = "thread"
+  of OT_NULL:
+    result = "null"
+  else:
+    result = $obj.objType
 
 when isMainModule:
   dumpTree:

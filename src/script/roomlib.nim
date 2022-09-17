@@ -216,18 +216,17 @@ proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var name: string
   if SQ_FAILED(get(v, 2, name)):
     return sq_throwerror(v, "failed to get name")
+  var table: HSQOBJECT
+  sq_resetobject(table)
   # if this is a pseudo room, we have to clone the table
   # to have a different instance by room
   if SQ_FAILED(sq_clone(v, 3)):
     return sq_throwerror(v, "failed to clone room table")
-  var table: HSQOBJECT
-  sq_resetobject(table)
   if SQ_FAILED(sq_getstackobj(v, -1, table)):
     return sq_throwerror(v, "failed to get room table")
   
-  let room = defineRoom(name, table)
-  room.pseudo = true
-  info fmt"Define room: {name}"
+  let room = defineRoom(name, table, true)
+  info fmt"Define pseudo room: {name}"
   gEngine.rooms.add room
   push(v, room.table)
   1

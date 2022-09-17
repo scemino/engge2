@@ -25,7 +25,6 @@ import ../gfx/texture
 import ../io/ggpackmanager
 import ../io/textdb
 import ../util/tween
-import ../audio/audio
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
@@ -152,7 +151,7 @@ proc getObj(room: Room, key: string): Object =
         if obj.key == key:
           return obj
 
-proc defineRoom*(name: string, table: HSQOBJECT): Room =
+proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
   info "Load room: " & name
   if name == "Void":
     result = Room(name: name, table: table)
@@ -168,6 +167,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
     table.getf("background", background)
     let content = gGGPackMgr.loadStream(background & ".wimpy").readAll
     result = parseRoom(table, content)
+    result.pseudo = pseudo
     result.name = name
     for i in 0..<result.layers.len:
       let layer = result.layers[i]
@@ -182,11 +182,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
       result.scene.addChild layerNode
 
       for obj in layer.objects:
-        sq_resetobject(obj.table)
-        result.table.getf(obj.key, obj.table)
-
-        # check if the object exists in Squirrel VM
-        if obj.table.objType == OT_NULL:
+        if not table.rawexists(obj.key):
           # this object does not exist, so create it
           sq_newtable(gVm.v)
           discard sq_getstackobj(gVm.v, -1, obj.table)
@@ -201,27 +197,7 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           setf(result.table, obj.key, obj.table)
           obj.setRoom(result)
           obj.setState(0, true)
-        else:
-          # assign an id
-          obj.table.setId(newObjId())
-          setf(rootTbl(gVm.v), obj.key, obj.table)
-          # info fmt"Create object with existing table: {obj.key} #{obj.id}"
-          if obj.table.rawexists("initState"):
-            # info fmt"initState {obj.key}"
-            var state: int
-            obj.table.getf("initState", state)
-            obj.setState(state, true)
-          else:
-            obj.setState(0, true)
-          obj.setRoom(result)
 
-        # set room as delegate
-        obj.table.setdelegate(table)
-
-        # declare flags if does not exist
-        if not obj.table.rawexists("flags"):
-          obj.table.setf("flags", 0)
-        
         layerNode.addChild obj.node
 
     # assign parent node
@@ -234,24 +210,68 @@ proc defineRoom*(name: string, table: HSQOBJECT): Room =
           else:
             parent.node.addChild(obj.node)
   
-  # Add inventory object to root table
-  for (k,v) in result.table.pairs:
-    if v.objType == OT_TABLE and v.rawexists("icon"):
-      info fmt"Add {k} to inventory"
-      setf(rootTbl(gVm.v), k, v)
+  for (k, v) in result.table.mpairs:
+    if v.objType == OT_TABLE:
+      if pseudo:
+        # if it's a pseudo room we need to clone each object
+        sq_pushobject(gVm.v, v)
+        discard sq_clone(gVm.v, -1)
+        discard sq_getstackobj(gVm.v, -1, v)
+        sq_addref(gVm.v, v)
+        sq_pop(gVm.v, 2)
+        setf(result.table, k, v)
 
-      # set room as delegate
-      v.setdelegate(table)
+      if v.rawexists("icon"):
+        # Add inventory object to root table
+        info fmt"Add {k} to inventory"
+        setf(rootTbl(gVm.v), k, v)
 
-      # declare flags if does not exist
-      if not v.rawexists("flags"):
-        v.setf("flags", 0)
-      let obj = Object(table: v, key: k)
-      obj.table.setId(newObjId())
-      obj.node = newNode(k)
-      obj.nodeAnim = newAnim(obj)
-      obj.node.addChild obj.nodeAnim
-      gEngine.inventory.add obj
+        # set room as delegate
+        v.setdelegate(table)
+
+        # declare flags if does not exist
+        if not v.rawexists("flags"):
+          v.setf("flags", 0)
+        let obj = Object(table: v, key: k)
+        obj.table.setId(newObjId())
+        obj.node = newNode(k)
+        obj.nodeAnim = newAnim(obj)
+        obj.node.addChild obj.nodeAnim
+        gEngine.inventory.add obj
+      else:
+        var obj = result.getObj(k)
+        if obj.isNil:
+          info fmt"object: {k} not found in wimpy"
+          obj = newObject()
+          obj.key = k
+          obj.layer = result.layer(0)
+          result.layer(0).objects.add obj
+        elif k == "jumperRedPlug":
+          info fmt"object: {k} not found in wimpy, obj.table={$(v)}"
+        
+        getf(result.table, k, obj.table)
+        obj.table.setId(newObjId())
+        info fmt"Create object: {k} #{obj.id}"
+        
+        # add it to the root table if not a pseudo room
+        if not pseudo:
+          setf(rootTbl(gVm.v), k, obj.table)
+        
+        if obj.table.rawexists("initState"):
+          # info fmt"initState {obj.key}"
+          var state: int
+          obj.table.getf("initState", state)
+          obj.setState(state, true)
+        else:
+          obj.setState(0, true)
+        obj.setRoom(result)
+
+        # set room as delegate
+        obj.table.setdelegate(table)
+
+        # declare flags if does not exist
+        if not obj.table.rawexists("flags"):
+          obj.table.setf("flags", 0)
 
   # declare the room in the root table
   result.table.setId(newRoomId())
@@ -515,7 +535,7 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
   let noun2name = if noun2.isNil: "null" else: noun2.key
   info fmt"exec({name},{verbId.VerbId},{noun1name},{noun2name})"
   var actor = if actor.isNil: gEngine.currentActor else: actor
-  if verbId <= 0 and verbId > 13 or noun1.isNil:
+  if verbId <= 0 and verbId > 13 or noun1.isNil or actor.isNil:
     return false
   # TODO
   #if (a?._verb_tid) stopthread(actor._verb_tid)

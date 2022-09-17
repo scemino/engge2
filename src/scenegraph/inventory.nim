@@ -1,4 +1,3 @@
-import std/logging
 import std/tables
 import glm
 import node
