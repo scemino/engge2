@@ -326,7 +326,7 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## . code-block:: Squirrel
   ## if (gameTime() > (time+testerTronTimeOut)) { // Do something
   ## }
-  sq_pushfloat(v, gEngine.time * 1000.0)
+  sq_pushfloat(v, gEngine.time)
   1
 
 proc sysInclude(v: HSQUIRRELVM): SQInteger {.cdecl.} =
