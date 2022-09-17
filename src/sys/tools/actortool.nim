@@ -51,6 +51,7 @@ proc showProperties() =
     var color = gActor.node.realColor
     if igColorEdit4("Color", color.arr):
       gActor.node.color = color
+      gActor.node.alpha = color.a
     igColorEdit4("Talk color", gActor.talkColor.arr)
     igDragInt2("Talk offset", gActor.talkOffset.arr)
     igDragFloat2("Position", gActor.node.pos.arr)

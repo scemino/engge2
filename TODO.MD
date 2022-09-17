@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] Clara in the elevator should not be visible
 * [x] cannot press buttons in the elevator
 * [x] Franklin cannot put on his glasses
 * [x] wrong number of args when opening elevator

@@ -160,6 +160,8 @@ method addChild*(self: Node, child: Node) {.base.} =
       child.parent.children.del i
   self.children.add(child)
   child.parent = self
+  child.updateColor()
+  child.updateAlpha()
 
 method drawCore(self: Node, transf: Mat4f) {.base, locks: "unknown".} =
   discard

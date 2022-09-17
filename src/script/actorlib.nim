@@ -34,12 +34,13 @@ proc getFacing(dir: int, facing: Facing): Facing =
 
 proc actorAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the transparency for an actor's image in [0.0..1.0]
-  var actor = obj(v, 2)
+  let actor = obj(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   var alpha: float
   if SQ_FAILED(get(v, 3, alpha)):
     return sq_throwerror(v, "failed to get alpha")
+  info fmt"actorAlpha({actor.key}, {alpha})"
   actor.node.alpha = alpha
   0
 
