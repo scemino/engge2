@@ -490,7 +490,7 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false, pseudo = false):
         return result
 
     for (k, v) in obj.mpairs:
-      if k.len > 1 and k[0] != '_':
+      if k.len > 0 and k[0] != '_':
         if not (skipObj and v.getId().isObject() and (pseudo or rootTbl.rawexists(k))):
           let json = tojson(v, true)
           if not json.isNil:
@@ -513,7 +513,7 @@ proc toint(c: Color) : int =
 proc createJActor(actor: Object): JsonNode =
   result = tojson(actor.table, false)
   if actor.node.color != White:
-    result["_color"] = newJInt(actor.node.color.toint)
+    result["_color"] = newJInt(cast[int32](actor.node.color.toint))
   result["_costume"] = newJString(changeFileExt(actor.costumeName, ""))
   result["_dir"] = newJInt(actor.facing.int)
   # TODO = json["_lockFacing"] = newJInt()
