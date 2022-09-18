@@ -147,6 +147,14 @@ proc register_gameconstants*(v: HSQUIRRELVM) =
       EFFECT_VHS            = RoomEffect.Vhs.int
       EFFECT_GHOST          = RoomEffect.Ghost.int
       EFFECT_BLACKANDWHITE  = RoomEffect.BlackAndWhite.int
+      UI_INPUT_ON = 1
+      UI_INPUT_OFF = 2
+      UI_VERBS_ON = 4
+      UI_VERBS_OFF = 8
+      UI_HUDOBJECTS_ON = 0x10
+      UI_HUDOBJECTS_OFF = 0x20
+      UI_CURSOR_ON = 0x40
+      UI_CURSOR_OFF = 0x80
       # these codes corresponds to SDL key codes used in TWP
       KEY_UP = 0x40000052
       KEY_RIGHT = 0x4000004F
