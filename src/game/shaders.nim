@@ -368,8 +368,9 @@ proc setShaderEffect*(effect: RoomEffect) =
   of RoomEffect.BlackAndWhite:
     gfxShader(newShader(vertexShader, bwShader))
   of RoomEffect.Ghost:
-    let shader = newShader(vertexShader, ghostShader)
-    gfxShader(shader)
+    # let shader = newShader(vertexShader, ghostShader)
+    # gfxShader(shader)
+    gfxResetShader()
     
   else: discard
 
