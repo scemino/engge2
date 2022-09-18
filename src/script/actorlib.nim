@@ -379,7 +379,7 @@ proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
   ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT. 
   ## If "NO" is specified, it removes all locking and allows the actor to change its facing direction based on player input or otherwise. 
-  var actor = actor(v, 2)
+  let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
   case sq_gettype(v, 3):
@@ -387,11 +387,7 @@ proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     var facing = 0
     if SQ_FAILED(get(v, 3, facing)):
       return sq_throwerror(v, "failed to get facing")
-    if facing == 0:
-      actor.unlockFacing()
-    else:
-      let allFacing = facing.Facing
-      actor.lockFacing(allFacing, allFacing, allFacing, allFacing)
+    actor.lockFacing(facing)
   of OT_TABLE:
     var obj: HSQOBJECT
     var back = FACE_BACK.int

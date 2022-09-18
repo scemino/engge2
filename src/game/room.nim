@@ -102,8 +102,8 @@ type
     table*: HSQOBJECT
     r: Room
     facing*: Facing
-    lockFacing: bool
-    facingMap: Table[Facing, Facing]
+    facingLockValue*: int 
+    facingMap*: Table[Facing, Facing]
     walkSpeed*: Vec2f
     parent*: string
     node*: Node
@@ -372,15 +372,14 @@ proc `room=`*(self: Object, room: Room) =
 proc setRoom*(self: Object, room: Room) =
   self.room = room
 
+proc lockFacing*(self: Object, facing: int) =
+  self.facingLockValue = facing
+
 proc lockFacing*(self: Object, left, right, front, back: Facing) =
   self.facingMap[FACE_LEFT] = left
   self.facingMap[FACE_RIGHT] = right
   self.facingMap[FACE_FRONT] = front
   self.facingMap[FACE_BACK] = back
-  self.lockFacing = true
-
-proc unlockFacing*(self: Object) =
-  self.lockFacing = false
 
 proc removeInventory(self: Object, obj: Object) =
   let i = self.inventory.find(obj)
@@ -393,10 +392,7 @@ proc removeInventory*(self: Object) =
     self.owner.removeInventory(self)
 
 proc resetLockFacing*(self: Object) =
-  self.facingMap[FACE_LEFT] = FACE_LEFT
-  self.facingMap[FACE_RIGHT] = FACE_RIGHT
-  self.facingMap[FACE_FRONT] = FACE_FRONT
-  self.facingMap[FACE_BACK] = FACE_BACK
+  self.facingMap.clear
 
 proc trig*(self: Object, name: string) =
   # debug fmt"Trigger object #{self.id} ({self.name}) sound '{name}'"
@@ -424,10 +420,12 @@ proc useFlag*(self: Object): UseFlag =
     result = ufNone
 
 proc getFacing*(self: Object): Facing =
-  if self.lockFacing:
-    self.facingMap[self.facing]
+  if self.facingLockValue != 0:
+    result = self.facingLockValue.Facing
+  elif self.facingMap.hasKey(self.facing):
+    result = self.facingMap[self.facing]
   else:
-    self.facing
+    result = self.facing
 
 proc suffix(self: Object): string =
   case self.getFacing():

@@ -236,6 +236,13 @@ proc setActor(key: string) =
       gEngine.setCurrentActor(actor, false)
       return
 
+proc setAnimations(actor: Object, anims: JsonNode) =
+  let headAnim = anims[0].getStr()
+  let standAnim = anims[9].getStr()[0..^7]
+  let walkAnim = anims[11].getStr()[0..^7]
+  let reachAnim = anims[15].getStr()[0..^11]
+  actor.setAnimationNames(headAnim, standAnim, walkAnim, reachAnim)
+
 proc loadActor(actor: Object, json: JsonNode) =
   var touchable = true
   if json.hasKey("_untouchable"):
@@ -243,6 +250,8 @@ proc loadActor(actor: Object, json: JsonNode) =
   actor.touchable = touchable
   for (k, v) in json.pairs:
     case k:
+    of "_animations":
+      setAnimations(actor, v)
     of "_pos":
       actor.node.pos = vec2f(parseVec2i(v.getStr()))
     of "_costume":
@@ -254,8 +263,11 @@ proc loadActor(actor: Object, json: JsonNode) =
       discard
     of "_color":
       actor.node.color = rgba(v.getInt)
+      actor.node.alpha = rgba(v.getInt).a
     of "_dir":
       actor.setFacing(v.getInt().Facing)
+    of "_lockFacing":
+      actor.lockFacing(v.getInt())
     of "_useDir":
       actor.useDir = v.getInt().Direction
     of "_usePos":
@@ -510,13 +522,51 @@ proc toint(c: Color) : int =
   let a = (c.a * 255f).int
   (r shl 16) or (g shl 8) or b or (a shl 24)
 
+proc hasCustomAnim(actor: Object): bool =
+  if actor.facingMap.len > 0:
+    return true
+  if actor.animNames.len > 0:
+    for name in [HeadAnimName, StandAnimName, WalkAnimName, ReachAnimName]:
+      if actor.animNames.hasKey(name) and actor.animNames[name] != name:
+        return true
+
+proc getFacingMap(actor: Object): Table[string, string] =
+  if actor.animNames.len > 0:
+    return actor.animNames
+  return {HeadAnimName: HeadAnimName, StandAnimName: StandAnimName, WalkAnimName: WalkAnimName, ReachAnimName: ReachAnimName}.toTable
+
+proc getCustomAnims(actor: Object): JsonNode =
+  result = newJArray()
+  let facingMap = actor.getFacingMap()
+  # add head anims
+  result.add newJString(facingMap[HeadAnimName])
+  for i in 1..6:
+    result.add newJString(facingMap[HeadAnimName] & $i)
+  # add stand anims
+  result.add newJString(facingMap[StandAnimName] & "_front")
+  result.add newJString(facingMap[StandAnimName] & "_back")
+  result.add newJString(facingMap[StandAnimName] & "_left")
+  result.add newJString(facingMap[StandAnimName] & "_right")
+  # add walk anims
+  result.add newJString(facingMap[WalkAnimName] & "_front")  
+  result.add newJString(facingMap[WalkAnimName] & "_back")  
+  result.add newJString(facingMap[WalkAnimName] & "_right")  
+  result.add newJString(facingMap[WalkAnimName] & "_right")  
+  # add reach anims
+  for dir in ["_front", "_back", "_right", "_right"]:
+    result.add newJString(facingMap[ReachAnimName] & "_low" & dir)
+    result.add newJString(facingMap[ReachAnimName] & "_med" & dir)
+    result.add newJString(facingMap[ReachAnimName] & "_high" & dir)
+
 proc createJActor(actor: Object): JsonNode =
   result = tojson(actor.table, false)
   if actor.node.color != White:
-    result["_color"] = newJInt(cast[int32](actor.node.color.toint))
+    result["_color"] = newJInt(cast[int32](rgbaf(actor.node.color, actor.node.alpha).toint))
+  if actor.hasCustomAnim():
+    result["_animations"] = actor.getCustomAnims()
   result["_costume"] = newJString(changeFileExt(actor.costumeName, ""))
   result["_dir"] = newJInt(actor.facing.int)
-  # TODO = json["_lockFacing"] = newJInt()
+  result["_lockFacing"] = newJInt(actor.facingLockValue)
   result["_pos"] = newJString(actor.node.pos.tostr)
   if actor.useDir != dNone:
     result["_useDir"] = newJInt(actor.useDir.int)
