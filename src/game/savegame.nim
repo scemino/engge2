@@ -535,28 +535,31 @@ proc getFacingMap(actor: Object): Table[string, string] =
     return actor.animNames
   return {HeadAnimName: HeadAnimName, StandAnimName: StandAnimName, WalkAnimName: WalkAnimName, ReachAnimName: ReachAnimName}.toTable
 
+proc getCustomAnim(facingMap: Table[string, string], name: string): string =
+  result = if facingMap.hasKey(name): facingMap[name] else: name
+
 proc getCustomAnims(actor: Object): JsonNode =
   result = newJArray()
   let facingMap = actor.getFacingMap()
   # add head anims
-  result.add newJString(facingMap[HeadAnimName])
+  result.add newJString(facingMap.getCustomAnim(HeadAnimName))
   for i in 1..6:
-    result.add newJString(facingMap[HeadAnimName] & $i)
+    result.add newJString(facingMap.getCustomAnim(HeadAnimName) & $i)
   # add stand anims
-  result.add newJString(facingMap[StandAnimName] & "_front")
-  result.add newJString(facingMap[StandAnimName] & "_back")
-  result.add newJString(facingMap[StandAnimName] & "_left")
-  result.add newJString(facingMap[StandAnimName] & "_right")
+  result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_front")
+  result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_back")
+  result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_left")
+  result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_right")
   # add walk anims
-  result.add newJString(facingMap[WalkAnimName] & "_front")  
-  result.add newJString(facingMap[WalkAnimName] & "_back")  
-  result.add newJString(facingMap[WalkAnimName] & "_right")  
-  result.add newJString(facingMap[WalkAnimName] & "_right")  
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_front")  
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_back")  
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")  
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")  
   # add reach anims
   for dir in ["_front", "_back", "_right", "_right"]:
-    result.add newJString(facingMap[ReachAnimName] & "_low" & dir)
-    result.add newJString(facingMap[ReachAnimName] & "_med" & dir)
-    result.add newJString(facingMap[ReachAnimName] & "_high" & dir)
+    result.add newJString(facingMap.getCustomAnim(ReachAnimName) & "_low" & dir)
+    result.add newJString(facingMap.getCustomAnim(ReachAnimName) & "_med" & dir)
+    result.add newJString(facingMap.getCustomAnim(ReachAnimName) & "_high" & dir)
 
 proc createJActor(actor: Object): JsonNode =
   result = tojson(actor.table, false)
