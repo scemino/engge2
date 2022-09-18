@@ -323,6 +323,8 @@ proc `$`*(obj: var HSQOBJECT): string =
   case obj.objType:
   of OT_INTEGER:
     result = $sq_objtointeger(obj)
+  of OT_BOOL:
+    result = $sq_objtointeger(obj)
   of OT_FLOAT:
     result = $sq_objtofloat(obj)
   of OT_STRING:

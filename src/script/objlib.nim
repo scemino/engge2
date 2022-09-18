@@ -717,10 +717,10 @@ proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, obj.touchable)
     result = 1
   elif nArgs == 3:
-    var touchable: SQInteger
-    if SQ_FAILED(sq_getinteger(v, 3, touchable)):
+    var touchable: bool
+    if SQ_FAILED(get(v, 3, touchable)):
       return sq_throwerror(v, "failed to get touchable")
-    obj.touchable = touchable != 0
+    obj.touchable = touchable
     result = 0
 
 proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =

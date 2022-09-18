@@ -31,7 +31,7 @@ proc destroy*(self: VM) =
   sq_close(self.v)
 
 proc push*(v: HSQUIRRELVM, value: bool) {.inline.} =
-  sq_pushbool(v, if value: SQTrue else: SQFalse)
+  sq_pushinteger(v, if value: 1 else: 0)
 
 proc push*(v: HSQUIRRELVM, value: int64) {.inline.} =
   sq_pushinteger(v, value.SQInteger)
