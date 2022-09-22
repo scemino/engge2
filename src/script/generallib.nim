@@ -687,9 +687,9 @@ proc strfirst(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 2, str)):
     return sq_throwerror(v, "Failed to get str")
   if str.len > 0:
-    push(v, str.substr(0, 1))
+    push(v, str[0..0])
   else:
-    sq_pushnull(v)
+    push(v, "")
   1
 
 proc strlines(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -732,14 +732,10 @@ proc translate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var text: string
   if SQ_FAILED(get(v, 2, text)):
     return sq_throwerror(v, "Failed to get text")
-  if text.len > 0 and text[0] == '@':
-    var id: int
-    discard parseInt(text, id, 1)
-    push(v, getText(id))
-    1
-  else:
-    push(v, text)
-    1
+  let newText = getText(text)
+  info fmt"translate({text}): {newText}"
+  push(v, newText)
+  1
 
 proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
