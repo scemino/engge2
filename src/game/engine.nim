@@ -343,7 +343,8 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.walkboxNode = newWalkboxNode(room)
   self.scene.addChild self.walkboxNode
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
-  self.hud.verb = self.getVerb(VERB_WALKTO)
+  if not self.actor.isNil:
+    self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
 
   # move current actor to the new room
   if not door.isNil and not gEngine.actor.isNil:
@@ -605,7 +606,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
       if not handled:
         if not self.actor.isNil and scrPos.y > 172:
           self.actor.walk(room_pos)
-          self.hud.verb = self.getVerb(VERB_WALKTO)
+          self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
         # Just clicking on the ground
         self.cancelSentence(self.actor)
     elif self.mouseState.click(mbRight):
