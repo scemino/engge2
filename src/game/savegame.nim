@@ -481,7 +481,7 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false, pseudo = false):
   of OT_ARRAY:
     result = newJArray()
     for item in obj.mitems:
-      result.add tojson(item[], true)
+      result.add tojson(item, true)
   of OT_TABLE:
     result = newJObject()
     if checkId:
@@ -492,6 +492,8 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false, pseudo = false):
         return result
       elif id.isObject():
         let obj = obj(id)
+        if obj.isNil:
+          return newJNull()
         result["_objectKey"] = newJString(obj.key)
         if not obj.room.isNil and obj.room.pseudo:
           result["_roomKey"] = newJString(obj.room.name)
@@ -726,7 +728,7 @@ proc createJObjects(): JsonNode =
     if v.getId().isObject():
       let obj = obj(v)
       if obj.isNil or obj.objType == otNone:
-        info fmt"obj: createJObject({k})"
+        #info fmt"obj: createJObject({k})"
         result[k] = createJObject(v, obj)
   result.fields.sort(cmpKey)
 
@@ -735,7 +737,7 @@ proc createJPseudoObjects(room: Room): JsonNode =
   for (k, v) in room.table.mpairs:
     if v.getId().isObject():
       let obj = obj(v)
-      info fmt"pseudoObj: createJObject({k})"
+      #info fmt"pseudoObj: createJObject({k})"
       result[k] = createJObject(v, obj)
   result.fields.sort(cmpKey)
 

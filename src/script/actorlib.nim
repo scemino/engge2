@@ -715,20 +715,26 @@ proc flashSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
   var obj: Object
   var index: int
+  var texts: seq[string]
   if sq_gettype(v, 2) == OT_TABLE:
     obj = obj(v, 2)
     index = 3
   else:
     index = 2
     obj = gEngine.currentActor
-  
-  let numIds = sq_gettop(v) - index + 1
-  var texts: seq[string]
-  for i in 0..<numIds:
-    var text: string
-    if SQ_FAILED(get(v, index + i, text)):
-      return sq_throwerror(v, "failed to get text")
-    texts.add text
+
+  if sq_gettype(v, index) == OT_ARRAY:
+    var arr: HSQOBJECT
+    discard sq_getstackobj(v, index, arr)
+    for item in arr.mitems:
+      texts.add $sq_objtostring(item)
+  else:
+    let numIds = sq_gettop(v) - index + 1
+    for i in 0..<numIds:
+      var text: string
+      if SQ_FAILED(get(v, index + i, text)):
+        return sq_throwerror(v, "failed to get text")
+      texts.add text
   info fmt"sayline: {texts}"
   obj.say(texts, obj.talkColor)
   0

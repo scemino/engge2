@@ -8,7 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
-* [ ] sayLine crash with an array
+* [x] sayLine crash with an array
 * [x] Franklin cannot go through doors
 * [x] Ransome cannot give the floppy disk to Delores
 * [x] Chuck computer text is not translated

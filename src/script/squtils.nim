@@ -285,13 +285,13 @@ iterator items*(obj: HSQOBJECT): HSQOBJECT =
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
 
-iterator mitems*(obj: HSQOBJECT): ptr HSQOBJECT =
+iterator mitems*(obj: HSQOBJECT): var HSQOBJECT =
   sq_pushobject(gVm.v, obj)
   sq_pushnull(gVm.v)
   while SQ_SUCCEEDED(sq_next(gVm.v, -2)):
     var o: HSQOBJECT
     discard get(gVm.v, -1, o)
-    yield o.addr
+    yield o.addr[]
     sq_pop(gVm.v, 2)
   sq_pop(gVm.v, 2)
 
@@ -332,7 +332,7 @@ proc `$`*(obj: var HSQOBJECT): string =
   of OT_ARRAY:
     var strings: seq[string]
     for item in obj.mitems:
-      strings.add $item[]
+      strings.add $item
     result = join(strings, ", ")
     result = fmt"[{result}]"
   of OT_TABLE:

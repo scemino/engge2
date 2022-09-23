@@ -256,9 +256,9 @@ proc getIcon*(self: Object): string =
       var icons: seq[string]
       for item in iconTable.mitems:
         if i == 0:
-          fps = sq_objtointeger(item[])
+          fps = sq_objtointeger(item)
         else:
-          let icon = $sq_objtostring(item[])
+          let icon = $sq_objtostring(item)
           icons.add icon
         inc i
       self.setIcon(fps, icons)
