@@ -469,11 +469,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
         info fmt"call {verbFuncName} on {noun1.key}"
         noun1.table.call(verbFuncName, [noun2.table])
         handled = true
-      if not handled and noun2.table.rawExists(verbFuncName):
-        info fmt"call {verbFuncName} on actor {noun2.key}"
-        noun2.table.callFunc(verbFuncName, [noun1.table])
-        handled = true
-      if not handled:
+      else:
         info "call objectGive"
         call("objectGive", [noun1.table, self.actor.table, noun2.table])
         self.actor.giveTo(noun2, noun1)

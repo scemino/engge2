@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] Ransome cannot give the floppy disk to Delores
 * [x] Chuck computer text is not translated
 * [x] Clara in the elevator should not be visible
 * [x] cannot press buttons in the elevator
