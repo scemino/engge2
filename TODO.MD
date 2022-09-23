@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] PillowTronEndDialog never ends
 * [x] sayLine crash with an array
 * [x] Franklin cannot go through doors
 * [x] Ransome cannot give the floppy disk to Delores

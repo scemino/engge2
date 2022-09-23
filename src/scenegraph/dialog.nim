@@ -1,6 +1,7 @@
 import std/logging
 import std/strformat
 import std/sequtils
+import std/algorithm
 import glm
 import node
 import dlgtgt
@@ -103,7 +104,7 @@ proc isCond*(self: Dialog, cond: string): bool =
   info fmt"isCond '{cond}': {result}"
 
 proc label(self: Dialog, name: string): YLabel =
-  for label in self.cu.labels:
+  for label in self.cu.labels.reversed:
     if label.name == name:
       return label
     
