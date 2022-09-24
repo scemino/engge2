@@ -1,3 +1,6 @@
+import sqnim
+import std/logging
+import std/strformat
 import ../../libs/imgui
 import ../../game/engine
 import ../../game/thread
@@ -38,12 +41,15 @@ method render*(self: ThreadTool) =
   igText("# threads: %lu", threads.len)
   igSeparator()
 
-  if igBeginTable("Threads", 5, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
+  if igBeginTable("Threads", 8, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):
     igTableSetupColumn("")
     igTableSetupColumn("Id")
     igTableSetupColumn("Name")
     igTableSetupColumn("Type")
     igTableSetupColumn("State")
+    igTableSetupColumn("Func")
+    igTableSetupColumn("Src")
+    igTableSetupColumn("Line")
     igTableHeadersRow()
 
     if not gEngine.cutscene.isNil:
@@ -52,6 +58,8 @@ method render*(self: ThreadTool) =
       let id = thread.getId()
       let kind = if thread.global: "global" else: "local"
       let state = thread.getState()
+      var infos: SQStackInfos
+      discard sq_stackinfos(thread.getThread(), 0, infos)
 
       igTableNextRow()
       igTableNextColumn()
@@ -64,12 +72,20 @@ method render*(self: ThreadTool) =
       igText("%-6s", kind.cstring)
       igTableNextColumn()
       igText("%-9s", state.cstring)
+      igTableNextColumn()
+      igText("%-9s", infos.funcname)
+      igTableNextColumn()
+      igText("%-9s", infos.source)
+      igTableNextColumn()
+      igText("%5d", infos.line)
 
     for thread in threads:
       let name = thread.getName()
       let id = thread.getId()
       let kind = if thread.global: "global" else: "local"
       let state = thread.getState()
+      var infos: SQStackInfos
+      discard sq_stackinfos(thread.getThread(), 0, infos)
 
       igTableNextRow()
       igTableNextColumn()
@@ -82,5 +98,11 @@ method render*(self: ThreadTool) =
       igText("%-6s", kind.cstring)
       igTableNextColumn()
       igText("%-9s", state.cstring)
+      igTableNextColumn()
+      igText("%-9s", infos.funcname)
+      igTableNextColumn()
+      igText("%-9s", infos.source)
+      igTableNextColumn()
+      igText("%5d", infos.line)
     igEndTable()
   igEnd()
