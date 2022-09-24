@@ -210,7 +210,10 @@ proc loadCallbacks(json: JsonNode) =
       if callBackHash.hasKey "param":
         var arg: HSQOBJECT
         toSquirrel(callBackHash["param"], arg)
-        gEngine.callbacks.add newCallback(id, time, name, @[arg])
+        var args: seq[HSQOBJECT]
+        for a in arg.mitems:
+          args.add a
+        gEngine.callbacks.add newCallback(id, time, name, args)
       else:
         gEngine.callbacks.add newCallback(id, time, name, @[])
   setCallbackId(json["nextGuid"].getInt())
@@ -604,6 +607,8 @@ proc createJCallback(callback: Callback): JsonNode =
   let jArgs = newJArray()
   for arg in callback.args.mitems:
     jArgs.add tojson(arg, false)
+  if jArgs.len > 0:
+    result["param"] = jArgs
 
 proc createJCallbackArray(): JsonNode =
   result = newJArray()

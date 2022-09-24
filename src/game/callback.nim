@@ -1,5 +1,4 @@
 import sqnim
-import ids
 import ../script/squtils
 
 type Callback* = ref object of RootObj

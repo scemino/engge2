@@ -322,8 +322,6 @@ proc actorEnter(self: Engine) =
       if rawExists(self.room.table, "actorEnter"):
         call(self.v, self.room.table, "actorEnter", [self.currentActor.table])
 
-proc getVerb(self: Engine, id: int): Verb
-
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
@@ -584,12 +582,6 @@ proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
   if not result:
     if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
       self.actor.table.callFunc(result, "clickedAt", [x, y])
-
-proc getVerb(self: Engine, id: int): Verb =
-  if not self.actor.isNil:
-    for verb in self.hud.actorSlot(self.actor).verbs:
-      if verb.id == id:
-        return verb  
 
 proc clickedAt(self: Engine, scrPos: Vec2f) =
   # TODO: WIP
