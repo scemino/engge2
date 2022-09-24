@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] we don't see Chuck in the tvs in LaserHall
 * [x] PillowTronEndDialog never ends
 * [x] sayLine crash with an array
 * [x] Franklin cannot go through doors

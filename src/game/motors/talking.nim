@@ -103,7 +103,7 @@ proc say(self: Talking, text: string) =
     if i != -1:
       state = txt[1..i-1]
       info fmt"Set state from anim '{state}'"
-      if state == "notalk":
+      if state != "notalk":
         self.obj.play(state)
       txt = txt[i + 1..^1]
 

@@ -874,7 +874,7 @@ proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## playObjectState(Mansion.windowShutters, OPEN)
   let obj = obj(v, 2)
   if obj.isNil:
-    return sq_throwerror(v, "failed to get object")
+    return 0
   if sq_gettype(v, 3) == OT_INTEGER:
     var index: SQInteger
     if SQ_FAILED(sq_getinteger(v, 3, index)):

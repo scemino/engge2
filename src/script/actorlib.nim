@@ -493,13 +493,14 @@ proc actorTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## actorTalking(vo)
   var actor: Object
   if sq_gettop(v) == 2:
-    actor = actor(v, 2)
+    actor = obj(v, 2)
     if actor.isNil:
-      return sq_throwerror(v, "failed to get actor")
+      push(v, false)
+      return 1
   else:
     actor = gEngine.currentActor
   let isTalking = not actor.isNil and not actor.talking.isNil and actor.talking.enabled
-  sq_pushbool(v, isTalking)
+  push(v, isTalking)
   1
 
 proc actorTurnTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -735,7 +736,7 @@ proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
       if SQ_FAILED(get(v, index + i, text)):
         return sq_throwerror(v, "failed to get text")
       texts.add text
-  info fmt"sayline: {texts}"
+  info fmt"sayline: {obj.key}, {texts}"
   obj.say(texts, obj.talkColor)
   0
 
