@@ -24,6 +24,9 @@ const
   WalkAnimName*  = "walk"
   ReachAnimName* = "reach"
 
+proc getAnimName*(self: Object, key: string): string
+proc isWalking*(self: Object): bool
+
 proc getFacing(dir: Direction): Facing =
   case dir:
   of dRight: FACE_RIGHT
@@ -32,8 +35,6 @@ proc getFacing(dir: Direction): Facing =
   of dBack:  FACE_BACK
   else: 
       FACE_RIGHT
-
-proc getAnimName*(self: Object, key: string): string
 
 proc setHeadIndex*(self: Object, head: int) =
   for i in 1..6:
@@ -72,6 +73,8 @@ proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
     self.animNames[WalkAnimName] = walk
   if reach.len > 0:
     self.animNames[ReachAnimName] = reach
+  if self.isWalking():
+    self.play(self.getAnimName(WalkAnimName), true)
 
 proc setCostume*(self: Object, name, sheet: string) =
   let stream = gGGPackMgr.loadStream(name & ".json")
@@ -89,7 +92,7 @@ proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
   ## Walks an actor to the `pos` or actor `obj` and then faces `dir`.
   info fmt"walk to obj {self.key}: {pos}, {facing}"
   if self.walkTo.isNil or not self.walkTo.enabled:
-    self.play(WalkAnimName, true)
+    self.play(self.getAnimName(WalkAnimName), true)
   self.walkTo = newWalkTo(self, pos, facing)
 
 proc walk*(self: Object, obj: Object) =
