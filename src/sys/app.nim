@@ -79,21 +79,18 @@ proc toInputKey(key: cint): InputKey =
   cast[InputKey](key)
 
 proc toInputModifierKey(modifier: Keymod): InputModifierKey =
-  case modifier:
-  of KMOD_LSHIFT, KMOD_RSHIFT:
-    InputModifierKey.Shift
-  of KMOD_LCTRL, KMOD_RCTRL:
-    InputModifierKey.Control
-  of KMOD_LALT, KMOD_RALT:
-    InputModifierKey.Alt
-  of KMOD_LGUI, KMOD_RGUI:
-    InputModifierKey.Super
-  of KMOD_CAPS:
-    InputModifierKey.CapsLock
-  of KMOD_NUM:
-    InputModifierKey.NumLock
-  else:
-    InputModifierKey.None
+  if (modifier and KMOD_LSHIFT) == KMOD_LSHIFT  or (modifier and KMOD_RSHIFT) == KMOD_RSHIFT:
+    result = (result.int32 or InputModifierKey.Shift.int32).InputModifierKey
+  if (modifier and KMOD_LCTRL) == KMOD_LCTRL or (modifier and KMOD_RCTRL) == KMOD_RCTRL:
+    result = (result.int32 or InputModifierKey.Control.int32).InputModifierKey
+  if (modifier and KMOD_LALT) == KMOD_LALT or (modifier and KMOD_RALT) == KMOD_RALT:
+    result = (result.int32 or InputModifierKey.Alt.int32).InputModifierKey
+  if (modifier and KMOD_LGUI) == KMOD_LGUI or (modifier and KMOD_RGUI) == KMOD_RGUI:
+    result = (result.int32 or InputModifierKey.Super.int32).InputModifierKey
+  if (modifier and KMOD_CAPS) == KMOD_CAPS:
+    result = (result.int32 or InputModifierKey.CapsLock.int32).InputModifierKey
+  if (modifier and KMOD_NUM) == KMOD_CAPS:
+    result = (result.int32 or InputModifierKey.NumLock.int32).InputModifierKey
 
 proc run*(render: proc()) =
   var e: Event
