@@ -95,7 +95,7 @@ proc toInputModifierKey(modifier: Keymod): InputModifierKey =
 proc run*(render: proc()) =
   var e: Event
   while not close:
-    if sdl2.pollEvent(e):
+    while sdl2.pollEvent(e):
       case e.kind:
       of QuitEvent: close = true
       of KeyDown, KeyUp:
