@@ -24,12 +24,9 @@ type WalkTo* = ref object of Motor
     wsd: float32
 
 proc newWalkTo*(obj: Object, dest: Vec2f; facing = none(Facing)): WalkTo =
-  new(result)
-  result.obj = obj
-  result.path = obj.room.calculatePath(obj.node.pos, dest)
-  result.wsd = sqrt(obj.walkspeed.x * obj.walkspeed.x + obj.walkspeed.y * obj.walkspeed.y)
-  #info fmt"path: {result.path}"
-  result.facing = facing
+  let path = if obj.useWalkboxes: obj.room.calculatePath(obj.node.pos, dest) else: @[obj.node.pos, dest]
+  let wsd = sqrt(obj.walkspeed.x * obj.walkspeed.x + obj.walkspeed.y * obj.walkspeed.y)
+  result = WalkTo(obj: obj, path: path, wsd: wsd, facing: facing)
   result.init()
   if obj.table.rawexists("preWalking"):
     sqCall(obj.table, "preWalking", [])

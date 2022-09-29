@@ -12,6 +12,7 @@ import ../../io/textdb
 import ../../scenegraph/node
 
 type ActorTool = ref object of DebugTool
+  objFilter: ImGuiTextFilter
   visible*: bool
 
 proc newActorTool*(): ActorTool =
@@ -80,16 +81,18 @@ method render*(self: ActorTool) =
 
   igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
   igBegin("Actors".cstring, addr self.visible)
+  self.objFilter.addr.draw()
 
   # show actor list
   for actor in gEngine.actors:
     let selected = gActor == actor
-    igPushID(actor.table.getId().int32)
-    igCheckbox("", addr actor.node.visible)
-    igSameLine()
-    if igSelectable(getText(actor.name()).cstring, selected):
-      gActor = actor
-    igPopID()
+    if self.objFilter.addr.passFilter(actor.key.cstring):
+      igPushID(actor.table.getId().int32)
+      igCheckbox("", addr actor.node.visible)
+      igSameLine()
+      if igSelectable(getText(actor.name()).cstring, selected):
+        gActor = actor
+      igPopID()
 
   showProperties()
 
