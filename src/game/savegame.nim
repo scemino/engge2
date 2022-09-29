@@ -251,6 +251,10 @@ proc loadActor(actor: Object, json: JsonNode) =
   if json.hasKey("_untouchable"):
     touchable = json["_untouchable"].getInt() == 0
   actor.touchable = touchable
+  var hidden = false
+  if json.hasKey("_hidden"):
+    hidden = json["_hidden"].getInt() == 1
+  actor.node.visible = not hidden
   for (k, v) in json.pairs:
     case k:
     of "_animations":
