@@ -725,7 +725,7 @@ proc createJObject(table: var HSQOBJECT, obj: Object): JsonNode =
       result["_hidden"] = newJInt(1)
     if obj.state != 0:
       result["_state"] = newJInt(obj.state)
-    if not obj.touchable:
+    if obj.node.visible and not obj.touchable:
       result["_touchable"] = newJInt(0)
     if obj.node.offset != Vec2f():
       result["_offset"] = newJString(obj.node.offset.tostr)

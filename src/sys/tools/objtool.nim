@@ -10,7 +10,7 @@ import ../../io/textdb
 import ../../scenegraph/node
 
 type ObjectTool = ref object of DebugTool
-  gFilterObject: ImGuiTextFilter
+  objFilter: ImGuiTextFilter
   visible*: bool
 
 proc newObjectTool*(): ObjectTool =
@@ -80,12 +80,12 @@ method render*(self: ObjectTool) =
 
   igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
   igBegin("Objects".cstring, addr self.visible)
-  self.gFilterObject.addr.draw()
+  self.objFilter.addr.draw()
 
   # show object list
   for layer in gEngine.room.layers:
     for obj in layer.objects.mitems:
-      if self.gFilterObject.addr.passFilter(obj.key.cstring):
+      if self.objFilter.addr.passFilter(obj.key.cstring):
         let selected = gObject == obj
         igPushID(obj.table.getId().int32)
         igCheckbox("", addr obj.node.visible)

@@ -198,6 +198,11 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
           obj.setRoom(result)
           obj.setState(0, true)
 
+          if obj.objType == otNone:
+            obj.touchable = false
+        elif obj.objType == otNone:
+          obj.touchable = true
+
         layerNode.addChild obj.node
 
     # assign parent node
