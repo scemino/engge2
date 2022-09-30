@@ -345,12 +345,12 @@ proc inputHUD(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.inputHUD = on
 
 proc inputOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  if gEngine.cutscene.isNil:
+  if gEngine.cutscene.isNil or cast[Cutscene](gEngine.cutscene).isStopped():
     gEngine.inputState.inputActive = false
     gEngine.inputState.showCursor = false
 
 proc inputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  if gEngine.cutscene.isNil:
+  if gEngine.cutscene.isNil or cast[Cutscene](gEngine.cutscene).isStopped():
     gEngine.inputState.inputActive = true
     gEngine.inputState.showCursor = true
 

@@ -24,7 +24,7 @@ type
     state: CutsceneState
     stopped: bool
     showCursor: bool
-    inputState: InputStateFlag
+    inputState*: InputStateFlag
     actor: Object
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
@@ -64,7 +64,7 @@ proc start(self: Cutscene) =
     sq_settop(thread, top)
     error "Couldn't call cutscene"
 
-proc isStopped(self: Cutscene): bool =
+proc isStopped*(self: Cutscene): bool =
   if self.stopped:
     return true;
   sq_getvmstate(self.getThread()) == 0
