@@ -196,28 +196,15 @@
     * [x] camera follow actor
     * [x] camera pan
 * [ ] shaders
+  * [ ] lighting shader
+  * [ ] object shader
   * [x] room effects
     * [x] EGA
     * [x] VHS
     * [x] b/w
     * [x] sepia
     * [x] ghost
-  * [ ] verb shader
-  * [ ] object shader
-* [ ] debug tools (dear imgui)
-  * [ ] preferences to enable debug tools
-  * [ ] shortcuts to show/hide
-  * [x] console
-    * [x] dump variables
-    * [x] input
-    * [x] log
-  * [x] general
-  * [x] objects
-  * [x] actors
-  * [x] room
-  * [x] textures
-  * [x] threads
-  * [x] sounds
+  * [x] verb shader
 * [ ] sentence
   * [ ] classic sentence
   * [x] use lookat verb for inventory object 
@@ -247,6 +234,20 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] debug tools (dear imgui)
+  * [x] shortcuts to show/hide
+  * [x] preferences to enable debug tools
+  * [x] console
+    * [x] dump variables
+    * [x] input
+    * [x] log
+  * [x] general
+  * [x] objects
+  * [x] actors
+  * [x] room
+  * [x] textures
+  * [x] threads
+  * [x] sounds
 * [x] cutscene
   * [x] cutscene UI (ESC)
   * [x] cutscene override

@@ -1,6 +1,7 @@
 import ../libs/opengl
 import std/[logging, strutils, strformat]
 import glm
+import color
 import glutils
 
 type 
@@ -95,4 +96,10 @@ proc setUniform*(self: Shader, name: string, value: var openArray[float32]) =
   self.ensureProgramActive():
     let loc = self.getUniformLocation(name)
     glUniform1fv(loc, value.len.GLsizei, value[0].addr)
+    checkGLError(fmt"setUniform({name},{value})")
+
+proc setUniform*(self: Shader, name: string, value: var Color) =
+  self.ensureProgramActive():
+    let loc = self.getUniformLocation(name)
+    glUniform4f(loc, value.r, value.g, value.b, value.a)
     checkGLError(fmt"setUniform({name},{value})")

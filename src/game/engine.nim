@@ -103,6 +103,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   new(result)
   gEngine = result
   result.v = v
+  result.mouseDownTime = now()
   result.audio = newAudioSystem(soundObjVol)
   result.scene = newScene()
   result.screen = newScene()
@@ -603,6 +604,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
       var handled = self.clickedAtHandled(roomPos)
       if not handled and not obj.isNil:
         let verb = self.hud.verb
+        sqCall("onVerbClick")
         handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled:
         if not self.actor.isNil and scrPos.y > 172:
@@ -901,6 +903,7 @@ proc update*(self: Engine, elapsed: float) =
   if self.currentActor.isNil:
     self.uiInv.update(elapsed)
   else:
+    self.hud.update(scrPos)
     let verbUI = self.hud.actorSlot(self.currentActor).verbUiColors
     self.uiInv.update(elapsed, self.currentActor, verbUI.inventoryBackground, verbUI.verbNormal)
 

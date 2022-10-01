@@ -501,6 +501,72 @@ void main(void)
     FragColor = v_color * vec4(col, texture(u_texture, c1).a);
 }"""
 
+  verbVtxShader* = """#version 330 core
+precision mediump float;
+layout (location = 0) in vec2 a_position;
+layout (location = 1) in vec4 a_color;
+layout (location = 2) in vec2 a_texCoords;
+
+uniform vec4 u_shadowColor;
+uniform vec4 u_normalColor;
+uniform vec4 u_highlightColor;
+uniform vec2 u_ranges;
+uniform mat4 u_transform;
+
+out vec4 v_color;
+out vec2 v_texCoords;
+out vec4 v_shadowColor;
+out vec4 v_normalColor;
+out vec4 v_highlightColor;
+out vec2 v_ranges;
+
+void main(void) {
+  v_color = a_color;
+  v_texCoords = a_texCoords;
+  v_shadowColor = u_shadowColor;
+  v_normalColor = u_normalColor;
+  v_highlightColor = u_highlightColor;
+  v_ranges = u_ranges;
+  vec4 worldPosition = vec4(a_position, 0, 1);
+  vec4 normalizedPosition = u_transform * worldPosition;
+  gl_Position = normalizedPosition;
+}"""
+
+  verbFgtShader* = """#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+
+out vec4 FragColor;
+in vec4 v_color;
+in vec2 v_texCoords;
+in vec4 v_shadowColor;
+in vec4 v_normalColor;
+in vec4 v_highlightColor;
+in vec2 v_ranges;
+uniform sampler2D u_texture;
+
+void main(void)
+{
+    float shadows = v_ranges.x;
+    float highlights = v_ranges.y;
+    vec4 texColor = texture(u_texture, v_texCoords);
+    if ( texColor.g <= shadows)
+    {
+        texColor*=v_shadowColor;
+    }
+    else if (texColor.g >= highlights)
+    {
+        texColor*=v_highlightColor;
+    }
+    else
+    {
+        texColor*=v_normalColor;
+    }
+    texColor *= v_color;
+    FragColor = texColor;
+}"""
+
 type
   ShaderParams* = object
     effect*: RoomEffect

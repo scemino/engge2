@@ -8,7 +8,8 @@ const
   PreferencesFileName = "Prefs.json"
   Lang* = "language"
   LangDefValue* = "en"
-  UiBackingAlpha = "uiBackingAlpha"
+  UiBackingAlpha* = "uiBackingAlpha"
+  UiBackingAlphaDefValue* = 0.33f
   InvertVerbHighlight* = "invertVerbHighlight"
   InvertVerbHighlightDefValue* = false
   RetroVerbs* = "retroVerbs"
