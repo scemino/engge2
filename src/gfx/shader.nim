@@ -14,9 +14,9 @@ proc statusShader(shader: uint32) =
   glGetShaderiv(shader, GL_COMPILE_STATUS, status.addr)
   if status != GL_TRUE.ord:
     var
-      log_length: int32
+      logLength: int32
       message = newString(1024)
-    glGetShaderInfoLog(shader, 1024, log_length.addr, message[0].addr)
+    glGetShaderInfoLog(shader, 1024, logLength.addr, message[0].addr)
     warn(message)
 
 proc loadShader(code: cstring, shaderType: GLEnum): GLuint =
@@ -36,12 +36,12 @@ proc newShader*(vertex, fragment: string): Shader =
   glLinkProgram(result.program)
 
   var
-    log_length: int32
+    logLength: int32
     message = newString(1024)
     pLinked: int32
   glGetProgramiv(result.program, GL_LINK_STATUS, pLinked.addr)
   if pLinked != GL_TRUE.ord:
-    glGetProgramInfoLog(result.program, 1024, log_length.addr, message[0].addr)
+    glGetProgramInfoLog(result.program, 1024, logLength.addr, message[0].addr)
     warn(message)
 
 template ensureProgramActive*(self: Shader, statements: untyped) =

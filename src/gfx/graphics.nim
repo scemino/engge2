@@ -57,7 +57,7 @@ void main() {
   emptyImage: Image
   gEmptyTexture*: Texture
 
-proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0); flipX = false)
+proc drawSpriteCore(textRect: Rectf, w, h: float32, color = White, transf = mat4f(1.0), flipX = false, flipY = false)
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0))
 proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0))
 
@@ -133,22 +133,22 @@ proc gfxDraw*(vertices: var openArray[Vertex], indices: var openArray[uint32]; t
 proc gfxDraw*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   drawPrimitives(GL_TRIANGLES, vertices, transf)
 
-proc gfxDrawSprite*(texture: Texture; color = White; transf = mat4f(1.0); flipX = false) =
+proc gfxDrawSprite*(texture: Texture; color = White; transf = mat4f(1.0); flipX = false, flipY = false) =
   texture.bindTexture()
-  drawSpriteCore(rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32, color, transf, flipX)
+  drawSpriteCore(rect(0f, 0f, 1f, 1f), texture.width.float32, texture.height.float32, color, transf, flipX, flipY)
 
-proc gfxDrawSprite*(w,h: float, texture: Texture; color = White; transf = mat4f(1.0); flipX = false) =
+proc gfxDrawSprite*(w, h: float, texture: Texture, color = White, transf = mat4f(1.0), flipX = false, flipY = false) =
   texture.bindTexture()
-  drawSpriteCore(rect(0f, 0f, 1f, 1f), w.float32, h.float32, color, transf, flipX)
+  drawSpriteCore(rect(0f, 0f, 1f, 1f), w.float32, h.float32, color, transf, flipX, flipY)
 
-proc gfxDrawSprite*(textRect: Rectf, texture: Texture; color = White; transf = mat4f(1.0); flipX = false) =
+proc gfxDrawSprite*(textRect: Rectf, texture: Texture, color = White, transf = mat4f(1.0), flipX = false, flipY = false) =
   let w = textRect.w * texture.width.float32
   let h = textRect.h * texture.height.float32
   texture.bindTexture()
-  drawSpriteCore(textRect, w, h, color, transf, flipX)
+  drawSpriteCore(textRect, w, h, color, transf, flipX, flipY)
 
-proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White; flipX = false) =
-  gfxDrawSprite(textRect, texture, color, translate(mat4f(1.0), vec3(pos, 0.0)), flipX)
+proc gfxDrawSprite*(pos: Vec2f, textRect: Rectf, texture: Texture; color = White; flipX = false, flipY = false) =
+  gfxDrawSprite(textRect, texture, color, translate(mat4f(1.0), vec3(pos, 0.0)), flipX, flipY)
 
 proc gfxDrawLines*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   noTexture()
@@ -158,13 +158,15 @@ proc gfxDrawLineLoop*(vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   noTexture()
   drawPrimitives(GL_LINE_LOOP, vertices, transf)
 
-proc drawSpriteCore(textRect: Rectf, w, h: float32; color = White; transf = mat4f(1.0); flipX = false) =
+proc drawSpriteCore(textRect: Rectf, w, h: float32, color = White, transf = mat4f(1.0), flipX = false, flipY = false) =
   var l = textRect.x.float32
   var r = (textRect.x + textRect.w).float32
-  let t = textRect.y.float32
-  let b = (textRect.y + textRect.h).float32
+  var t = textRect.y.float32
+  var b = (textRect.y + textRect.h).float32
   if flipX:
     swap(l, r)
+  if flipY:
+    swap(t, b)
 
   var vertices = [
     newVertex(w, h, r, t, color),

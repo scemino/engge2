@@ -13,8 +13,9 @@ proc newImage*(filename: string): Image =
   let str = fs.readAll
   let bytes = newSeq[byte](str.len)
   copyMem(bytes[0].unsafeAddr, str[0].unsafeAddr, str.len)
-  result.filename = filename
-  result.data = loadFromMemory(bytes, result.width, result.height, result.channels, RGBA)
+  result = Image(filename: filename, channels: 4)
+  var channels: int
+  result.data = loadFromMemory(bytes, result.width, result.height, channels, RGBA)
 
 proc newImage*(data: seq[byte]): Image = 
   result.data = loadFromMemory(data, result.width, result.height, result.channels, RGBA)

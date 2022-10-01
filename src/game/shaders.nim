@@ -337,7 +337,7 @@ void main(void)
         //col = lerp(col, colorization, _Amount);
         col =  min(vec3(1.0),max(vec3(0.0),colorization));
     }
-    FragColor = vec4(col,1);
+    FragColor = v_color * vec4(col, texture(u_texture, c1).a);
 }"""
 
 type
@@ -368,9 +368,8 @@ proc setShaderEffect*(effect: RoomEffect) =
   of RoomEffect.BlackAndWhite:
     gfxShader(newShader(vertexShader, bwShader))
   of RoomEffect.Ghost:
-    # let shader = newShader(vertexShader, ghostShader)
-    # gfxShader(shader)
-    gfxResetShader()
+    let shader = newShader(vertexShader, ghostShader)
+    gfxShader(shader)
     
   else: discard
 

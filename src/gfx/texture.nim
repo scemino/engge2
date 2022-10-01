@@ -2,6 +2,7 @@ import std/strformat
 import glm
 import stb_image
 import image
+import glutils
 import ../libs/opengl
 
 type
@@ -29,7 +30,9 @@ proc newTexture*(image: Image): Texture =
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT.GLint)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST.GLint)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST.GLint)
+  glPixelStorei(GL_UNPACK_ALIGNMENT, image.channels.GLint)
   glTexImage2D(GL_TEXTURE_2D, 0.GLint, getFormat(image.channels), image.width.GLsizei, image.height.GLsizei, 0.GLint, GL_RGBA, GL_UNSIGNED_BYTE, unsafeAddr image.data[0])
+  checkGLError()
 
 proc capture*(self: Texture): Image =
   var pixels = newSeq[byte](self.size.x * self.size.y * 4)

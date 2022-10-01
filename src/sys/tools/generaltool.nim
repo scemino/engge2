@@ -131,7 +131,7 @@ method render*(self: GeneralTool) =
 
       if igCollapsingHeader("Shader"):
         var effect = room.effect.int32
-        if igCombo("Shader", effect.addr, RoomEffects):
+        if igCombo("effect", effect.addr, RoomEffects):
           room.effect = effect.RoomEffect
         igDragFloat("iFade", gShaderParams.iFade.addr, 0.01f, 0f, 1f);
         igDragFloat("wobbleIntensity", gShaderParams.wobbleIntensity.addr, 0.01f, 0f, 1f)

@@ -83,6 +83,7 @@ type
     uiInv*: Inventory
     actorswitcher*: Actorswitcher
     mouseState*: MouseState
+    renderTexture: RenderTexture
 
 var gEngine*: Engine
 
@@ -117,6 +118,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.screen.addChild result.uiInv
   result.screen.addChild result.actorswitcher
   result.screen.addChild result.ui
+  result.renderTexture = newRenderTexture(vec2(ScreenWidth.int32, ScreenHeight.int32))
   sq_resetobject(result.defaultObj)
 
   regCmdFunc(GameCommand.SelectActor1, proc () = selectActor(0))
@@ -338,8 +340,10 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   # sets the current room for scripts
   rootTbl(gVm.v).setf("currentRoom", room.table)
 
+  if not self.room.isNil:
+    self.room.scene.remove()
   self.room = room
-  self.scene = room.scene
+  self.scene.addChild self.room.scene
   self.room.numLights = 0
   if not self.walkboxNode.isNil:
     self.walkboxNode.remove()
@@ -921,23 +925,28 @@ proc render*(self: Engine, capture = false) =
   if not capture:
     self.frameCounter += 1
   
-  # draw scene
+  # draw scene into a texture
+  self.renderTexture.use()
+
   gfxClear(Black)
   if not self.room.isNil:
     let camSize = self.room.getScreenSize()
     camera(camSize.x.float32, camSize.y.float32)
-
-    # update room effect
-    if gShaderParams.effect != self.room.effect:
-      setShaderEffect(self.room.effect)
-    gShaderParams.randomValue[0] = gEngine.rand.rand(0f..1f)
-    gShaderParams.timeLapse = floorMod(self.time.float32, 1000f)
-    gShaderParams.iGlobalTime = gShaderParams.timeLapse
-    updateShader()
-    
   self.scene.draw()
 
-  # draw screen
+  # stop to render into a texture
+  self.renderTexture.use(false)
+
+  # then render this texture to screen with room effect
+  setShaderEffect(self.room.effect)
+  gShaderParams.randomValue[0] = gEngine.rand.rand(0f..1f)
+  gShaderParams.timeLapse = floorMod(self.time.float32, 1000f)
+  gShaderParams.iGlobalTime = gShaderParams.timeLapse
+  updateShader()
+  gfxDrawSprite(camera().x, camera().y, self.renderTexture, White, mat4(1.0f), false, true)
+  gfxResetShader()
+
+  # draw UI
   let parent = self.ui.getParent
   if capture:
     self.ui.remove()

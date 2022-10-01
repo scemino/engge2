@@ -196,6 +196,14 @@
     * [x] camera follow actor
     * [x] camera pan
 * [ ] shaders
+  * [ ] room effects
+    * [ ] EGA
+    * [ ] VHS
+    * [x] b/w
+    * [x] sepia
+    * [x] ghost
+  * [ ] verb shader
+  * [ ] object shader
 * [ ] debug tools (dear imgui)
   * [ ] preferences to enable debug tools
   * [ ] shortcuts to show/hide
