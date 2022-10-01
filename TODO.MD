@@ -196,9 +196,9 @@
     * [x] camera follow actor
     * [x] camera pan
 * [ ] shaders
-  * [ ] room effects
-    * [ ] EGA
-    * [ ] VHS
+  * [x] room effects
+    * [x] EGA
+    * [x] VHS
     * [x] b/w
     * [x] sepia
     * [x] ghost

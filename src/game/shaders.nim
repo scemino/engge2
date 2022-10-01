@@ -41,6 +41,167 @@ void main()
   FragColor = vec4(gray, gray, gray, col.a);
 }"""
 
+  egaShader = """#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+out vec4 FragColor;
+in vec2 v_texCoords;
+in vec4 v_color;
+uniform sampler2D u_texture;
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+float dist_sq(vec3 a, vec3 b)
+{
+    vec3 delta = a - b;
+    return dot(delta, delta);
+}
+vec3 nearest_rgbi (vec3 orig)
+{
+    vec3 original = rgb2hsv(orig);
+    float min_dst = 4.0;
+    vec3 ret = vec3(1,1,1);
+    vec3 pal = vec3(0, 0, 0);
+    float dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.0,     0.0); }
+    pal = vec3(0.66667, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.0,     0.66667); }
+    pal = vec3(0.33333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.66667, 0.0); }
+    pal = vec3(0.5, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.0,     0.66667, 0.66667); }
+    pal = vec3(0, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.0,     0.0); }
+    pal = vec3(0.83333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.0,     0.66667); }
+    pal = vec3(0.083333, 1, 0.66667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.33333, 0.0); }
+    pal = vec3(0, 0, 0.666667);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.66667, 0.66667, 0.66667); }
+    pal = vec3(0, 0, 0.333333);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 0.33333, 0.33333); }
+    pal = vec3(0.66667, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 0.33333, 1.0); }
+    pal = vec3(0.33333, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 1.0,     0.33333); }
+    pal = vec3(0.5, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(0.33333, 1.0,     1.0); }
+    pal = vec3(0, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     0.33333, 0.33333); }
+    pal = vec3(0.83333, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     0.33333, 1.0); }
+    pal = vec3(0.16666, 0.66667, 1);
+    dst = dist_sq(original, pal);
+    if(dst < min_dst) { min_dst = dst; ret = vec3(1.0,     1.0,     0.33333); }
+    return ret;
+}
+void main()
+{
+   vec4 texColor = texture( u_texture, v_texCoords );
+   vec4 srcCol = v_color * texColor;
+   vec3 newCol = nearest_rgbi(srcCol.rgb);
+   FragColor = vec4(newCol, srcCol.a);
+}"""
+
+  vhsShader = """#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+uniform float iGlobalTime;
+uniform float iNoiseThreshold;
+uniform sampler2D u_texture;
+out vec4 FragColor;
+in vec2 v_texCoords;
+
+float hash( float Input )
+{
+    return fract(sin(Input)*43758.5453123);
+}
+float rand(vec2 Input)
+{
+    float dt= dot(Input, vec2(12.9898,78.233));
+    float sn= mod(dt,3.14);
+    return hash(sn);
+}
+// 1d noise function
+float noise1d( float x )
+{
+    float p = floor(x);
+    float f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p + 57.0 + 113.0;
+    return mix( hash(n), hash(n+1.0),f);
+}
+// 2d noise function
+float noise2d( vec2 x )
+{
+    vec2 p = floor(x);
+    vec2 f = fract(x);
+    f = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0 + 113.0;
+    float a = mix( hash(n),      hash(n+ 1.0),f.x);
+    float b = mix( hash(n+57.0), hash(n+58.0),f.x);
+    return mix(a,b,f.y);
+}
+//tape noise
+float tapenoise()
+{
+    vec2 iResolution = vec2(1280,720);
+    float linesN = 250.0; //fields per seconds
+    float one_y = iResolution.y / linesN; //field line
+    vec2 p = floor(v_texCoords*iResolution.xy/one_y)*one_y;
+    float s = iGlobalTime;
+    vec2 fP = vec2(p.x+s, p.y);
+    float v = 0.3 + ( noise1d( p.y*.01 +s ) * noise1d( p.y*.011+1000.0+s ) * noise1d( p.y*.51+421.0+s ) * noise2d( fP * 100.0 ) );
+    // if ( v < iNoiseThreshold ) v = 0.0;
+    // Same as above, without if
+    v *= step(iNoiseThreshold, v);
+    return v;
+}
+void main(void)
+{
+    // Apply a vhs-style distortion.
+    const float magnitude = 0.000003;
+    vec2 colRuv = vec2(v_texCoords.x + (rand(vec2(iGlobalTime*0.03,v_texCoords.y*0.42)) * 0.001 + sin(rand(vec2(iGlobalTime*0.2, v_texCoords.y)))*magnitude), v_texCoords.y);
+    vec2 colGuv = vec2(v_texCoords.x + (rand(vec2(iGlobalTime*0.004,v_texCoords.y*0.002)) * 0.004 + sin(iGlobalTime*9.0)*magnitude), v_texCoords.y);
+    vec2 colBuv = v_texCoords;
+    // Now make colours distort around edge
+    const float RADIUS = 0.85;
+    const float SOFTNESS = 0.65;
+    vec2 position = v_texCoords / vec2(0.6,1.0) - vec2(0.8,0.5) ;
+    float len = length(position);
+    float vignette = 1.0-smoothstep(RADIUS, RADIUS-SOFTNESS, len);
+    float angle = dot(position, v_texCoords) / (length(position)*length(v_texCoords));
+    vec2 screenPos = vec2(1.0)-( v_texCoords );
+    vec3 video;
+    video.r = texture(u_texture, colRuv-(vignette*(position*(len*0.015)))).r;
+    video.g = texture(u_texture, colGuv).g;
+    video.b = texture(u_texture, colBuv+(vignette*(position*(len*0.015)))).b;
+    // Now add the tape noise
+    video += vec3( tapenoise() );
+    FragColor = vec4(video,1.0);
+}"""
+
   sepiaShader = """#version 330 core
 #ifdef GL_ES
 precision highp float;
@@ -347,6 +508,7 @@ type
     randomValue*: array[5, float32]
     timeLapse*: float32
     iGlobalTime*: float32
+    iNoiseThreshold*: float32
     iFade*: float32
     wobbleIntensity*: float32
     shadows*: Vec3f
@@ -354,7 +516,7 @@ type
     highlights*: Vec3f
 
 var
-  gShaderParams* = ShaderParams(sepiaFlicker: 1f, iFade: 1f, wobbleIntensity: 1f, shadows: vec3(-0.3f, 0f, 0f), midtones: vec3(-0.2f, 0f, 0.1f), highlights: vec3(0f, 0f, 0.2f))
+  gShaderParams* = ShaderParams(sepiaFlicker: 1f, iFade: 1f, wobbleIntensity: 1f, iNoiseThreshold: 1f, shadows: vec3(-0.3f, 0f, 0f), midtones: vec3(-0.2f, 0f, 0.1f), highlights: vec3(0f, 0f, 0.2f))
 
 proc setShaderEffect*(effect: RoomEffect) =
   gShaderParams.effect = effect
@@ -367,6 +529,10 @@ proc setShaderEffect*(effect: RoomEffect) =
     shader.setUniform("sepiaFlicker", gShaderParams.sepiaFlicker)
   of RoomEffect.BlackAndWhite:
     gfxShader(newShader(vertexShader, bwShader))
+  of RoomEffect.Ega:
+    gfxShader(newShader(vertexShader, egaShader))
+  of RoomEffect.Vhs:
+    gfxShader(newShader(vertexShader, vhsShader))
   of RoomEffect.Ghost:
     let shader = newShader(vertexShader, ghostShader)
     gfxShader(shader)
@@ -378,6 +544,10 @@ proc updateShader*() =
     let shader = gfxShader()
     shader.setUniform("RandomValue", gShaderParams.randomValue)
     shader.setUniform("TimeLapse", gShaderParams.timeLapse)
+  elif gShaderParams.effect == RoomEffect.Vhs:
+    let shader = gfxShader()
+    shader.setUniform("iGlobalTime", gShaderParams.iGlobalTime)
+    shader.setUniform("iNoiseThreshold", gShaderParams.iNoiseThreshold)
   elif gShaderParams.effect == RoomEffect.Ghost:
     let shader = gfxShader()
     shader.setUniform("iGlobalTime", gShaderParams.iGlobalTime)
