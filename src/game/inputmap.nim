@@ -25,7 +25,6 @@ type
     ShowOptions
     ToggleHud
     ToggleDebug
-    ShowHotspot
     Screenshot
   Input* = object
     modf*: InputModifierKey
@@ -36,7 +35,6 @@ var
   gMappings = {
     Input(key: InputKey.Space): @[PauseGame],
     Input(key: InputKey.Escape): @[SkipCutscene],
-    # Input(key: InputKey.Tab): ShowHotspot, # TODO
     Input(modf: Control, key: InputKey.O): @[ShowOptions],
     Input(modf: Control, key: InputKey.U): @[ToggleHud],
     Input(modf: Control, key: InputKey.D): @[ToggleDebug],

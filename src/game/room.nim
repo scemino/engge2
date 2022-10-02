@@ -595,6 +595,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 
   obj.r = self
   obj.sheet = sheet
+  obj.touchable = false
   
   # create anim if any
   if frames.len > 0:
@@ -625,7 +626,8 @@ proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAli
   obj.table.setId(newObjId())
   info fmt"Create object with new table: {obj.name} #{obj.id}"
   obj.name = fmt"text#{obj.id}: {text}"
-
+  obj.touchable = false
+  
   let font = gResMgr.font(fontName)
   let text = newText(font, text, hAlign, vAlign, maxWidth, White)
 

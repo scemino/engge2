@@ -2,6 +2,7 @@ type InputAction* = enum
   iaReleased,
   iaPressed
 type InputKey* {.pure, size: int32.sizeof.} = enum
+    Tab = 9.cint
     Escape = '\27'.cint
     Space = 32
     Apostrophe = '\''.cint

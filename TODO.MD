@@ -168,7 +168,7 @@
   * [ ] verbs shortcuts
   * [ ] command handlers
     * [ ] ToggleHud
-    * [ ] ShowHotspot
+    * [x] ShowHotspot
     * [x] ToggleDebug
     * [x] PauseGame
     * [x] SkipCutscene
@@ -206,22 +206,16 @@
     * [x] sepia
     * [x] ghost
   * [x] verb shader
-* [x] sentence
-  * [x] classic sentence
-  * [x] use lookat verb for inventory object 
-  * [x] use flag: with, in, on
-  * [x] use flag: giveto
-  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
 * [ ] HUD
-  * [x] verbs
-    * [x] highlight default verb
-    * [x] draw verbs
   * [ ] fade
-  * [x] mouse text repositioned
-  * [ ] when sentence is set to classic the cursor change over objects/actors
   * [ ] actor selection
     * [ ] fade transition when switchin actors
     * [x] actor switch
+  * [x] verbs
+    * [x] highlight default verb
+    * [x] draw verbs
+  * [x] mouse text repositioned
+  * [x] when sentence is set to classic the cursor change over objects/actors
   * [x] inventory
     * [x] scroll
     * [x] inventory item animation
@@ -235,6 +229,12 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] sentence
+  * [x] classic sentence
+  * [x] use lookat verb for inventory object 
+  * [x] use flag: with, in, on
+  * [x] use flag: giveto
+  * [x] cursor verb should be reset (walk to) when action is executed or cancelled
 * [x] debug tools (dear imgui)
   * [x] shortcuts to show/hide
   * [x] preferences to enable debug tools

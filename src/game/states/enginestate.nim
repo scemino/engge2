@@ -20,18 +20,32 @@ import ../../io/textdb
 import ../../scenegraph/node
 import ../../scenegraph/dlgenginetgt
 import ../../scenegraph/nooverride
+import ../../scenegraph/hotspotmarker
 import ../../sys/debugtool
 import ../../sys/tools
+import ../../sys/app
+import ../../sys/input
 
 type
   EngineState = ref object of State
     packageName, appName: string
     noOverride: NoOverride
+    hotspotMarker*: HotspotMarker
+    hotspot: bool
+
+var gState: EngineState
 
 proc newEngineState*(packageName, appName: string): EngineState =
-  EngineState(packageName: packageName, appName: appName)
+  EngineState(packageName: packageName, appName: appName, hotspotMarker: newHotspotMarker())
+
+proc onKey(key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey) =
+  if key == Tab:
+    gState.hotspot = action == iaPressed
 
 method init*(self: EngineState) =
+  gState = self
+  app.setKeyCallback(onKey)
+
   # create loggers
   addHandler(newConsoleLogger())
   addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn))
@@ -116,6 +130,7 @@ proc skipCutscene(self: EngineState) =
 
 method activate*(self: EngineState) =
   gEngine.screen.addChild gInputNode
+  gEngine.screen.addChild self.hotspotMarker
   regCmdFunc(GameCommand.ToggleDebug, proc () = gGeneralVisible = not gGeneralVisible)
   regCmdFunc(GameCommand.ShowOptions, proc () = showOptions())
   regCmdFunc(GameCommand.PauseGame, proc () = pushState newPauseState())
@@ -123,6 +138,7 @@ method activate*(self: EngineState) =
   regCmdFunc(GameCommand.SkipCutscene, proc () = self.skipCutscene())
 
 method deactivate*(self: EngineState) =
+  self.hotspotMarker.remove()
   unregCmdFunc(GameCommand.PauseGame)
   unregCmdFunc(GameCommand.ShowOptions)
   unregCmdFunc(GameCommand.SkipText)
@@ -133,6 +149,7 @@ method handleInput*(self: EngineState, mouseState: MouseState) =
   gEngine.mouseState = mouseState
 
 method update*(self: EngineState, elapsed: float) =
+  self.hotspotMarker.visible = self.hotspot
   gEngine.update(elapsed)
   if not self.noOverride.isNil:
     if not self.noOverride.update(elapsed):
