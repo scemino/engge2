@@ -206,15 +206,15 @@
     * [x] sepia
     * [x] ghost
   * [x] verb shader
-* [ ] sentence
+* [x] sentence
   * [x] classic sentence
   * [x] use lookat verb for inventory object 
   * [x] use flag: with, in, on
   * [x] use flag: giveto
   * [x] cursor verb should be reset (walk to) when action is executed or cancelled
 * [ ] HUD
-  * [ ] verbs
-    * [ ] highlight default verb
+  * [x] verbs
+    * [x] highlight default verb
     * [x] draw verbs
   * [ ] fade
   * [x] mouse text repositioned

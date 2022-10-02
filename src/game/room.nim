@@ -199,6 +199,11 @@ proc setPop*(self: Object, count: int) =
 proc getPop*(self: Object): int =
   self.popCount
 
+proc `defaultVerbId`*(self: Object): int =
+  result = VERB_LOOKAT
+  if self.table.rawexists("defaultVerb"):
+    self.table.getf("defaultVerb", result)
+
 proc popScale*(self: Object): float32 =
   0.5f + 0.5f * sin(-PI/2f + self.popElapsed * 4f * PI)
 

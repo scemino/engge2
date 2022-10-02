@@ -36,6 +36,7 @@ type
     inputVerbsActive*: bool
     cursorShape: CursorShape
     cursorName: string
+    hotspot*: bool
   Sentence* = ref object of Node
     text: string
 
@@ -49,13 +50,6 @@ proc newInputState*(): InputState =
   result = InputState(showCursor: true, cursorName: "cursor", zOrder: -100)
   result.init()
   gInputNode = result
-
-proc newSentence*(): Sentence =
-  result = Sentence()
-  result.init()
-
-proc setText*(self: Sentence, text: string) =
-  self.text = text
 
 proc setCursorShape*(self: InputState, shape: CursorShape) =
   if self.cursorShape != shape:
@@ -99,8 +93,18 @@ method drawCore(self: InputState, transf: Mat4f) =
   # draw cursor
   let gameSheet = gResMgr.spritesheet("GameSheet")
   let texture = gResMgr.texture(gameSheet.meta.image)
-  let frame = gameSheet.frame(self.cursorName)
+  var cursorName = self.cursorName
+  if prefs(ClassicSentence) and self.hotspot:
+      cursorName = "hotspot_" & self.cursorName
+  let frame = gameSheet.frame(cursorName)
   drawSprite(frame, texture, self.color, scale(transf, vec3(2f, 2f, 1f)))
+
+proc newSentence*(): Sentence =
+  result = Sentence()
+  result.init()
+
+proc setText*(self: Sentence, text: string) =
+  self.text = text
 
 method drawCore(self: Sentence, transf: Mat4f) =
   let text = newText(gResMgr.font("sayline"), self.text)

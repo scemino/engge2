@@ -50,6 +50,7 @@ type
     verb*: Verb
     shader: Shader
     mousePos: Vec2f
+    defaultVerbId: int
   VerbRect = object
     hud*: Hud
     index*: int
@@ -74,8 +75,9 @@ proc actorSlot*(self: Hud, actor: Object): ActorSlot =
     if slot.actor == actor:
       return slot
 
-proc update*(self: Hud, pos: Vec2f) =
+proc update*(self: Hud, pos: Vec2f, hotspot: Object) =
   self.mousePos = vec2(pos.x, ScreenHeight - pos.y)
+  self.defaultVerbId = if hotspot.isNil: 0 else: hotspot.defaultVerbId
 
 method drawCore(self: Hud, transf: Mat4f) =
   # draw HUD background
@@ -102,12 +104,13 @@ method drawCore(self: Hud, transf: Mat4f) =
   self.shader.setUniform("u_shadowColor", actorSlot.verbUiColors.verbNormalTint)
   self.shader.setUniform("u_normalColor", actorSlot.verbUiColors.verbHighlight)
   self.shader.setUniform("u_highlightColor", actorSlot.verbUiColors.verbHighlightTint)
+
   for i in 1..<actorSlot.verbs.len:
     let verb = actorSlot.verbs[i]
     if verb.image.len > 0:
       let verbFrame = verbSheet.frame(fmt"{verb.image}{verbSuffix}_{lang}")
       let over = verbFrame.spriteSourceSize.contains(vec2i(self.mousePos))
-      let color = if over: verbHighlight else: verbColor
+      let color = if over or verb.id == self.defaultVerbId: verbHighlight else: verbColor
       if over:
         self.verb = verb
       drawSprite(verbFrame, verbTexture, color, transf)

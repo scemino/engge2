@@ -596,8 +596,12 @@ proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
     if not self.actor.isNil and self.actor.table.rawexists("clickedAt"):
       self.actor.table.callFunc(result, "clickedAt", [x, y])
 
+proc `verb`(self: Engine): Verb =
+  result = self.hud.verb
+  if result.id == VERB_WALKTO and self.noun1.inInventory():
+    result = self.hud.actorSlot(self.actor).verb(self.noun1.defaultVerbId)
+
 proc clickedAt(self: Engine, scrPos: Vec2f) =
-  # TODO: WIP
   if not self.room.isNil and self.inputState.inputActive:
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.objAt(roomPos)
@@ -606,7 +610,7 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
       # button left: execute selected verb
       var handled = self.clickedAtHandled(roomPos)
       if not handled and not obj.isNil:
-        let verb = self.hud.verb
+        let verb = self.verb
         sqCall("onVerbClick")
         handled = self.execSentence(nil, verb.id, self.noun1, self.noun2)
       if not handled:
@@ -618,25 +622,20 @@ proc clickedAt(self: Engine, scrPos: Vec2f) =
     elif self.mouseState.click(mbRight):
       # button right: execute default verb
       if not obj.isNil:
-        var defVerbId = VERB_LOOKAT
-        if obj.table.rawexists("defaultVerb"):
-          obj.table.getf("defaultVerb", defVerbId)
-        discard self.execSentence(nil, defVerbId, self.noun1, self.noun2)
+        discard self.execSentence(nil, obj.defaultVerbId, self.noun1, self.noun2)
     elif self.walkFastState and self.mouseState.pressed() and not self.actor.isNil and scrPos.y > 172:
       self.actor.walk(room_pos)
-
-  # TODO: call callbacks
 
 proc callTrigger(self: Engine, obj: Object, trigger: HSQOBJECT) =
   if trigger.objType != OT_NULL:
     # create trigger thread
     discard sq_newthread(gVm.v, 1024)
-    var thread_obj: HSQOBJECT
-    sq_resetobject(thread_obj)
-    if SQ_FAILED(sq_getstackobj(gVm.v, -1, thread_obj)):
+    var threadObj: HSQOBJECT
+    sq_resetobject(threadObj)
+    if SQ_FAILED(sq_getstackobj(gVm.v, -1, threadObj)):
       error "Couldn't get coroutine thread from stack"
       return
-    sq_addref(gVm.v, thread_obj)
+    sq_addref(gVm.v, threadObj)
     sq_pop(gVm.v, 1)
 
     # create args
@@ -646,7 +645,7 @@ proc callTrigger(self: Engine, obj: Object, trigger: HSQOBJECT) =
     let args = if nParams == 2: @[self.actor.table] else: @[]
     sq_pop(gVm.v, 1)
     
-    let thread = newThread("Trigger", false, gVm.v, thread_obj, obj.table, trigger, args)
+    let thread = newThread("Trigger", false, gVm.v, threadObj, obj.table, trigger, args)
     info fmt"create triggerthread id: {thread.getId()} v={cast[int](thread.v.unsafeAddr)}"
     gEngine.threads.add(thread)
 
@@ -690,9 +689,11 @@ proc cursorText(self: Engine): string =
   if self.dlg.state == DialogState.None:
     # give can be used only on inventory and talkto to talkable objects (actors)
     result = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
-    # add verb if not walk to or if noun1 is present
-    if self.hud.verb.id > 1 or result.len > 0:
-      result = if result.len > 0: fmt"{getText(self.hud.verb.text)} {result}" else: getText(self.hud.verb.text)
+    # add verb if noun1 is present
+    if result.len > 0:
+      # if inventory, use default verb instead of walkto
+      var verbText = self.verb.text
+      result = if result.len > 0: fmt"{getText(verbText)} {result}" else: getText(verbText)
       if self.useFlag == ufUseWith:
         result = result & " " & getText(10000)
       elif self.useFlag == ufUseOn:
@@ -835,6 +836,7 @@ proc update*(self: Engine, elapsed: float) =
       else:
         self.inputState.setCursorShape(CursorShape.Normal)
 
+      self.inputState.hotspot = not self.noun1.isNil
       self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
       self.uiInv.visible = self.hud.visible and self.cutscene.isNil
       self.actorSwitcher.visible = self.dlg.state == DialogState.None and self.cutscene.isNil
@@ -907,7 +909,7 @@ proc update*(self: Engine, elapsed: float) =
   if self.currentActor.isNil:
     self.uiInv.update(elapsed)
   else:
-    self.hud.update(scrPos)
+    self.hud.update(scrPos, self.noun1)
     let verbUI = self.hud.actorSlot(self.currentActor).verbUiColors
     self.uiInv.update(elapsed, self.currentActor, verbUI.inventoryBackground, verbUI.verbNormal)
 
