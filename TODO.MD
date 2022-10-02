@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] all actor's text are White
 * [x] actors don't respect useWalkboxes
 * [x] when franklin enters in the Hotel's lobby, Reyes should not be visible
 * [x] actor does not climb but walk on the ladder
@@ -167,8 +168,8 @@
   * [ ] verbs shortcuts
   * [ ] command handlers
     * [ ] ToggleHud
-    * [ ] ToggleDebug
     * [ ] ShowHotspot
+    * [x] ToggleDebug
     * [x] PauseGame
     * [x] SkipCutscene
     * [x] SkipText

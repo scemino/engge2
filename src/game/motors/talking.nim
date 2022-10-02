@@ -112,6 +112,7 @@ proc say(self: Talking, text: string) =
   self.obj.sayNode.remove()
   let text = newText(gResMgr.font("sayline"), txt, thCenter, tvCenter, ScreenWidth*3f/4f, self.color)
   self.obj.sayNode = newTextNode text
+  self.obj.sayNode.color = self.color
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
   
