@@ -207,7 +207,7 @@
     * [x] ghost
   * [x] verb shader
 * [ ] sentence
-  * [ ] classic sentence
+  * [x] classic sentence
   * [x] use lookat verb for inventory object 
   * [x] use flag: with, in, on
   * [x] use flag: giveto
@@ -217,7 +217,7 @@
     * [ ] highlight default verb
     * [x] draw verbs
   * [ ] fade
-  * [ ] mouse text repositioned
+  * [x] mouse text repositioned
   * [ ] when sentence is set to classic the cursor change over objects/actors
   * [ ] actor selection
     * [ ] fade transition when switchin actors

@@ -43,6 +43,9 @@ proc font*(self: ResManager, name: string): Font =
     self.loadFont(name)
   self.fonts[name]
 
+proc resetFont*(self: ResManager, name: string) =
+  self.fonts.del name
+
 proc loadTexture(self: ResManager, name: string) =
   info fmt"Load texture {name}"
   self.textures[name] = newTexture(newImage(name))

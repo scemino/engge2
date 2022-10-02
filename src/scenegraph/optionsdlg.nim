@@ -155,6 +155,8 @@ proc onCheckVar(self: Checkbox, state: bool) =
   setPrefs(varPrefNames[id], state)
   sqCall("setSettingVar", [varNames[id], if state: 1 else: 0])
   self.check(state)
+  if id == RetroFonts:
+    gResMgr.resetFont("sayline")
 
 proc onSliderVar(self: Slider, value: float32) =
   let id = cast[int](self.tag)

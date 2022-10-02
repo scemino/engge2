@@ -84,6 +84,7 @@ type
     actorswitcher*: Actorswitcher
     mouseState*: MouseState
     renderTexture: RenderTexture
+    sentence: inputState.Sentence
 
 var gEngine*: Engine
 
@@ -110,11 +111,13 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.hud = newHud()
   result.seedWithTime()
   result.inputState = newInputState()
+  result.sentence = newSentence()
   result.dlg = newDialog()
   result.ui = newScene()
   result.actorswitcher = newActorSwitcher()
   result.uiInv = newInventory()
-  result.screen.addChild result.inputState.node
+  result.screen.addChild result.inputState
+  result.screen.addChild result.sentence
   result.screen.addChild result.dlg
   result.screen.addChild result.uiInv
   result.screen.addChild result.actorswitcher
@@ -786,8 +789,9 @@ proc update*(self: Engine, elapsed: float) =
 
   # update mouse pos
   let scrPos = winToScreen(mousePos())
-  self.inputState.node.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
-  self.inputState.node.pos = scrPos
+  self.inputState.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
+  self.inputState.pos = scrPos
+  self.sentence.pos = scrPos
 
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
@@ -807,7 +811,7 @@ proc update*(self: Engine, elapsed: float) =
         self.noun1 = self.objAt(roomPos)
         self.useFlag = ufNone
         self.noun2 = nil
-      self.inputState.setText(self.cursorText)
+      self.sentence.setText(self.cursorText)
       # update cursor shape
       # if cursor is in the margin of the screen and if camera can move again
       # then show a left arrow or right arrow
@@ -854,7 +858,7 @@ proc update*(self: Engine, elapsed: float) =
       self.uiInv.visible = false
       self.noun1 = self.objAt(roomPos)
       let cText = if self.noun1.isNil: "" else: getText(self.noun1.name)
-      self.inputState.setText(cText)
+      self.sentence.setText(cText)
       self.inputState.setCursorShape(CursorShape.Normal)
       if self.mouseState.click():
         self.clickedAt(scrPos)
