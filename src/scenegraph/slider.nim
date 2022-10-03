@@ -19,6 +19,9 @@ type
     slider, handle: SpriteNode
     text: TextNode
 
+proc handlePos(self: Slider, value: float): float32 =
+  self.min + value * (self.max - self.min)
+
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer = nil) =
   let slider = cast[Slider](tag)
   case event:
@@ -58,7 +61,7 @@ proc newSlider*(id: int, y: float, callback: SliderCallback, value: float, tag: 
 
   let handle = newSpriteNode(gResMgr.texture(sheet.meta.image), sheet.frame("slider_handle"))
   handle.scale = vec2(4f, 4f)
-  handle.pos = vec2(result.min, -titleTxt.bounds.y)
+  handle.pos = vec2(result.handlePos(value), -titleTxt.bounds.y)
   handle.addButton(onButton, cast[pointer](result))
   result.addChild handle
 

@@ -22,7 +22,7 @@ const
   Controller* = "controller"
   ControllerDefValue* = false
   ScrollSyncCursor* = "controllerScollLockCursor"
-  ScrollSyncCursorDefValue* = false
+  ScrollSyncCursorDefValue* = true
   DisplayText* = "talkiesShowText"
   DisplayTextDefValue* = true
   HearVoice* = "talkiesHearVoice"
@@ -89,7 +89,7 @@ const
   HudModernScaleDefValue = 0.025f
   InventoryPopCount* = "inventoryPopCount"
   InventoryPopCountDefValue* = 5
-  
+
 type
   TempPref = object
     gameSpeedFactor*: float32
@@ -154,4 +154,4 @@ proc getKey*(path: string): string =
   let (_, name, ext) = splitFile(path)
   if name.endsWith("_en"):
     let lang = prefs(Lang)
-    result = fmt"{name.substr(0, name.len - 4)}_{lang}{ext}"    
+    result = fmt"{name.substr(0, name.len - 4)}_{lang}{ext}"

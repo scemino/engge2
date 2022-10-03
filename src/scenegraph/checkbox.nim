@@ -35,7 +35,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   else:
     discard
 
-proc newCheckbox*(id: int, y: float, callback: CheckCallback, state = false, tag: pointer = nil): Checkbox =
+proc newCheckbox*(id: int, y: float, callback: CheckCallback, state = false, tag: pointer = nil, enabled = true): Checkbox =
   result = Checkbox(id: id, callback: callback, checked: state, tag: tag)
   result.init()
 
@@ -43,14 +43,17 @@ proc newCheckbox*(id: int, y: float, callback: CheckCallback, state = false, tag
   let tn = newTextNode(titleTxt)
   tn.setAnchorNorm(vec2(0f, 0.5f))
   tn.pos = vec2f(420f, 0f)
+  tn.alpha = if enabled: 1f else: 0.2f
   result.addChild tn
 
   let sheet = gResMgr.spritesheet("SaveLoadSheet")
   result.checkNode = newSpriteNode(gResMgr.texture(sheet.meta.image), sheet.frame(if state: "option_checked" else: "option_unchecked"))
   result.check(state)
+  result.checkNode.alpha = if enabled: 1f else: 0.2f
   result.checkNode.scale = vec2(4f, 4f)
   result.checkNode.pos = vec2f(ScreenWidth - 440f, 0f)
-  result.checkNode.addButton(onButton, cast[pointer](result))
+  if enabled:
+    result.checkNode.addButton(onButton, cast[pointer](result))
   result.addChild result.checkNode
 
   result.pos.y = y

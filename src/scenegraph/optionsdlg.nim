@@ -21,6 +21,7 @@ import ../game/states/dlgstate
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
+import ../sys/app
 
 const
   Options = 99913
@@ -73,7 +74,7 @@ type
 
 var
   gState: State
-  gSelf: OptionsDialog  
+  gSelf: OptionsDialog
 
 proc setState(state: State)
 
@@ -150,6 +151,13 @@ proc newBackground(): SpriteNode =
   result.scale = vec2(4f, 4f)
   result.pos = vec2(ScreenWidth/2f, ScreenHeight/2f)
 
+proc checkbox(self: Node, id: int): Checkbox =
+  for node in self.children:
+    if node of Checkbox:
+      let checkbox = cast[Checkbox](node)
+      if checkbox.id == id:
+        return checkbox
+
 proc onCheckVar(self: Checkbox, state: bool) =
   let id = cast[int](self.tag)
   setPrefs(varPrefNames[id], state)
@@ -157,6 +165,11 @@ proc onCheckVar(self: Checkbox, state: bool) =
   self.check(state)
   if id == RetroFonts:
     gResMgr.resetFont("sayline")
+  elif id == RetroVerbs and state:
+    self.parent.checkbox(RetroFonts).onCheckVar(true)
+    self.parent.checkbox(ClassicSentence).onCheckVar(true)
+  elif id == Fullscreen:
+    app.setFullscreen(state)
 
 proc onSliderVar(self: Slider, value: float32) =
   let id = cast[int](self.tag)
@@ -167,9 +180,9 @@ proc newSliderVar*(id: int, y: float): Slider =
   let value = prefs(varPrefNames[id], varPrefDefFloatValues[id])
   newSlider(id, y, onSliderVar, value, cast[pointer](id))
 
-proc newCheckVar*(id: int, y: float): Checkbox =
+proc newCheckVar*(id: int, y: float, enabled = true): Checkbox =
   let value = prefs(varPrefNames[id], varPrefDefValues[id])
-  newCheckbox(id, y, onCheckVar, value, cast[pointer](id))
+  newCheckbox(id, y, onCheckVar, value, cast[pointer](id), enabled)
 
 proc onSwitch(self: Switcher, value: int) =
   const values = ["en", "fr", "it", "de", "es"]
@@ -215,8 +228,8 @@ proc update() =
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sControls:
     gSelf.addChild newHeader(Controls)
-    gSelf.addChild newCheckVar(Controller, 540f)
-    gSelf.addChild newCheckVar(ScrollSyncCursor, 480f)
+    gSelf.addChild newCheckVar(Controller, 540f, false)
+    gSelf.addChild newCheckVar(ScrollSyncCursor, 480f, false)
     gSelf.addChild newCheckVar(InvertVerbColors, 400f)
     gSelf.addChild newCheckVar(RetroFonts, 340f)
     gSelf.addChild newCheckVar(RetroVerbs, 280f)
