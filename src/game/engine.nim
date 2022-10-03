@@ -794,6 +794,7 @@ proc update*(self: Engine, elapsed: float) =
   self.inputState.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
   self.inputState.pos = scrPos
   self.sentence.pos = scrPos
+  self.dlg.mousePos = scrPos
 
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)

@@ -46,7 +46,7 @@
 * [x] lips don't move anymore
 * [x] we should reset actor's follow during cutscene
 * [x] we shouldn't see cursor during cutscene
-* [x] crash if sayline with only space characters 
+* [x] crash if sayline with only space characters
 * [x] sometimes when actor is walking, the actor stops but the animation walking is still running
 * [x] actor sometimes disappears
 * [x] actor switcher should be not available during cutscene
@@ -73,7 +73,7 @@
 * [x] wheels are missing in pigeons van
 * [x] when actor is switched, the verb colors are wrong
 * [x] after a cutscene, the current room is not where the actor is
-* [x] sheriff animation flip_coin3 crashs 
+* [x] sheriff animation flip_coin3 crashs
 * [x] objectAlphaTo can be called with null as argument
 * [x] invalid room size
 * [x] when using camera on cadaver, the actor says there is no more film inside
@@ -134,7 +134,6 @@
   * [x] actor walk fast
 * [ ] dialogs
   * [ ] choice anim
-  * [ ] choice slide when too long
   * [ ] expressions
     * [ ] waitfor
     * [ ] allow objects
@@ -155,6 +154,7 @@
     * [x] show once
     * [x] once ever
     * [x] temp once
+  * [x] choice slide when too long
   * [x] yack intepreter
   * [x] yack parsing
   * [x] draw choices
@@ -231,7 +231,7 @@
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
 * [x] sentence
   * [x] classic sentence
-  * [x] use lookat verb for inventory object 
+  * [x] use lookat verb for inventory object
   * [x] use flag: with, in, on
   * [x] use flag: giveto
   * [x] cursor verb should be reset (walk to) when action is executed or cancelled
@@ -471,7 +471,7 @@
 
 ### Object
 
-- [x] createObject 
+- [x] createObject
 - [x] createTextObject
 - [x] deleteObject
 - [x] findObjectAt

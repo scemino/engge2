@@ -6,26 +6,31 @@ import glm
 import node
 import dlgtgt
 import sqnim
-import ../scenegraph/textnode
 import ../game/resmanager
+import ../game/screen
 import ../game/motors/motor
 import ../game/motors/action
 import ../game/motors/serialmotors
 import ../gfx/text
+import ../gfx/recti
 import ../io/yack
 import ../io/textdb
 import ../io/ggpackmanager
 import ../script/vm
 import ../script/squtils
+import ../sys/app
 
-const 
+const
   MaxDialogSlots = 9
   MaxChoices = 6
+  SlidingSpeed = 25f
+  SlotMargin = 8f
+
 type
   DialogSlot = ref object of Node
-    textNode: TextNode
     stamt: YStatement
     dlg: Dialog
+    text: Text
   DialogContext = object
     actor: string
     dialogName: string
@@ -58,6 +63,7 @@ type
     cu: YCu
     lbl: YLabel
     slots: array[MaxDialogSlots, DialogSlot]
+    mousePos*: Vec2f
   ExpVisitor = ref object of YackVisitor
     dialog: Dialog
   CondVisitor = ref object of YackVisitor
@@ -107,7 +113,7 @@ proc label(self: Dialog, name: string): YLabel =
   for label in self.cu.labels.reversed:
     if label.name == name:
       return label
-    
+
 proc numSlots(self: Dialog): int =
   for slot in self.slots:
     if not slot.isNil:
@@ -116,7 +122,6 @@ proc numSlots(self: Dialog): int =
 proc clearSlots(self: Dialog) =
   for i in 0..<self.slots.len:
     if not self.slots[i].isNil:
-      self.slots[i].textNode.remove()
       self.slots[i] = nil
 
 proc selectLabel(self: Dialog, name: string) =
@@ -228,18 +233,6 @@ proc choose*(self: Dialog, choice: int) =
   if self.state == WaitingForChoice:
     choose(self.slots[choice])
 
-proc onSlot(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let slot = cast[ptr DialogSlot](tag)[]
-  case event:
-  of Enter:
-    src.color = slot.dlg.tgt.actorColorHover(slot.dlg.context.actor)
-  of Leave:
-    src.color = slot.dlg.tgt.actorColor(slot.dlg.context.actor)
-  of Down:
-    choose(slot)
-  else:
-    discard
-
 proc remove(txt: string, startC, endC: char): string =
   result = txt
   if result[0] == startC:
@@ -255,14 +248,17 @@ proc text(txt: string): string =
 proc addSlot(self: Dialog, stamt: YStatement) =
   let choice = stamt.choice
   if self.slots[choice.number - 1].isNil and self.numSlots() < self.context.limit:
-    let textNode = newTextNode(newText(gResMgr.font("sayline"), "● " & text(choice.text), thLeft))
-    textNode.color = self.tgt.actorColor(self.context.actor)
-    let y = 8'f32 + textNode.size.y.float32 * (MaxChoices - self.numSlots).float32
-    textNode.pos = vec2(8'f32, y)
-    let slot = DialogSlot(textNode: textNode, stamt: stamt, dlg: self)
+    let text = newText(gResMgr.font("sayline"), "● " & text(choice.text), thLeft, tvTop)
+    let slot = DialogSlot(text: text, stamt: stamt, dlg: self)
+    let y = SlotMargin + text.bounds.y.float32 * (MaxChoices - self.numSlots).float32
+    slot.pos = vec2(SlotMargin, y)
     self.slots[choice.number - 1] = slot
-    slot.textNode.addButton(onSlot, self.slots[choice.number - 1].addr)
-    self.addChild textNode
+
+method drawCore(self: Dialog, transf: Mat4f) =
+  for slot in self.slots:
+    if not slot.isNil:
+      let t = translate(transf, vec3(slot.pos, 0f))
+      slot.text.draw(t)
 
 proc gotoNextLabel(self: Dialog) =
   if not self.lbl.isNil:
@@ -340,7 +336,28 @@ proc update*(self: Dialog, dt: float) =
   of Active:
     self.running(dt)
   of WaitingForChoice:
-    discard
+    let color = self.tgt.actorColor(self.context.actor)
+    let colorHover = self.tgt.actorColorHover(self.context.actor)
+    var i = 0
+    for slot in self.slots.mitems:
+      if not slot.isNil:
+        let rect = rectFromPositionSize(slot.pos - vec2(0f, slot.text.bounds.y), slot.text.bounds)
+        let over = not slot.isNil and rect.contains(self.mousePos)
+        if rect.w > (ScreenWidth - SlotMargin):
+          if over:
+            if (rect.w + slot.pos.x) > (ScreenWidth - SlotMargin):
+              slot.pos.x -= SlidingSpeed * dt
+              if (rect.w + slot.pos.x) < (ScreenWidth - SlotMargin):
+                slot.pos.x = (ScreenWidth - SlotMargin) - rect.w
+          elif slot.pos.x < SlotMargin:
+            slot.pos.x += SlidingSpeed * dt
+            if slot.pos.x > SlotMargin:
+              slot.pos.x = SlotMargin
+
+        slot.text.color = if over: colorHover else: color
+        if over and mbLeft in mouseBtns():
+          self.choose(i)
+      inc i
 
 proc start*(self: Dialog, actor, name, node: string) =
   self.context = DialogContext(actor: actor, dialogName: name, parrot: true, limit: MaxChoices)
