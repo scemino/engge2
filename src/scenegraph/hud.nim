@@ -23,7 +23,7 @@ type
     id*: VerbId
     image*: string
     fun*: string
-    text*: string 
+    text*: string
     key*: string
     flags*: int
   VerbUiColors* = object
@@ -50,6 +50,7 @@ type
     verb*: Verb
     shader: Shader
     mousePos: Vec2f
+    mouseClick: bool
     defaultVerbId: int
   VerbRect = object
     hud*: Hud
@@ -75,9 +76,10 @@ proc actorSlot*(self: Hud, actor: Object): ActorSlot =
     if slot.actor == actor:
       return slot
 
-proc update*(self: Hud, pos: Vec2f, hotspot: Object) =
+proc update*(self: Hud, pos: Vec2f, hotspot: Object, mouseClick: bool) =
   self.mousePos = vec2(pos.x, ScreenHeight - pos.y)
   self.defaultVerbId = if hotspot.isNil: 0 else: hotspot.defaultVerbId
+  self.mouseClick = mouseClick
 
 method drawCore(self: Hud, transf: Mat4f) =
   # draw HUD background
@@ -97,7 +99,7 @@ method drawCore(self: Hud, transf: Mat4f) =
   let verbTexture = gResMgr.texture(verbSheet.meta.image)
   let lang = prefs(Lang)
   let verbSuffix = if prefs(RetroVerbs): "_retro" else: ""
-  
+
   let saveShader = gfxShader()
   gfxShader(self.shader)
   self.shader.setUniform("u_ranges", vec2(0.8f, 0.8f))
@@ -111,7 +113,7 @@ method drawCore(self: Hud, transf: Mat4f) =
       let verbFrame = verbSheet.frame(fmt"{verb.image}{verbSuffix}_{lang}")
       let over = verbFrame.spriteSourceSize.contains(vec2i(self.mousePos))
       let color = if over or verb.id == self.defaultVerbId: verbHighlight else: verbColor
-      if over:
+      if self.mouseClick and over:
         self.verb = verb
       drawSprite(verbFrame, verbTexture, color, transf)
   gfxShader(saveShader)

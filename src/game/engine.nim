@@ -220,7 +220,7 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
             warn "parent: '" & obj.parent & "' not found"
           else:
             parent.node.addChild(obj.node)
-  
+
   for (k, v) in result.table.mpairs:
     if v.objType == OT_TABLE:
       if pseudo:
@@ -260,15 +260,15 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
             result.layer(0).objects.add obj
           else:
             continue
-        
+
         getf(result.table, k, obj.table)
         obj.table.setId(newObjId())
         info fmt"Create object: {k} #{obj.id}"
-        
+
         # add it to the root table if not a pseudo room
         if not pseudo:
           setf(rootTbl(gVm.v), k, obj.table)
-        
+
         if obj.table.rawexists("initState"):
           # info fmt"initState {obj.key}"
           var state: int
@@ -321,7 +321,7 @@ proc exitRoom(self: Engine, nextRoom: Room) =
     for thread in self.threads:
       if not thread.global:
         thread.stop()
-    
+
     # stop all lights
     self.room.numLights = 0
 
@@ -381,7 +381,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
       call(self.v, self.room.table, "enter", [door.table])
   else:
     call(self.v, self.room.table, "enter")
-  
+
   # call global function enteredRoom with the room as argument
   call("enteredRoom", [room.table])
 
@@ -439,7 +439,7 @@ proc giveTo(actor1, actor2, obj: Object) =
   let index = actor1.inventory.find obj
   if index != -1:
     actor1.inventory.del index
-  
+
 proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
   sqCall("onObjectClick", [noun1.table])
 
@@ -452,9 +452,9 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
 
   # TODO: gEngine.selectedActor.stopWalking()
   # test if object became untouchable
-  if not noun1.inInventory and not noun1.touchable: 
+  if not noun1.inInventory and not noun1.touchable:
     return false
-  if not noun2.isNil and not noun2.inInventory and not noun2.touchable: 
+  if not noun2.isNil and not noun2.inInventory and not noun2.touchable:
     return false
 
   # TODO: Do reach before calling verb so we can kill it if needed.
@@ -550,18 +550,18 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
   #if (a?._verb_tid) stopthread(actor._verb_tid)
 
   info fmt"noun1.inInventory: {noun1.inInventory} and noun1.touchable: {noun1.touchable} nowalk: {verbNoWalkTo(verbId, noun1)}"
-  
+
   # test if object became untouchable
-  if not noun1.inInventory and not noun1.touchable: 
+  if not noun1.inInventory and not noun1.touchable:
     return false
-  if not noun2.isNil and not noun2.inInventory and not noun2.touchable: 
+  if not noun2.isNil and not noun2.inInventory and not noun2.touchable:
     return false
 
   if noun1.inInventory:
     if noun2.isNil or noun2.inInventory:
       discard self.callVerb(actor, verbId, noun1, noun2)
       return true
-  
+
   if self.preWalk(actor, verbId, noun1, noun2):
     return true
 
@@ -581,7 +581,7 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
 proc cancelSentence(self: Engine, actor: Object) =
   info("cancelSentence")
   var actor = actor
-  if actor.isNil: 
+  if actor.isNil:
     actor = gEngine.actor
   if not actor.isNil:
     actor.exec = nil
@@ -644,7 +644,7 @@ proc callTrigger(self: Engine, obj: Object, trigger: HSQOBJECT) =
     discard sq_getclosureinfo(gVm.v, -1, nParams, nfreevars)
     let args = if nParams == 2: @[self.actor.table] else: @[]
     sq_pop(gVm.v, 1)
-    
+
     let thread = newThread("Trigger", false, gVm.v, threadObj, obj.table, trigger, args)
     info fmt"create triggerthread id: {thread.getId()} v={cast[int](thread.v.unsafeAddr)}"
     gEngine.threads.add(thread)
@@ -689,8 +689,9 @@ proc cursorText(self: Engine): string =
   if self.dlg.state == DialogState.None:
     # give can be used only on inventory and talkto to talkable objects (actors)
     result = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
-    # add verb if noun1 is present
-    if result.len > 0:
+
+    # add verb if not walk to or if noun1 is present
+    if self.hud.verb.id > 1 or result.len > 0:
       # if inventory, use default verb instead of walkto
       var verbText = self.verb.text
       result = if result.len > 0: fmt"{getText(verbText)} {result}" else: getText(verbText)
@@ -776,7 +777,7 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
     for slot in self.hud.actorSlots:
       if slot.selectable and slot.actor != nil and slot.actor != self.actor and slot.actor.room.name != "Void":
         result.add self.actorSwitcherSlot(slot)
-  
+
     # add gear icon
     result.add ActorSwitcherSlot(icon: "icon_gear", back: Black, frame: Gray, selectFunc: showOptions)
 
@@ -796,6 +797,7 @@ proc update*(self: Engine, elapsed: float) =
 
   if not self.room.isNil:
     let roomPos = self.room.screenToRoom(scrPos)
+    # update nouns and useFlag
     if self.room.fullScreen == FullscreenRoom:
       if self.hud.verb.id == VERB_USE and self.useFlag != ufNone:
         self.noun2 = self.objAt(roomPos)
@@ -812,7 +814,7 @@ proc update*(self: Engine, elapsed: float) =
         self.noun1 = self.objAt(roomPos)
         self.useFlag = ufNone
         self.noun2 = nil
-      self.sentence.setText(self.cursorText)
+
       # update cursor shape
       # if cursor is in the margin of the screen and if camera can move again
       # then show a left arrow or right arrow
@@ -840,6 +842,7 @@ proc update*(self: Engine, elapsed: float) =
       self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
       self.uiInv.visible = self.hud.visible and self.cutscene.isNil
       self.actorSwitcher.visible = self.dlg.state == DialogState.None and self.cutscene.isNil
+      self.sentence.setText(self.cursorText)
 
       # call clickedAt if any button down
       if self.dlg.state == DialogState.None:
@@ -883,7 +886,7 @@ proc update*(self: Engine, elapsed: float) =
     if thread.update(elapsed):
       self.threads.del self.threads.find(thread)
 
-  # update callbacks  
+  # update callbacks
   for cb in self.callbacks.toSeq:
     if cb.update(elapsed):
       let index = self.callbacks.find(cb)
@@ -909,7 +912,7 @@ proc update*(self: Engine, elapsed: float) =
   if self.currentActor.isNil:
     self.uiInv.update(elapsed)
   else:
-    self.hud.update(scrPos, self.noun1)
+    self.hud.update(scrPos, self.noun1, self.mouseState.click())
     let verbUI = self.hud.actorSlot(self.currentActor).verbUiColors
     self.uiInv.update(elapsed, self.currentActor, verbUI.inventoryBackground, verbUI.verbNormal)
 
@@ -933,7 +936,7 @@ proc cameraPos*(self: Engine): Vec2f =
 proc render*(self: Engine, capture = false) =
   if not capture:
     self.frameCounter += 1
-  
+
   # draw scene into a texture
   self.renderTexture.use()
 
