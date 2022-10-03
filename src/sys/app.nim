@@ -25,7 +25,7 @@ var glContext: GlContextPtr
 var gContext: ptr ImGuiContext
 var close = false
 var appOnDrop: proc (paths: seq[string])
-var appOnKey: proc (key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey)
+var appOnKey: seq[proc (key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey)]
 var appOnMouseButton: proc(button: int32, action: InputAction)
 var appOnMouseMove: proc(pos: Vec2f)
 
@@ -34,7 +34,7 @@ proc init*(title = "", size = vec2(ScreenWidth, ScreenHeight)) =
   sdl2.init(INIT_EVERYTHING)
   discard mixer.openAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096)
   discard mixer.allocateChannels(32)
-  
+
   discard glSetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)
   discard glSetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3)
   discard glSetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3)
@@ -99,9 +99,9 @@ proc run*(render: proc()) =
       case e.kind:
       of QuitEvent: close = true
       of KeyDown, KeyUp:
-        if appOnKey != nil:
+        for handler in appOnKey:
           let key = cast[KeyboardEventObj](e)
-          appOnKey(toInputKey(key.keysym.sym), key.keysym.scancode.int32, if e.kind == KeyDown: iaPressed else: iaReleased, toInputModifierKey(key.keysym.modstate.KeyMod))
+          handler(toInputKey(key.keysym.sym), key.keysym.scancode.int32, if e.kind == KeyDown: iaPressed else: iaReleased, toInputModifierKey(key.keysym.modstate.KeyMod))
       of MouseButtonDown, MouseButtonUp:
         if appOnMouseButton != nil:
           let mouse = cast[MouseButtonEventObj](e)
@@ -145,7 +145,7 @@ proc setMouseMoveCallback*(onMouseMove: proc(pos: Vec2f)) =
   appOnMouseMove = onMouseMove
 
 proc setKeyCallback*(onKey: proc (key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey)) =
-  appOnKey = onKey
+  appOnKey.add onKey
 
 proc mousePos*(): Vec2f =
   var xpos, ypos: cint

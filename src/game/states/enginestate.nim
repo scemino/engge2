@@ -50,7 +50,7 @@ method init*(self: EngineState) =
   addHandler(newConsoleLogger())
   addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn))
   addHandler(newRollingFileLogger("ng.log"))
-  
+
   let consoleTool = newConsoleTool()
   let threadTool = newThreadTool()
   let soundTool = newSoundTool()
@@ -79,7 +79,7 @@ method init*(self: EngineState) =
   info fmt"# Welcome to {self.appName}"
   info fmt"Host: {hostCPU} / {hostOS}"
   info fmt"Nim: {NimVersion}"
-  
+
   initPrefs()
   regCmds()
 
@@ -89,7 +89,7 @@ method init*(self: EngineState) =
   gEventMgr = newGameEventManager()
   gGameLoader = newEngineGameLoader()
   initTextDb()
-  
+
   let vm = vm.newVM()
   discard newEngine(vm.v)
   gEngine.dlg.tgt = EngineDialogTarget()
