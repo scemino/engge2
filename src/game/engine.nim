@@ -507,8 +507,6 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
       info fmt"call defaultObject.{verbFuncName}"
       call(self.defaultObj, verbFuncName, [noun1.table, noun2.table])
 
-  # TODO: finish this
-
   if verbId == VERB_PICKUP:
     call("onPickup", [noun1.table, self.actor.table])
 
@@ -516,6 +514,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
   gEngine.noun1 = nil
   gEngine.noun2 = nil
   gEngine.useFlag = ufNone
+  self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
 
 import actor
 
