@@ -6,9 +6,10 @@ cimgui.dylib
 imgui.ini
 
 # game
-ngnim
+engge2
 Prefs.json
 *.ggpack*
 *.log*
 *.png
 *.save
+*.json
