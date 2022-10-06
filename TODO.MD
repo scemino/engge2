@@ -93,21 +93,21 @@
 ## TODO
 
 * [ ] UI dialogs
-  * [x] the background is greyed out (and is inactive)
-  * [x] Main menu (StartScreen) does not pause game
   * [ ] Options
-    * [x] Save game (enabled only in game)
-    * [x] Load game (back: go back to main menu or game)
-    * [x] Sound
-    * [x] Video
-    * [x] Controls
-    * [x] Text & Speech
     * [ ] Help
       * [ ] Intro            (back: back to options even from mainmenu)
       * [ ] Mouse tips       (back: back to options even from mainmenu)
       * [ ] Controller tips  (back: back to options even from mainmenu)
       * [ ] Controller map   (back: back to options even from mainmenu)
       * [ ] Keyboard map     (back: back to options even from mainmenu)
+    * [x] Save game (enabled only in game)
+    * [x] Load game (back: go back to main menu or game)
+    * [x] Sound
+    * [x] Video
+    * [x] Controls
+    * [x] Text & Speech
+  * [x] the background is greyed out (and is inactive)
+  * [x] Main menu (StartScreen) does not pause game
   * [x] pause game (cursor is changed)
   * [x] quit game (is over options, background is darker, no: go back to main menu or options)
 * [ ] actor
@@ -165,7 +165,6 @@
   * [x] use actor colors
   * [x] hide cursor text* [ ] achievements
 * [ ] input
-  * [x] input mapping
   * [ ] verbs shortcuts
   * [ ] command handlers
     * [ ] ToggleHud
@@ -189,6 +188,7 @@
     * [x] SelectActor6
     * [x] SelectPreviousActor
     * [x] SelectNextActor
+  * [x] input mapping
 * [ ] preferences
   * [ ] private preferences (achievement)
   * [x] user preferences

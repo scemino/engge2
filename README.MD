@@ -8,6 +8,7 @@ It's an open source remake of Thimbleweed Park's engine.
 
 It's still a project in active development, and there are a lot of issues, don't hesitate to contribute or to fill out a [bug report](https://github.com/scemino/engge2/issues/new/choose).
 
+![https://i.imgur.com/M13pC7M.png](https://i.imgur.com/M13pC7M.png)
 
 ## Prerequisites
 
