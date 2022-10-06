@@ -960,6 +960,7 @@ proc fadeTo*(self: Engine, effect: FadeEffect, duration: float, fadeToSep = fals
   self.fadeEffect.elapsed = 0f
 
 proc render*(self: Engine, texture: RenderTexture = nil) =
+  let camPos = cameraPos()
   if not texture.isNil:
     inc self.frameCounter
 
@@ -1040,6 +1041,8 @@ proc render*(self: Engine, texture: RenderTexture = nil) =
   self.screen.draw()
   if not texture.isNil:
     parent.addChild self.ui
+
+  cameraPos(camPos)
 
 proc capture*(self: Engine, filename: string, size: Vec2i) =
   let rt = newRenderTexture(size)
