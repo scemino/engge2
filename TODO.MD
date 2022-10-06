@@ -206,6 +206,11 @@
     * [x] b/w
     * [x] sepia
     * [x] ghost
+  * [x] room fade
+    * [x] IN
+    * [x] OUT
+    * [x] WOBBLE
+    * [x] WOBBLE sepia
   * [x] verb shader
 * [ ] HUD
   * [ ] fade
@@ -417,14 +422,18 @@
 - [x] removeCallback
 - [x] removeTrigger
 - [x] roomActors
-- [ ] roomEffect
+- [x] roomEffect
   - [x] EFFECT_NONE
   - [x] EFFECT_SEPIA
-  - [ ] EFFECT_EGA
-  - [ ] EFFECT_VHS
-  - [ ] EFFECT_GHOST
+  - [x] EFFECT_EGA
+  - [x] EFFECT_VHS
+  - [x] EFFECT_GHOST
   - [x] EFFECT_BLACKANDWHITE
 - [x] roomFade
+  - [x] FADE_IN
+  - [x] FADE_OUT
+  - [x] FADE_WOBBLE
+  - [x] FADE_WOBBLE_TO_SEPIA
 - [x] roomLayer
 - [x] roomOverlayColor
 - [x] roomRotateTo

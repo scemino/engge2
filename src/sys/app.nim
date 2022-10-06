@@ -176,12 +176,12 @@ proc appGetWindowSize*(): Vec2i =
   getSize(w, width, height)
   vec2(width.int32, height.int32)
 
-proc use*(self: RenderTexture, enabled = true) =
-  if enabled:
-    glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
-    glViewport(0.GLint, 0.GLint, self.size.x, self.size.y)
-  else:
+proc appSetRenderTarget*(self: RenderTexture = nil) =
+  if self.isNil:
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
     var wi, he: cint
     glGetDrawableSize(getWinHandle(), wi, he)
     glViewport(0.GLint, 0.GLint, wi, he)
+  else:
+    glBindFramebuffer(GL_FRAMEBUFFER, self.fbo)
+    glViewport(0.GLint, 0.GLint, self.size.x, self.size.y)

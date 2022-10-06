@@ -21,7 +21,7 @@ type State = object
   cameraPos: Vec2f
   texture: Texture
 
-var 
+var
   state: State
   vsrc: string = """
 #version 330 core
@@ -194,7 +194,7 @@ proc gfxDrawQuad*(rect = Rectf(); color = White; transf = mat4f(1.0)) =
 proc getFinalTransform(transf: Mat4f): Mat4f =
   state.mvp * transf
 
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) = 
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; transf = mat4f(1.0)) =
   if vertices.len > 0:
     # set blending
     glEnable(GL_BLEND)
@@ -204,14 +204,16 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex]; tr
 
     state.shader.ensureProgramActive:
       state.shader.setUniform("u_transform", getFinalTransform(transf))
+      state.shader.setUniform("u_texture", state.texture)
+      state.shader.activateTextures()
 
       glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
       glDrawArrays(primitivesType, 0, vertices.len.GLsizei)
       checkGLError()
-    
+
     glDisable(GL_BLEND)
 
-proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0)) = 
+proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], indices: var openArray[uint32]; transf = mat4f(1.0)) =
   if vertices.len > 0 and indices.len > 0:
     # set blending
     glEnable(GL_BLEND)
@@ -221,10 +223,12 @@ proc drawPrimitives*(primitivesType: GLenum, vertices: var openArray[Vertex], in
 
     state.shader.ensureProgramActive:
       state.shader.setUniform("u_transform", getFinalTransform(transf))
+      state.shader.setUniform("u_texture", state.texture)
+      state.shader.activateTextures()
 
       glBufferData(GL_ARRAY_BUFFER, cint(Vertex.sizeof * vertices.len), vertices[0].addr, GL_STATIC_DRAW)
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, cint(cuint.sizeof * indices.len), indices[0].addr, GL_STATIC_DRAW)
       glDrawElements(primitivesType, indices.len.cint, GL_UNSIGNED_INT, nil)
       checkGLError()
-    
+
     glDisable(GL_BLEND)

@@ -11,10 +11,10 @@ import ../game/motors/motor
 import ../game/room
 import ../game/shaders
 import ../game/walkbox
-import ../util/tween
 import ../util/easing
 import ../gfx/color
 import ../script/vm
+import ../script/fadeconsts
 
 proc addTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let nArgs = sq_gettop(v)
@@ -186,10 +186,10 @@ proc lightZRange(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## This command is used during the game's boot process. 
+  ## This command is used during the game's boot process.
   ## `defineRoom` is called once for every room in the game, passing it the room's room object.
-  ## If the room has not been defined, it can not be referenced. 
-  ## `defineRoom` is typically called in the the DefineRooms.nut file which loads and defines every room in the game. 
+  ## If the room has not been defined, it can not be referenced.
+  ## `defineRoom` is typically called in the the DefineRooms.nut file which loads and defines every room in the game.
   var table: HSQOBJECT
   sq_resetobject(table)
   if SQ_FAILED(sq_getstackobj(v, 2, table)):
@@ -205,8 +205,8 @@ proc defineRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Creates a new room called name using the specified template. 
-  ## 
+  ## Creates a new room called name using the specified template.
+  ##
   ## . code-block:: Squirrel
   ## for (local room_id = 1; room_id <= HOTEL_ROOMS_PER_FLOOR; room_id++) {
   ##     local room = definePseudoRoom("HotelRoomA"+((floor_id*100)+room_id), HotelRoomA)
@@ -224,7 +224,7 @@ proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to clone room table")
   if SQ_FAILED(sq_getstackobj(v, -1, table)):
     return sq_throwerror(v, "failed to get room table")
-  
+
   let room = defineRoom(name, table, true)
   info fmt"Define pseudo room: {name}"
   gEngine.rooms.add room
@@ -233,8 +233,8 @@ proc definePseudoRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc findRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the room table for the room specified by the string roomName.
-  ## Useful for returning specific pseudo rooms where the name is composed of text and a variable. 
-  ## 
+  ## Useful for returning specific pseudo rooms where the name is composed of text and a variable.
+  ##
   ## .. code-block:: Squirrel
   ## local standardRoom = findRoom("HotelRoomA"+keycard.room_num)
   var name: string
@@ -250,7 +250,7 @@ proc findRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc masterRoomArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the rooms that are in the game currently.
-  ## 
+  ##
   ## This is useful for testing.
   ##
   ## .. code-block:: Squirrel
@@ -288,17 +288,17 @@ proc removeTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc roomActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the actors in the specified room.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## local actorInBookstore = roomActors(BookStore)
   ## if (actorInBookstore.len()>1) { ... }
-  ## 
+  ##
   ## local spotters = roomActors(currentRoom)
   ## foreach(actor in spotters) { ...}
   let room = room(v, 2)
   if room.isNil:
     return sq_throwerror(v, "failed to get room")
-  
+
   sq_newarray(v, 0)
   for actor in gEngine.actors:
     if actor.room == room:
@@ -328,10 +328,10 @@ proc roomEffect(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Fades in or out (FADE_IN, FADE_OUT ) of the current room over the specified duration. 
-  ## 
-  ## Used for dramatic effect when we want to teleport the player actor to somewhere new, or when starting/ending a cutscene that takes place in another room. 
-  ## 
+  ## Fades in or out (FADE_IN, FADE_OUT, FADE_WOBBLE, FADE_WOBBLE_TO_SEPIA) of the current room over the specified duration.
+  ##
+  ## Used for dramatic effect when we want to teleport the player actor to somewhere new, or when starting/ending a cutscene that takes place in another room.
+  ##
   ## .. code-block:: Squirrel
   ## roomFade(FADE_OUT, 0.5)
   ## breaktime(0.5)
@@ -344,16 +344,27 @@ proc roomFade(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, "failed to get fadeType")
   if SQ_FAILED(sq_getfloat(v, 3, t)):
     return sq_throwerror(v, "failed to get time")
-  if fadeType == 0: # FadeIn
-    gEngine.fade = newTween[float](1.0f, 0.0f, t, ikLinear)
-  elif fadeType == 1: # FadeOut
-    gEngine.fade = newTween[float](0.0f, 1.0f, t, ikLinear)
+  var effect: FadeEffect
+  var sepia: bool
+  case fadeType:
+  of FADE_IN:
+    effect = In
+  of FADE_OUT:
+    effect = Out
+  of FADE_WOBBLE:
+    effect = Wobble
+  of FADE_WOBBLE_TO_SEPIA:
+    effect = Wobble
+    sepia = true
+  else:
+    discard
+  gEngine.fadeTo(effect, t, sepia)
   0
 
 proc roomLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes all layers at the specified zsort value in room visible (YES) or invisible (NO).
-  ## It's also currently the only way to affect parallax layers and can be used for minor animation to turn a layer on and off. 
-  ## 
+  ## It's also currently the only way to affect parallax layers and can be used for minor animation to turn a layer on and off.
+  ##
   ## .. code-block:: Squirrel
   ## roomLayer(GrateEntry, -2, NO)  // Make lights out layer invisible
   var r = room(v, 2)
@@ -368,21 +379,21 @@ proc roomLayer(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc roomOverlayColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Puts a color overlay on the top of the entire room.
-  ## 
+  ##
   ## Transition from startColor to endColor over duration seconds.
   ## The endColor remains on screen until changed.
-  ## Note that the actual colour is an 8 digit number, the first two digits (00-ff) represent the transparency, while the last 6 digits represent the actual colour. 
+  ## Note that the actual colour is an 8 digit number, the first two digits (00-ff) represent the transparency, while the last 6 digits represent the actual colour.
   ## If transparency is set to 00, the overlay is completely see through.
-  ## If startColor is not on the screen already, it will flash to that color before starting the transition. 
-  ## If no endColor or duration are provided, it will change instantly to color and remain there. 
-  ## 
+  ## If startColor is not on the screen already, it will flash to that color before starting the transition.
+  ## If no endColor or duration are provided, it will change instantly to color and remain there.
+  ##
   ## .. code-block:: Squirrel
   ## // Make lights in QuickiePal flicker
   ## roomOverlayColor(0x20dff2cd, 0x20dff2cd, 0.0)
   ## breaktime(1/60)
   ## roomOverlayColor(0x00000000, 0x00000000, 0.0)
   ## breaktime(1/60)
-  ## 
+  ##
   ## if (currentActor == franklin) {
   ##     roomOverlayColor(0x800040AA)
   ## }
@@ -422,7 +433,7 @@ proc roomSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc walkboxHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets walkbox to be hidden (YES) or not (NO).
   ## If the walkbox is hidden, the actors cannot walk to any point within that area anymore, nor to any walkbox that's connected to it on the other side from the actor.
-  ## Often used on small walkboxes below a gate or door to keep the actor from crossing that boundary if the gate/door is closed. 
+  ## Often used on small walkboxes below a gate or door to keep the actor from crossing that boundary if the gate/door is closed.
   var walkbox: string
   if SQ_FAILED(get(v, 2, walkbox)):
     return sq_throwerror(v, "failed to get object or walkbox")
@@ -434,7 +445,7 @@ proc walkboxHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc register_roomlib*(v: HSQUIRRELVM) =
   ## Registers the game room library
-  ## 
+  ##
   ## It adds all the room functions in the given Squirrel virtual machine.
   v.regGblFun(addTrigger, "addTrigger")
   v.regGblFun(clampInWalkbox, "clampInWalkbox")
@@ -462,4 +473,3 @@ proc register_roomlib*(v: HSQUIRRELVM) =
   v.regGblFun(roomSize, "roomSize")
   v.regGblFun(roomOverlayColor, "roomOverlayColor")
   v.regGblFun(walkboxHidden, "walkboxHidden")
-  

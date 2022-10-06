@@ -1,14 +1,22 @@
 import ../libs/opengl
-import std/[logging, strutils, strformat]
+import std/logging
+import std/strutils
+import std/strformat
+import std/tables
 import glm
 import color
 import glutils
+import texture
 
-type 
+type
+  TextureSlot = object
+    id: int
+    texture: Texture
   Shader* = object
     program*: GLuint
     vertex: GLuint
     fragment: GLuint
+    textures: Table[GLint, TextureSlot]
 
 proc statusShader(shader: uint32) =
   var status: int32
@@ -50,7 +58,6 @@ template ensureProgramActive*(self: Shader, statements: untyped) =
   glGetIntegerv(GL_CURRENT_PROGRAM, addr prev)
   if prev != self.program.GLint:
     glUseProgram(self.program)
-  glActiveTexture(GL_TEXTURE0)
   statements
   if prev != self.program.GLint:
     glUseProgram(prev.GLuint)
@@ -103,3 +110,18 @@ proc setUniform*(self: Shader, name: string, value: var Color) =
     let loc = self.getUniformLocation(name)
     glUniform4f(loc, value.r, value.g, value.b, value.a)
     checkGLError(fmt"setUniform({name},{value})")
+
+proc setUniform*(self: var Shader, name: string, value: Texture) =
+  self.ensureProgramActive():
+    let loc = self.getUniformLocation(name)
+    let id = self.textures.len
+    glUniform1i(loc.GLint, id.GLint)
+    self.textures[loc] = TextureSlot(id: id, texture: value);
+    checkGLError(fmt"setUniform({name},texture: {value.id})")
+
+proc activateTextures*(self: var Shader) =
+  var index = GL_TEXTURE0.int
+  for (id, slot) in self.textures.pairs:
+    glActiveTexture((index + slot.id).GLenum)
+    glBindTexture(GL_TEXTURE_2D, slot.texture.id)
+    inc index

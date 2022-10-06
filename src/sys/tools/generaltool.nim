@@ -19,27 +19,31 @@ import ../../script/vm
 
 const
   RoomEffects = "None\0Sepia\0EGA\0VHS\0Ghost\0Black & White\0\0"
+  FadeEffects = "None\0In\0Out\0Wobble\0\0"
   WalkboxModes = "None\0Merged\0All\0\0"
 
-type 
+type
   GeneralTool = ref object of DebugTool
+    fadeEffect: int32
+    fadeDuration: float32
+    fadeToSepia: bool
   WinStatus* = object
     name: string
     visible: ptr bool
 
-var 
+var
   gPathNode: PathNode
   gWinVisibles: seq[WinStatus]
 
 proc newGeneralTool*(): GeneralTool =
-  result = GeneralTool()
+  result = GeneralTool(fadeDuration: 3f)
 
 proc addTool*(name: string, visible: ptr bool) =
   gWinVisibles.add  WinStatus(name: name, visible: visible)
 
-proc getRoom(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.} =
+proc getRoom(data: pointer, idx: int32, outText: ptr constChar): bool {.cdecl.} =
   if idx in 0..<gEngine.rooms.len:
-    out_text[] = cast[constChar](gEngine.rooms[idx].name[0].addr)
+    outText[] = cast[constChar](gEngine.rooms[idx].name[0].addr)
     result = true
   else:
     result = false
@@ -49,10 +53,10 @@ proc getSelActors(): seq[Object] =
     if slot.selectable:
       result.add slot.actor
 
-proc getActor(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.} =
+proc getActor(data: pointer, idx: int32, outText: ptr constChar): bool {.cdecl.} =
   let actors = getSelActors()
   if idx in 0..<actors.len:
-    out_text[] = cast[constChar](actors[idx].key[0].unsafeAddr)
+    outText[] = cast[constChar](actors[idx].key[0].unsafeAddr)
     result = true
   else:
     result = false
@@ -99,7 +103,7 @@ method render*(self: GeneralTool) =
   if igCollapsingHeader("Windows"):
     for status in gWinVisibles:
       igCheckbox(status.name.cstring, status.visible)
-  
+
   # camera
   if igCollapsingHeader("Camera"):
     igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.key.cstring)
@@ -129,7 +133,7 @@ method render*(self: GeneralTool) =
         elif gEngine.walkboxNode.mode == WalkboxMode.None:
           gPathNode.remove()
 
-      if igCollapsingHeader("Shader"):
+      if igCollapsingHeader("Room Shader"):
         var effect = room.effect.int32
         if igCombo("effect", effect.addr, RoomEffects):
           room.effect = effect.RoomEffect
@@ -138,6 +142,16 @@ method render*(self: GeneralTool) =
         igDragFloat3("shadows", gShaderParams.shadows.arr, 0.01f, -1f, 1f)
         igDragFloat3("midtones", gShaderParams.midtones.arr, 0.01f, -1f, 1f)
         igDragFloat3("highlights", gShaderParams.highlights.arr, 0.01f, -1f, 1f)
+
+      if igCollapsingHeader("Fade Shader"):
+        igSeparator()
+        igCombo("Fade effect", self.fadeEffect.addr, FadeEffects.cstring)
+        igDragFloat("Duration", self.fadeDuration.addr, 0.1f, 0f, 10f)
+        igCheckbox("Fade to sepia", self.fadeToSepia.addr)
+        igText("Elapsed %f", gEngine.fadeEffect.elapsed)
+        igText("Fade %f", gEngine.fadeEffect.fade)
+        if igButton("GO"):
+          gEngine.fadeTo(self.fadeEffect.FadeEffect, self.fadeDuration, self.fadeToSepia)
 
       igSeparator()
       for wb in room.mergedPolygon.mitems:

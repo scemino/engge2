@@ -1,0 +1,5 @@
+const
+  FADE_IN* = 0
+  FADE_OUT* = 1
+  FADE_WOBBLE* = 2
+  FADE_WOBBLE_TO_SEPIA* = 3

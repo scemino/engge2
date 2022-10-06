@@ -24,7 +24,6 @@ import ../gfx/recti
 import ../gfx/texture
 import ../io/ggpackmanager
 import ../io/textdb
-import ../util/tween
 import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
@@ -46,6 +45,20 @@ const
   DOOR_BACK = 0x440
   DOOR_FRONT = 0x840
 type
+  FadeEffect* = enum
+    None,
+    In,
+    Out,
+    Wobble
+  FadeEffectParameters = object
+    effect: FadeEffect
+    room: Room
+    duration: float32
+    elapsed*: float32
+    cameraPos: Vec2f
+    movement: float32
+    fade*: float32
+    fadeToSepia: bool
   Engine* = ref object of RootObj
     rand*: Rand
     randSeed: int64
@@ -54,7 +67,6 @@ type
     room*: Room
     actors*: seq[Object]
     actor*: Object
-    fade*: Tween[float] # will be removed by a shader
     callbacks*: seq[Callback]
     tasks*: seq[Task]
     threads*: seq[ThreadBase]
@@ -83,8 +95,10 @@ type
     uiInv*: Inventory
     actorswitcher*: Actorswitcher
     mouseState*: MouseState
-    renderTexture: RenderTexture
+    renderTexture, renderTexture2, renderTexture3: RenderTexture
     sentence: inputState.Sentence
+    fadeEffect*: FadeEffectParameters
+    fadeShader: Shader
 
 var gEngine*: Engine
 
@@ -123,6 +137,10 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.screen.addChild result.actorswitcher
   result.screen.addChild result.ui
   result.renderTexture = newRenderTexture(vec2(ScreenWidth.int32, ScreenHeight.int32))
+  result.renderTexture2 = newRenderTexture(vec2(ScreenWidth.int32, ScreenHeight.int32))
+  result.renderTexture3 = newRenderTexture(vec2(ScreenWidth.int32, ScreenHeight.int32))
+  result.fadeShader = newShader(vertexShader, fadeShader)
+  result.fadeEffect = FadeEffectParameters(duration: 3f)
   sq_resetobject(result.defaultObj)
 
   regCmdFunc(GameCommand.SelectActor1, proc () = selectActor(0))
@@ -338,7 +356,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   debug fmt"call enter room function of {room.name}"
 
   # exit current room
-  self.fade.enabled = false
   self.exitRoom(self.room)
 
   # sets the current room for scripts
@@ -874,6 +891,7 @@ proc update*(self: Engine, elapsed: float) =
       self.cutscene = nil
 
   self.dlg.update(elapsed)
+  self.fadeEffect.elapsed += elapsed
 
   # update nodes
   if not self.scene.isNil:
@@ -917,7 +935,6 @@ proc update*(self: Engine, elapsed: float) =
     self.uiInv.update(elapsed, self.currentActor, verbUI.inventoryBackground, verbUI.verbNormal)
 
   # update room
-  self.fade.update(elapsed)
   if not self.room.isNil:
     self.room.update(elapsed)
 
@@ -933,49 +950,100 @@ proc cameraPos*(self: Engine): Vec2f =
     let screenSize = self.room.getScreenSize()
     result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
-proc render*(self: Engine, capture = false) =
-  if not capture:
-    self.frameCounter += 1
+proc fadeTo*(self: Engine, effect: FadeEffect, duration: float, fadeToSep = false) =
+  self.fadeEffect.fadeToSepia = fadeToSep
+  self.fadeEffect.effect = effect
+  self.fadeEffect.room = self.room
+  self.fadeEffect.cameraPos = cameraPos()
+  self.fadeEffect.duration = duration
+  self.fadeEffect.movement = if effect == Wobble: 0.005f else: 0f
+  self.fadeEffect.elapsed = 0f
+
+proc render*(self: Engine, texture: RenderTexture = nil) =
+  if not texture.isNil:
+    inc self.frameCounter
 
   # draw scene into a texture
-  self.renderTexture.use()
-
+  appSetRenderTarget(self.renderTexture)
   gfxClear(Black)
   if not self.room.isNil:
     let camSize = self.room.getScreenSize()
     camera(camSize.x.float32, camSize.y.float32)
   self.scene.draw()
 
-  # stop to render into a texture
-  self.renderTexture.use(false)
-
-  # then render this texture to screen with room effect
+  # then render this texture with room effect to another texture
+  appSetRenderTarget(self.renderTexture2)
   setShaderEffect(self.room.effect)
   gShaderParams.randomValue[0] = gEngine.rand.rand(0f..1f)
   gShaderParams.timeLapse = floorMod(self.time.float32, 1000f)
   gShaderParams.iGlobalTime = gShaderParams.timeLapse
   updateShader()
-  gfxDrawSprite(camera().x, camera().y, self.renderTexture, White, mat4(1.0f), false, true)
-  gfxResetShader()
+  camera(ScreenWidth, ScreenHeight)
+  var flipY = self.fadeEffect.effect == Wobble
+  gfxDrawSprite(camera().x, camera().y, self.renderTexture, White, mat4(1f), false, flipY)
+
+  var screenTexture: Texture = self.renderTexture2
+  if self.fadeEffect.effect != None:
+    # draw second room if any
+    appSetRenderTarget(self.renderTexture)
+    gfxResetShader()
+    camera(ScreenWidth, ScreenHeight)
+    cameraPos(self.fadeEffect.cameraPos)
+    gfxClear(Black)
+    if self.fadeEffect.effect == Wobble:
+      let camSize = self.fadeEffect.room.getScreenSize()
+      camera(camSize.x.float32, camSize.y.float32)
+      self.fadeEffect.room.scene.draw()
+
+    self.fadeEffect.fade = clamp(self.fadeEffect.elapsed / self.fadeEffect.duration, 0f, 1f)
+
+    # draw fade
+    var texture1, texture2: Texture
+    case self.fadeEffect.effect:
+    of Wobble:
+      texture1 = self.renderTexture
+      texture2 = self.renderTexture2
+      screenTexture = self.renderTexture
+    of In:
+      texture1 = self.renderTexture
+      texture2 = self.renderTexture2
+      screenTexture = self.renderTexture3
+    of Out:
+      texture1 = self.renderTexture
+      texture2 = self.renderTexture2
+      self.fadeEffect.fade = 1f - self.fadeEffect.fade
+      screenTexture = self.renderTexture3
+    of None:
+      discard
+
+    appSetRenderTarget(self.renderTexture3)
+    camera(ScreenWidth, ScreenHeight)
+    gfxShader(self.fadeShader)
+    self.fadeShader.setUniform("u_texture2", texture2)
+    self.fadeShader.setUniform("u_fade", self.fadeEffect.fade) # fade value between [0.f,1.f]
+    self.fadeShader.setUniform("u_fadeToSep", if self.fadeEffect.fadeToSepia: 1'i32 else: 0'i32)  # 1 to fade to sepia
+    self.fadeShader.setUniform("u_timer", self.fadeEffect.elapsed)
+    self.fadeShader.setUniform("u_movement", (sin(PI * self.fadeEffect.fade) * self.fadeEffect.movement).float32) # movement for wobble effect
+    cameraPos(vec2(0f, 0f))
+    gfxDrawSprite(0f, 0f, texture1, White, mat4(1f), false)
+
+  # draw to screen
+  appSetRenderTarget(texture)
+  camera(ScreenWidth, ScreenHeight)
+  gfxDrawSprite(camera().x, camera().y, screenTexture, White, mat4(1f), false, flipY)
 
   # draw UI
+  gfxResetShader()
   let parent = self.ui.getParent
-  if capture:
+  if not texture.isNil:
     self.ui.remove()
-  camera(ScreenWidth, ScreenHeight)
   self.screen.draw()
-  if capture:
+  if not texture.isNil:
     parent.addChild self.ui
-
-  # draw fade
-  let fade = if self.fade.enabled: self.fade.current() else: 0.0
-  gfxDrawQuad(vec2f(0), camera(), rgbaf(Black, fade))
 
 proc capture*(self: Engine, filename: string, size: Vec2i) =
   let rt = newRenderTexture(size)
-  rt.use()
-  self.render(true)
-  rt.use(false)
+  self.render(rt)
   rt.capture(filename)
 
 proc takeScreenshot() =

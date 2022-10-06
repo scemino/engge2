@@ -8,6 +8,7 @@ import objlib
 import actorlib
 import soundlib
 import flags
+import fadeconsts
 import ../game/shaders
 
 proc register_vars(v: HSQUIRRELVM) =
@@ -38,7 +39,7 @@ proc register_gamelib*(v: HSQUIRRELVM) =
 
 proc register_gameconstants*(v: HSQUIRRELVM) =
   sqBind(v):
-    const 
+    const
       ALL = 1
       HERE = 0
       GONE = 4
@@ -55,10 +56,10 @@ proc register_gameconstants*(v: HSQUIRRELVM) =
       DIRECTDRIVE = 3
       TOUCH = 4
       REMOTE = 5
-      FADE_IN = 0
-      FADE_OUT = 1
-      FADE_WOBBLE = 2
-      FADE_WOBBLE_TO_SEPIA = 3
+      FADE_IN = FADE_IN
+      FADE_OUT = FADE_OUT
+      FADE_WOBBLE = FADE_WOBBLE
+      FADE_WOBBLE_TO_SEPIA = FADE_WOBBLE_TO_SEPIA
       FACE_FRONT = 4
       FACE_BACK = 8
       FACE_LEFT = 2

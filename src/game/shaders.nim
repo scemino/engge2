@@ -10,9 +10,9 @@ type
     Vhs           = 3,
     Ghost         = 4,
     BlackAndWhite = 5
-  
+
 const
-  vertexShader = """#version 330 core
+  vertexShader* = """#version 330 core
 precision mediump float;
 layout (location = 0) in vec2 a_position;
 layout (location = 1) in vec4 a_color;
@@ -567,6 +567,48 @@ void main(void)
     FragColor = texColor;
 }"""
 
+  fadeShader* = """#version 330 core
+#ifdef GL_ES
+precision highp float;
+#endif
+
+out vec4 FragColor;
+in vec4 v_color;
+in vec2 v_texCoords;
+uniform sampler2D u_texture;
+uniform sampler2D u_texture2;
+
+uniform float u_timer;
+uniform float u_fade;
+uniform int u_fadeToSep;
+uniform float u_movement;
+
+void main()
+{
+   const float RADIUS = 0.75;
+   const float SOFTNESS = 0.45;
+   const float ScratchValue = 0.3;
+   vec2 uv = v_texCoords;
+   float pi2 = (3.142*2.0);
+   float intervals = 4.0;
+   uv.x += sin((u_timer+uv.y)*(pi2*intervals))*u_movement;
+   vec4 texColor1 = v_color * texture( u_texture, uv);
+   vec4 texColor2 = v_color * texture( u_texture2, uv);
+   if (u_fadeToSep!=0) {
+       float gray = dot(texColor2.rgb, vec3(0.299, 0.587, 0.114));
+       vec2 dist = vec2(uv.x - 0.5, uv.y - 0.5);
+       vec3 sepiaColor = vec3(gray,gray,gray) * vec3(0.9, 0.8, 0.6);
+       float len = dot(dist,dist);
+       float vignette = smoothstep(RADIUS, RADIUS-SOFTNESS, len);
+       vec3 sep = mix(texColor2.rgb, sepiaColor, 0.80) * vignette;
+       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (sep*u_fade);
+   }
+   else {
+       FragColor.rgb = (texColor1.rgb*(1.0-u_fade)) + (texColor2.rgb*u_fade);
+   }
+   FragColor.a = 1.0;
+}"""
+
 type
   ShaderParams* = object
     effect*: RoomEffect
@@ -602,8 +644,6 @@ proc setShaderEffect*(effect: RoomEffect) =
   of RoomEffect.Ghost:
     let shader = newShader(vertexShader, ghostShader)
     gfxShader(shader)
-    
-  else: discard
 
 proc updateShader*() =
   if gShaderParams.effect == RoomEffect.Sepia:
@@ -622,4 +662,3 @@ proc updateShader*() =
     shader.setUniform("shadows", gShaderParams.shadows)
     shader.setUniform("midtones", gShaderParams.midtones)
     shader.setUniform("highlights", gShaderParams.highlights)
-    
