@@ -3,11 +3,11 @@ import motor
 import ../../scenegraph/node
 
 type Shake = ref object of Motor
-    node: Node
-    duration: float
-    amount: float32
-    shakeTime: float
-    elapsed: float
+  node: Node
+  duration: float
+  amount: float32
+  shakeTime: float
+  elapsed: float
 
 proc newShake*(duration: float, node: Node, amount: float): Shake =
   new(result)
@@ -22,3 +22,31 @@ method update(self: Shake, elapsed: float) =
   self.node.offset = vec2(self.amount * cos(self.shakeTime.float32 + 0.3f), self.amount * sin(self.shakeTime.float32))
   if self.elapsed > self.duration:
     self.disable()
+
+type Shake2 = ref object of Motor
+  node: Node
+  amount: float32
+  shakeTime: float
+  elapsed: float
+
+proc newShake2*(node: Node, amount: float): Shake2 =
+  result = Shake2(amount: 2f*amount.float32, node: node)
+  result.init()
+
+method update(self: Shake2, elapsed: float) =
+  self.shakeTime += 40f * elapsed
+  self.elapsed += elapsed
+  self.node.offset = vec2(self.amount * cos(self.shakeTime.float32 + 0.3f), self.amount * sin(self.shakeTime.float32))
+
+type Jiggle = ref object of Motor
+  node: Node
+  amount: float32
+  jiggleTime: float32
+
+proc newJiggle*(node: Node, amount: float): Jiggle =
+  result = Jiggle(amount: amount.float32, node: node)
+  result.init()
+
+method update(self: Jiggle, elapsed: float) =
+  self.jiggleTime += 20f * elapsed
+  self.node.rotationOffset = self.amount * sin(self.jiggleTime)

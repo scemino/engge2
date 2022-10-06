@@ -29,18 +29,18 @@ proc createObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If sheet parameter not provided, use room's sprite sheet instead.
   ## If image is an array, then use that as a sequence of frames for animation.
   ## Objects created at runtime can be passed to all the object commands.
-  ## They do not have verbs or local variables by default, but these can be added when the object is created so it can be used in the construction of sentences. 
+  ## They do not have verbs or local variables by default, but these can be added when the object is created so it can be used in the construction of sentences.
   let numArgs = sq_gettop(v)
   var sheet: string
   var frames: seq[string]
   var framesIndex = 2
-  
+
   # get sheet parameter if any
   if numArgs == 3:
     if SQ_FAILED(get(v, 2, sheet)):
       return sq_throwerror(v, "failed to get sheet")
     framesIndex = 3
-  
+
   # get frames parameter if any
   if numArgs >= 2:
     case sq_gettype(v, framesIndex):
@@ -63,7 +63,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## TextObjects can be passed to all the object commands, but like objects created with createObject they don't have verbs or local variables by default.
   ## If alignment specified, it should take the form of: verticalAlign| horizonalAlign [| horiztonalWidth ].
   ## Valid values for verticalAlign are ALIGN_TOP|ALIGN_BOTTOM. Valid values for horizonalAlign are ALIGN_LEFT|ALIGN_CENTER|ALIGN_RIGHT.
-  ## If the optional horiztonalWidth parameter is present, it will wrap the text to that width. 
+  ## If the optional horiztonalWidth parameter is present, it will wrap the text to that width.
   var fontName: string
   if SQ_FAILED(get(v, 2, fontName)):
     return sq_throwerror(v, "failed to get fontName")
@@ -102,8 +102,8 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Deletes object permanently from the game. 
-  ## 
+  ## Deletes object permanently from the game.
+  ##
   ## .. code-block:: Squirrel
   ## local drip = createObject("drip")
   ## local time = 1.5
@@ -118,8 +118,8 @@ proc deleteObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc findObjectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the object that is at the specified coordinates.
   ## If there is no object at those coordinates, it returns NULL.
-  ## Used for determining what the player is clicking on now (e.g. for the phone). 
-  ## 
+  ## Used for determining what the player is clicking on now (e.g. for the phone).
+  ##
   ## .. code-block:: Squirrel
   ## local button = findObjectAt(x,y)
   ## if (button == null)
@@ -156,8 +156,8 @@ proc isInventoryOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     result = 1
 
 proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns true if the object is actually an object and not something else. 
-  ## 
+  ## Returns true if the object is actually an object and not something else.
+  ##
   ## .. code-block:: Squirrel
   ## if (isObject(obj) && objectValidUsePos(obj) && objectTouchable(obj)) {
   var obj: HSQOBJECT
@@ -185,21 +185,21 @@ proc jiggleObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## See also:
   ## - `shakeObject`
   ## - `stopObjectMotors`
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## jiggleObject(pigeonVan, 0.25)
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   var amount: float
   if SQ_FAILED(get(v, 3, amount)):
     return sq_throwerror(v, "failed to get amount")
-  warn "jiggleObject not implemented"
+  obj.jiggle(amount)
   0
-  
+
 proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Works exactly the same as playObjectState, but plays the animation as a continuous loop, playing the specified animation. 
-  ## 
+  ## Works exactly the same as playObjectState, but plays the animation as a continuous loop, playing the specified animation.
+  ##
   ## .. code-block:: Squirrel
   ## loopObjectState(aStreetFire, 0)
   ## loopObjectState(flies, 3)
@@ -222,7 +222,7 @@ proc loopObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Places the specified object at the given x and y coordinates in the current room.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectAt(text, 160,90)
   ## objectAt(obj, leftMargin, topLinePos)
@@ -249,8 +249,8 @@ proc objectAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets an object's alpha (transparency) in the range of 0.0 to 1.0.
-  ## Setting an object's color will set it's alpha back to 1.0, ie completely opaque. 
-  ## 
+  ## Setting an object's color will set it's alpha back to 1.0, ie completely opaque.
+  ##
   ## .. code-block:: Squirrel
   ## objectAlpha(cloud, 0.5)
   let obj = obj(v, 2)
@@ -265,7 +265,7 @@ proc objectAlpha(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectAlphaTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes an object's alpha from its current state to the specified alpha over the time period specified by time.
-  ## 
+  ##
   ## If an interpolationMethod is used, the change will follow the rules of the easing method, e.g. LINEAR, EASE_INOUT.
   ## See also stopObjectMotors.
   if sq_gettype(v, 2) != OT_NULL:
@@ -304,8 +304,8 @@ proc objectCenter(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc objectColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets an object's color. The color is an int in the form of 0xRRGGBB 
-  ## 
+  ## Sets an object's color. The color is an int in the form of 0xRRGGBB
+  ##
   ## .. code-block:: Squirrel
   ## objectColor(warningSign, 0x808000)
   var obj = obj(v, 2)
@@ -330,8 +330,8 @@ proc objectDependentOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectFPS(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets how many frames per second (fpsRate) the object will animate at. 
-  ## 
+  ## Sets how many frames per second (fpsRate) the object will animate at.
+  ##
   ## .. code-block:: Squirrel
   ## objectFPS(pigeon1, 15)
   var obj = obj(v, 2)
@@ -343,8 +343,8 @@ proc objectFPS(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable. 
-  ## 
+  ## Sets if an object is hidden or not. If the object is hidden, it is no longer displayed or touchable.
+  ##
   ## .. code-block:: Squirrel
   ## objectHidden(oldRags, YES)
   let obj = obj(v, 2)
@@ -358,8 +358,8 @@ proc objectHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the touchable area of an actor or object.
   ## This is a rectangle enclosed by the specified coordinates.
-  ## We also use this on the postalworker to enlarge his touchable area to make it easier to click on him while he's sorting mail. 
-  ## 
+  ## We also use this on the postalworker to enlarge his touchable area to make it easier to click on him while he's sorting mail.
+  ##
   ## .. code-block:: Squirrel
   ## objectHotspot(willie, 14, 0, 14, 62)         // Willie standing up
   ## objectHotspot(willie, -28, 0, 28, 50)        // Willie lying down drunk
@@ -388,7 +388,7 @@ proc objectHotspot(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectIcon(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Used for inventory object, it changes the object's icon to be the new one specified.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectIcon(obj, "glowing_spell_book")
   ## objectIcon(obj, "spell_book")
@@ -424,7 +424,7 @@ proc objectIcon(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc objectLit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the object is affected by lighting elements.
   ## Note: this is currently used for actor objects, but can also be used for room objects.
-  ## Lighting background flat art would be hard and probably look odd. 
+  ## Lighting background flat art would be hard and probably look odd.
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object or actor")
@@ -436,14 +436,14 @@ proc objectLit(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the object to the specified location over the time period specified.
-  ## 
+  ##
   ## If an interpolation method is used for the transition, it will use that.
   ## Unlike `objectOffsetTo`, `objectMoveTo` moves the item to a x, y on the screen, not relative to the object's starting position.
   ## If you want to move the object back again, you need to store where the object started.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectMoveTo(this, 10, 20, 2.0)
-  ## 
+  ##
   ## See also:
   ## - `stopObjectMotors method <#stopObjectMotors.e>`_
   ## - `objectOffsetTo method <#objectOffsetTo.e>`_
@@ -467,7 +467,7 @@ proc objectMoveTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Instantly offsets the object (image, use position, hotspot) with respect to the origin of the object.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectOffset(coroner, 0, 0)
   ## objectOffset(SewerManhole.sewerManholeDime, 0, 96)
@@ -486,16 +486,16 @@ proc objectOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Changes the object's offset (image, use position, hotspot) with respect to the origin of the object.
-  ## 
+  ##
   ## Does this over the time period specified.
   ## If an interpolation method is used for the transition, it will use that.
   ## Useful for when you want to be able to move an object to a new position then move it back (you'd move it back to 0).
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectOffsetTo(actor, -40, 0, 0.5)
   ## objectOffsetTo(rat, random(-1, 1), random(-1, 1), 0.2, LINEAR)
   ## objectOffsetTo(ladder, ladder.position*ladder.offset, 0, 1, EASE_INOUT)
-  ## 
+  ##
   ## See also:
   ## - `stopObjectMotors method <#stopObjectMotors.e>`_
   ## - `objectMoveTo method <#objectMoveTo.e>`_
@@ -520,8 +520,8 @@ proc objectOffsetTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectOwner(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the actor who owns the specified object/inventory item.
-  ## If there is no owner, returns false. 
-  ## 
+  ## If there is no owner, returns false.
+  ##
   ## .. code-block:: Squirrel
   ## objectOwner(dime) == currentActor
   ## !objectOwner(countyMap1)
@@ -576,10 +576,10 @@ proc objectPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
-  ## 
+  ##
   ## A rendering offset of 0,0 would cause them to be rendered from the middle of their image.
   ## Actor's are typically adjusted so they are rendered from the middle of the bottom of their feet.
-  ## To maintain sanity, it is best if all actors have the same image size and are all adjust the same, but this is not a requirement. 
+  ## To maintain sanity, it is best if all actors have the same image size and are all adjust the same, but this is not a requirement.
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
@@ -604,7 +604,7 @@ proc objectRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectRotate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rotation of object to the specified amount instantly.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectRotate(pigeonVanBackWheel, 0)
   let obj = obj(v, 2)
@@ -621,7 +621,7 @@ proc objectRotateTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Rotates the object from its current rotation to the desired rotation over duration time period.
   ## The interpolationMethod specifies how the animation is played.
   ## if `LOOPING` is used, it will continue to rotate as long as the rotation parameter is 360 or -360.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectRotateTo(bridgeGrateTree, 45, 3.7, SLOW_EASE_IN)
   ## objectRotateTo(AStreet.aStreetPhoneBook, 6, 2.0, SWING)
@@ -679,16 +679,16 @@ proc objectShader(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Changes the state of an object, although this can just be a internal state, 
-  ## 
+  ## Changes the state of an object, although this can just be a internal state,
+  ##
   ## it is typically used to change the object's image as it moves from it's current state to another.
-  ## Behind the scenes, states as just simple ints. State0, State1, etc. 
+  ## Behind the scenes, states as just simple ints. State0, State1, etc.
   ## Symbols like CLOSED and OPEN and just pre-defined to be 0 or 1.
   ## State 0 is assumed to be the natural state of the object, which is why OPEN is 1 and CLOSED is 0 and not the other way around.
   ## This can be a little confusing at first.
-  ## If the state of an object has multiple frames, then the animation is played when changing state, such has opening the clock. 
-  ## GONE is a unique in that setting an object to GONE both sets its graphical state to 1, and makes it untouchable. Once an object is set to GONE, if you want to make it visible and touchable again, you have to set both: 
-  ## 
+  ## If the state of an object has multiple frames, then the animation is played when changing state, such has opening the clock.
+  ## GONE is a unique in that setting an object to GONE both sets its graphical state to 1, and makes it untouchable. Once an object is set to GONE, if you want to make it visible and touchable again, you have to set both:
+  ##
   ## .. code-block:: Squirrel
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
@@ -708,7 +708,7 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Gets or sets if an object is player touchable. 
+  ## Gets or sets if an object is player touchable.
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
@@ -727,7 +727,7 @@ proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##  Sets the zsort order of an object, essentially the order in which an object is drawn on the screen.
   ## A sort order of 0 is the bottom of the screen.
   ## Actors typically have a sort order of their Y position.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## objectSort(censorBox, 0)   // Will be on top of everything.
   var obj = obj(v, 2)
@@ -741,8 +741,8 @@ proc objectSort(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc objectUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the location an actor will stand at when interacting with this object.
-  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT 
-  ## 
+  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT
+  ##
   ## .. code-block:: Squirrel
   ## objectUsePos(popcornObject, -13, 0, FACE_RIGHT)
   var obj = obj(v, 2)
@@ -760,8 +760,8 @@ proc objectUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc objectUsePosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns the x of the object's use position. 
-  ## 
+  ## Returns the x of the object's use position.
+  ##
   ## .. code-block:: Squirrel
   ## objectUsePosX(dimeLoc)
   var obj = obj(v, 2)
@@ -771,8 +771,8 @@ proc objectUsePosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns the y of the object's use position. 
-  ## 
+  ## Returns the y of the object's use position.
+  ##
   ## .. code-block:: Squirrel
   ## objectUsePosY(dimeLoc)
   var obj = obj(v, 2)
@@ -782,7 +782,7 @@ proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc objectValidUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns true if the object's use position has been set (ie is not 0,0). 
+  ## Returns true if the object's use position has been set (ie is not 0,0).
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
@@ -794,8 +794,8 @@ proc objectValidVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if this object has a verb function for the specified verb.
   ## Mostly used for testing when trying to check interactions.
   ## Verb options are: VERB_WALKTO, VERB_LOOKAT, VERB_PICKUP, VERB_OPEN, VERB_CLOSE, VERB_PUSH, VERB_PULL, VERB_TALKTO.
-  ## Cannot use DEFAULT_VERB because that is not a real verb to the system. 
-  ## 
+  ## Cannot use DEFAULT_VERB because that is not a real verb to the system.
+  ##
   ## .. code-block:: Squirrel
   ## if (objectValidVerb(obj, VERB_PICKUP)) {
   ##    logAction("PickUp", obj)
@@ -808,7 +808,7 @@ proc objectValidVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var verb: int
   if SQ_FAILED(get(v, 3, verb)):
     return sq_throwerror(v, "failed to get verb")
-  
+
   let verbId = verb.VerbId
   if not gEngine.actor.isNil:
     for vb in gEngine.hud.actorSlot(gEngine.actor).verbs:
@@ -821,8 +821,8 @@ proc objectValidVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc pickupObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Picks up an object and adds it to the selected actor's inventory.
-  ## The object that appears in the room is not the object you pick up, this is due to the code often needing to be very different when it's held in your inventory, plus inventory objects need icons. 
-  ## 
+  ## The object that appears in the room is not the object you pick up, this is due to the code often needing to be very different when it's held in your inventory, plus inventory objects need icons.
+  ##
   ## .. code-block:: Squirrel
   ## pickupObject(Dime)
   var actor: Object
@@ -868,8 +868,8 @@ proc pickupReplacementObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc playObjectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## The only difference between objectState and playObjectState is if they are called during the enter code.
-  ## objectState will set the image to the last frame of the state's animation, where as, playObjectState will play the full animation. 
-  ## 
+  ## objectState will set the image to the last frame of the state's animation, where as, playObjectState will play the full animation.
+  ##
   ## .. code-block:: Squirrel
   ## playObjectState(Mansion.windowShutters, OPEN)
   let obj = obj(v, 2)
@@ -912,7 +912,7 @@ proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Globally sets a default object.
   ## When the player executes the sentence open painting and the painting object has no verbOpen function defined,
   ## it will call the default object's verbOpen as a fallback, allowing for common failure phrase like "I can't open that.".
-  ## The default object can be changed at anytime, so different selectable characters can have different default responses. 
+  ## The default object can be changed at anytime, so different selectable characters can have different default responses.
   if gEngine.defaultObj.objType != OT_NULL:
     discard sq_release(gVm.v, gEngine.defaultObj)
   if SQ_FAILED(sq_getstackobj(v, 2, gEngine.defaultObj)):
@@ -921,22 +921,25 @@ proc setDefaultObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc shakeObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var obj = obj(v, 2)
+  let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
   var amount: float
   if SQ_FAILED(get(v, 3, amount)):
     return sq_throwerror(v, "failed to get amount")
-  warn "shakeObject not implemented"
+  obj.shake(amount)
   0
 
 proc stopObjectMotors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "stopObjectMotors not implemented"
+  let obj = obj(v, 2)
+  if obj.isNil:
+    return sq_throwerror(v, "failed to get object")
+  obj.stopObjectMotors()
   0
 
 proc register_objlib*(v: HSQUIRRELVM) =
   ## Registers the game object library
-  ## 
+  ##
   ## It adds all the object functions in the given Squirrel virtual machine.
   v.regGblFun(createObject, "createObject")
   v.regGblFun(createTextObject, "createTextObject")

@@ -23,14 +23,14 @@ type
     tag*: pointer
   Node* = ref object of RootObj
     ## Represents a node in a scene graph.
-    name*: string                
-    parent*: Node                
-    children*: seq[Node]         
+    name*: string
+    parent*: Node
+    children*: seq[Node]
     pos*: Vec2f
-    offset*: Vec2f                  
-    renderOffset*: Vec2f                  
-    scale*: Vec2f                
-    rotation*: float32             
+    offset*: Vec2f
+    renderOffset*: Vec2f
+    scale*: Vec2f
+    rotation*, rotationOffset*: float32
     zOrder*: int32
     anchorNorm: Vec2f
     anchor: Vec2f
@@ -42,7 +42,7 @@ type
     scaleFunc*: proc (): float32
     buttons*: seq[Button]
     shakeMotor*: Motor
-  
+
 
 proc addButton*(self: Node, callback: EventCallback, tag: pointer = nil) =
   let button = Button(callback: callback, tag: tag)
@@ -60,8 +60,8 @@ proc getZSort*(self: Node): int32 =
 proc getScale*(self: Node): Vec2f =
   if self.scaleFunc.isNil:
     self.scale
-  else: 
-    let scale = self.scaleFunc() 
+  else:
+    let scale = self.scaleFunc()
     vec2(scale, scale)
 
 proc newNode*(name: string): Node =
@@ -135,7 +135,7 @@ proc setSize*(self: Node, size: Vec2f) =
 proc localTransform(self: Node): Mat4f =
   ## Gets the location transformation = translation * rotation * scale.
   var scale = self.getScale()
-  translate(scale(rotate(translate(mat4(1f), vec3(self.pos + self.offset, 0f)), glm.radians(-self.rotation), 0f, 0f, 1f), scale.x, scale.y, 1f), vec3(self.renderOffset, 0f))
+  translate(scale(rotate(translate(mat4(1f), vec3(self.pos + self.offset, 0f)), glm.radians(-self.rotation + self.rotationOffset), 0f, 0f, 1f), scale.x, scale.y, 1f), vec3(self.renderOffset, 0f))
 
 method transform*(self: Node, parentTrans: Mat4f): Mat4f {.base.} =
   # Gets the full transformation for this node.

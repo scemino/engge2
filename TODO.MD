@@ -489,7 +489,7 @@
 - [x] isInventoryOnScreen
 - [x] isObject
 - [ ] jiggleInventory
-- [ ] jiggleObject
+- [x] jiggleObject
 - [x] loopObjectState
 - [x] objectAlpha
 - [x] objectAlphaTo
@@ -533,8 +533,8 @@
 - [x] popInventory
 - [x] removeInventory
 - [x] setDefaultObject
-- [ ] shakeObject
-- [ ] stopObjectMotors
+- [x] shakeObject
+- [x] stopObjectMotors
 
 ### Sound
 

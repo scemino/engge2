@@ -17,6 +17,7 @@ import ../scenegraph/textnode
 import ../scenegraph/overlaynode
 import ../scenegraph/spritenode
 import motors/motor
+import motors/shake
 import objanim
 import ../util/jsonutil
 import ../util/common
@@ -30,7 +31,7 @@ import light
 import screen
 import shaders
 
-const 
+const
   GONE = 4
   USE_WITH = 2
   USE_ON = 4
@@ -65,7 +66,7 @@ type
     node*: Node
   Direction* = enum
     dNone   = 0
-    dRight  = 1 
+    dRight  = 1
     dLeft   = 2
     dFront  = 4
     dBack   = 8
@@ -90,7 +91,7 @@ type
     animLoop: bool
     animName*: string
     animFlags*: int
-    anims*: seq[ObjectAnimation]  
+    anims*: seq[ObjectAnimation]
     state*: int
     alphaTo*: Motor
     rotateTo*: Motor
@@ -99,10 +100,12 @@ type
     talking*: Motor
     blink*: Motor
     turnTo*: Motor
+    shakeTo*: Motor
+    jiggleTo*: Motor
     table*: HSQOBJECT
     r: Room
     facing*: Facing
-    facingLockValue*: int 
+    facingLockValue*: int
     facingMap*: Table[Facing, Facing]
     walkSpeed*: Vec2f
     parent*: string
@@ -182,7 +185,7 @@ proc newAnim*(obj: Object): Anim
 proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant = false)
 proc update*(self: Anim, elapsed: float)
 
-proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence = 
+proc newSentence*(verbId: VerbId, noun1, noun2: Object): Sentence =
   Sentence(verb: verbId, noun1: noun1, noun2: noun2)
 
 proc newObject*(): Object =
@@ -213,7 +216,7 @@ proc facing*(dir: Direction): Facing =
 proc getUsePos*(self: Object): Vec2f =
   if self.table.getId().isActor:
     result = self.node.pos
-  else:  
+  else:
     result = self.node.pos +  self.usePos
 
 proc `touchable`*(self: Object): bool =
@@ -455,7 +458,7 @@ proc setFacing*(self: Object, facing: Facing) =
       self.play(self.animName, self.animLoop)
 
 proc playCore(self: Object, state: string; loop = false, instant = false): bool =
-  ## Plays an animation specified by the `state`. 
+  ## Plays an animation specified by the `state`.
   for i in 0..<self.anims.len:
     let anim = self.anims[i]
     if anim.name == state:
@@ -469,7 +472,7 @@ proc playCore(self: Object, state: string; loop = false, instant = false): bool 
     self.nodeAnim.removeAll()
 
 proc play*(self: Object, state: string; loop = false, instant = false) =
-  ## Plays an animation specified by the `state`. 
+  ## Plays an animation specified by the `state`.
   if state == "eyes_right":
     self.showLayer("eyes_front", false)
     self.showLayer("eyes_left", false)
@@ -496,17 +499,17 @@ proc getState*(self: Object): int =
   self.state
 
 proc setState*(self: Object, state: int, instant = false) =
-  ## Changes the `state` of an object, although this can just be a internal state, 
-  ## 
+  ## Changes the `state` of an object, although this can just be a internal state,
+  ##
   ## it is typically used to change the object's image as it moves from it's current state to another.
-  ## Behind the scenes, states as just simple ints. State0, State1, etc. 
+  ## Behind the scenes, states as just simple ints. State0, State1, etc.
   ## Symbols like `CLOSED` and `OPEN` and just pre-defined to be 0 or 1.
   ## State 0 is assumed to be the natural state of the object, which is why `OPEN` is 1 and `CLOSED` is 0 and not the other way around.
   ## This can be a little confusing at first.
-  ## If the state of an object has multiple frames, then the animation is played when changing state, such has opening the clock. 
+  ## If the state of an object has multiple frames, then the animation is played when changing state, such has opening the clock.
   ## `GONE` is a unique in that setting an object to `GONE` both sets its graphical state to 1, and makes it untouchable.
-  ## Once an object is set to `GONE`, if you want to make it visible and touchable again, you have to set both: 
-  ## 
+  ## Once an object is set to `GONE`, if you want to make it visible and touchable again, you have to set both:
+  ##
   ## .. code-block:: Squirrel
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
@@ -531,6 +534,8 @@ proc update*(self: Object, elapsedSec: float) =
   self.talking.updateMotor(elapsedSec)
   self.blink.updateMotor(elapsedSec)
   self.turnTo.updateMotor(elapsedSec)
+  self.shakeTo.updateMotor(elapsedSec)
+  self.jiggleTo.updateMotor(elapsedSec)
 
   self.nodeAnim.update(elapsedSec)
 
@@ -556,7 +561,7 @@ proc newLayer*(names: seq[string], parallax: Vec2f, zsort: int32): Layer =
   # info fmt"Create layer {names}, {parallax}, {zsort}"
   result = Layer(names: names, parallax: parallax, zsort: zsort)
 
-proc update*(self: Layer, elapsedSec: float) = 
+proc update*(self: Layer, elapsedSec: float) =
   for obj in self.objects.toSeq:
     obj.update(elapsedSec)
 
@@ -579,7 +584,7 @@ proc screenToRoom*(self: Room, pos: Vec2f): Vec2f =
 proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   var obj = newObject()
   obj.temporary = true
-  
+
   # create a table for this object
   sq_newtable(gVm.v)
   discard sq_getstackobj(gVm.v, -1, obj.table)
@@ -596,7 +601,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   obj.r = self
   obj.sheet = sheet
   obj.touchable = false
-  
+
   # create anim if any
   if frames.len > 0:
     var objAnim = ObjectAnimation.new()
@@ -615,7 +620,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
 proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAlign = tvCenter, maxWidth = 0.0f): Object =
   let obj = newObject()
   obj.temporary = true
-  
+
   # create a table for this object
   sq_newtable(gVm.v)
   discard sq_getstackobj(gVm.v, -1, obj.table)
@@ -627,7 +632,7 @@ proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAli
   info fmt"Create object with new table: {obj.name} #{obj.id}"
   obj.name = fmt"text#{obj.id}: {text}"
   obj.touchable = false
-  
+
   let font = gResMgr.font(fontName)
   let text = newText(font, text, hAlign, vAlign, maxWidth, White)
 
@@ -648,7 +653,7 @@ proc createTextObject*(self: Room, fontName, text: string, hAlign = thLeft, vAli
   of thRight:
     node.setAnchorNorm(vec2(1f, v))
   obj.node = node
-  
+
   self.layer(0).objects.add(obj)
   self.layer(0).node.addChild obj.node
   obj.layer = self.layer(0)
@@ -853,13 +858,13 @@ proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
     self.pathFinder = newPathFinder(self.mergedPolygon)
   self.pathFinder.calculatePath(frm, to)
 
-proc update*(self: Room, elapsedSec: float) = 
+proc update*(self: Room, elapsedSec: float) =
   self.overlayTo.updateMotor(elapsedSec)
   self.rotateTo.updateMotor(elapsedSec)
   for layer in self.layers:
     layer.update(elapsedSec)
 
-proc createLight*(self: Room, color: Color, pos: Vec2i): Light = 
+proc createLight*(self: Room, color: Color, pos: Vec2i): Light =
   result = newLight()
   self.lights[self.numLights] = result
   self.numLights += 1
@@ -969,3 +974,20 @@ proc update*(self: Anim, elapsed: float) =
         self.disable()
     else:
       self.disable()
+
+proc shake*(self: Object, amount: float) =
+  self.shakeTo = newShake2(self.node, amount)
+
+proc jiggle*(self: Object, amount: float) =
+  self.jiggleTo = newJiggle(self.node, amount)
+
+proc stopObjectMotors*(self: Object) =
+  self.alphaTo.disable()
+  self.rotateTo.disable()
+  self.moveTo.disable()
+  self.walkTo.disable()
+  self.talking.disable()
+  self.blink.disable()
+  self.turnTo.disable()
+  self.shakeTo.disable()
+  self.jiggleTo.disable()
