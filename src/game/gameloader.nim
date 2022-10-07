@@ -3,7 +3,10 @@ import std/json
 type
   GameLoader* = ref object of RootObj
 
-var gGameLoader*: GameLoader
+var
+  gGameLoader*: GameLoader
+  gAutoSave*: bool
+  gAllowSaveGames*: bool
 
 method load*(self: GameLoader, json: JsonNode) {.base.} =
   discard

@@ -48,6 +48,9 @@ type
     sounds*: array[32, SoundId]
     volumes: Table[VolumeKind, float]
     volFunc: VolFunc
+    soundHover*: SoundDefinition
+
+var gAudio*: AudioSystem
 
 proc checkError() =
   let err = sdl2.getError()
@@ -152,7 +155,7 @@ proc newSoundId(chan: AudioChannel, sndDef: SoundDefinition, cat: SoundCategory,
 
 proc update*(self: SoundId, audio: AudioSystem) =
   let objVolume = if self.objId == 0: 1f else: audio.volFunc(self)
-  
+
   let pan = clamp(self.pan, -1f, 1f)
   self.chan.setPan(pan)
 
@@ -174,6 +177,7 @@ proc newAudioSystem*(volFunc: VolFunc): AudioSystem =
   result = AudioSystem(volFunc: volFunc, volumes: {vkMaster: 1.0, vkMusic: 1.0, vkSound: 1.0, vkTalk: 1.0}.toTable)
   for i in 0..<result.chans.len:
     result.chans[i] = newAudioChannel(i)
+  gAudio = result
 
 proc play*(self: AudioSystem, sndDef: SoundDefinition, cat: SoundCategory, loopTimes = 0; fadeInTimeMs = 0.0, objId = 0): SoundId =
   for chan in self.chans:
@@ -246,3 +250,7 @@ proc update*(self: AudioSystem) =
       if soundId.chan.status() == Stopped:
         # info fmt"Sound stopped: ch{soundId.chan.id} #{soundId.id} {soundId.sndDef.name}"
         self.sounds[soundId.chan.id] = nil
+
+proc playSoundHover*() =
+  if not gAudio.soundHover.isNil:
+    discard gAudio.play(gAudio.soundHover, SoundCategory.Sound)

@@ -11,6 +11,7 @@ import ../game/states/dlgstate
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
+import ../audio/audio
 import optionsdlg
 import saveloaddlg
 import quitdlg
@@ -57,6 +58,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Enter:
     src.color = Yellow
+    playSoundHover()
   of Leave:
     src.color = White
   of Down:

@@ -8,6 +8,7 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
+import ../audio/audio
 
 type
   CheckCallback* = proc(self: Checkbox, state: bool)
@@ -28,6 +29,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Enter:
     src.getParent().color = Yellow
+    playSoundHover()
   of Leave:
     src.getParent().color = White
   of Down:

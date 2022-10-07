@@ -347,17 +347,17 @@
 - [x] cursorPosX
 - [x] cursorPosY
 - [x] distance
-- [ ] exCommand EX_ALLOW_SAVEGAMES
-- [ ] exCommand EX_POP_CHARACTER_SELECTION
-- [ ] exCommand EX_AUTOSAVE
-- [ ] exCommand EX_AUTOSAVE_STATE
-- [ ] exCommand EX_BUTTON_HOVER_SOUND
-- [ ] exCommand EX_CAMERA_TRACKING
-- [ ] exCommand EX_FORCE_TALKIE_TEXT
-- [ ] exCommand EX_IDLE_TIME
-- [ ] exCommand EX_OPTIONS_MUSIC
-- [ ] exCommand EX_RESTART
-- [ ] exCommand EX_SHOW_OPTIONS
+- [x] exCommand EX_ALLOW_SAVEGAMES
+- [x] exCommand EX_POP_CHARACTER_SELECTION
+- [x] exCommand EX_AUTOSAVE
+- [x] exCommand EX_AUTOSAVE_STATE
+- [x] exCommand EX_BUTTON_HOVER_SOUND
+- [x] exCommand EX_CAMERA_TRACKING
+- [x] exCommand EX_FORCE_TALKIE_TEXT
+- [x] exCommand EX_IDLE_TIME
+- [x] exCommand EX_OPTIONS_MUSIC
+- [x] exCommand EX_RESTART
+- [x] exCommand EX_SHOW_OPTIONS
 - [x] findScreenPosition
 - [x] frameCounter
 - [ ] getPrivatePref

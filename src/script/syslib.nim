@@ -13,10 +13,13 @@ import ../game/room
 import ../game/inputstate
 import ../game/tasks/breakwhilecond
 import ../game/motors/motor
+import ../game/gameloader
+import ../game/prefs
 import ../scenegraph/dialog
 import ../gfx/color
 import ../util/utils
 import ../sys/app
+import ../script/fadeconsts
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")
@@ -25,13 +28,13 @@ proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Sets a timer of duration seconds. 
-  ## 
-  ## When the timer is up, method will be executed. 
-  ## Use this method so that the callback will get saved. 
-  ## That is, if you set a callback to call method in 30 minutes, play the game for 10 minutes, save and quit; 
-  ## when you return to the game, it will remember that it needs to wait 20 minutes before calling method. 
-  ## If the game is paused, all callback timers are paused. 
+  ## Sets a timer of duration seconds.
+  ##
+  ## When the timer is up, method will be executed.
+  ## Use this method so that the callback will get saved.
+  ## That is, if you set a callback to call method in 30 minutes, play the game for 10 minutes, save and quit;
+  ## when you return to the game, it will remember that it needs to wait 20 minutes before calling method.
+  ## If the game is paused, all callback timers are paused.
   ## Note, method cannot be code, it must be a defined script or function (otherwise, the game wouldn't be able to save what it needs to do when the timer is up).
   ## .. code-block:: Squirrel
   ## if (actorTalking()) {
@@ -68,11 +71,11 @@ proc addCallback(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   return 1
 
 proc addFolder(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Registers a folder that assets can appear in. 
-  ## 
-  ## Only used for development builds where the assets are not bundled up. 
-  ## Use in the Boot.nut process. 
-  ## Not necessary for release. 
+  ## Registers a folder that assets can appear in.
+  ##
+  ## Only used for development builds where the assets are not bundled up.
+  ## Use in the Boot.nut process.
+  ## Not necessary for release.
   0
 
 proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: ThreadBase)): SQInteger =
@@ -85,7 +88,7 @@ proc breakfunc(v: HSQUIRRELVM, setConditionFactory: proc (t: ThreadBase)): SQInt
     return -666
 
 proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## When called in a function started with startthread, execution is suspended for count frames. 
+  ## When called in a function started with startthread, execution is suspended for count frames.
   ## It is an error to call breakhere in a function that was not started with startthread.
   ## Particularly useful instead of breaktime if you just want to wait 1 frame, since not all machines run at the same speed.
   ## . code-block:: Squirrel
@@ -109,7 +112,7 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for time seconds.
   ## It is an error to call breaktime in a function that was not started with startthread.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## for (local x = 1; x < 4; x += 1) {
   ##   playSound(soundPhoneRinging)
@@ -119,7 +122,7 @@ proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 2, time)):
     return sq_throwerror(v, "failed to get time")
   if time == 0f:
-    breakfunc(v, proc (t: ThreadBase) = t.numFrames = 1)  
+    breakfunc(v, proc (t: ThreadBase) = t.numFrames = 1)
   else:
     breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
 
@@ -127,7 +130,7 @@ proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   let curThread = thread(v)
   if curThread.isNil:
     return sq_throwerror(v, "Current thread should be created with startthread")
-  
+
   info "curThread.id: " & $curThread.getId()
   info fmt"add breakwhilecond name={name} pid={curThread.getId()}"
   gEngine.tasks.add newBreakWhileCond(curThread.getId(), name, pred)
@@ -137,7 +140,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
   ## Note, animatingItem can be an actor or an object.
   ## It is an error to call breakwhileanimating in a function that was not started with `startthread`.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## actorFace(ray, FACE_LEFT)
   ## actorCostume(ray, "RayVomit")
@@ -152,35 +155,35 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.
   ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhilecamera in a function that was not started with startthread. 
+  ## It is an error to call breakwhilecamera in a function that was not started with startthread.
   breakwhilecond(v, "breakwhilecamera()", proc (): bool = not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled)
 
 proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a cutscene is running.
   ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhilecutscene in a function that was not started with startthread. 
+  ## It is an error to call breakwhilecutscene in a function that was not started with startthread.
   breakwhilecond(v, "breakwhilecutscene()", proc (): bool = not gEngine.cutscene.isNil)
 
 proc breakwhiledialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a dialog is running.
   ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhiledialog in a function that was not started with startthread. 
+  ## It is an error to call breakwhiledialog in a function that was not started with startthread.
   breakwhilecond(v, "breakwhiledialog()", proc (): bool = gEngine.dlg.state != DialogState.None)
 
 proc breakwhileinputoff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while input is not active.
   ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhileinputoff in a function that was not started with startthread. 
+  ## It is an error to call breakwhileinputoff in a function that was not started with startthread.
   breakwhilecond(v, "breakwhileinputoff()", proc (): bool = not gEngine.inputState.inputActive)
 
 proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while the thread referenced by threadId is running.
   ## Once the thread finishes execution, the method will continue running.
-  ## It is an error to call breakwhilerunning in a function that was not started with startthread. 
-  ## 
+  ## It is an error to call breakwhilerunning in a function that was not started with startthread.
+  ##
   ## . code-block:: Squirrel
   ## local waitTID = 0
-  ## 
+  ##
   ##    if ( g.in_flashback && HotelElevator.requestedFloor == 13 ) {
   ##     waitTID = startthread(HotelElevator.avoidPenthouse)
   ##     breakwhilerunning(waitTID)
@@ -193,7 +196,7 @@ proc breakwhilerunning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if sq_gettype(v, 2) == OT_INTEGER:
     discard get(v, 2, id)
   info "breakwhilerunning: " & $id
-  
+
   let t = thread(id)
   if t.isNil:
     let sound = sound(id)
@@ -219,8 +222,8 @@ proc breakwhiletalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, breaks until actor has finished talking.
   ## If no actor is specified, breaks until ALL actors have finished talking.
   ## Once talking finishes, the method will continue running.
-  ## It is an error to call breakwhiletalking in a function that was not started with startthread. 
-  ## 
+  ## It is an error to call breakwhiletalking in a function that was not started with startthread.
+  ##
   ## . code-block:: Squirrel
   ## while(closeToWillie()) {
   ##     local line = randomfrom(lines)
@@ -243,7 +246,7 @@ proc breakwhilewalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, breaks until actor has finished walking.
   ## Once arrived at destination, the method will continue running.
   ## It is an error to call breakwhilewalking in a function that was not started with `startthread`.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## startthread(@(){
   ##    actorWalkTo(currentActor, Nickel.copyTron)
@@ -313,7 +316,50 @@ proc dumpvar(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "exCommand not implemented"
+  var cmd: int
+  if SQ_FAILED(get(v, 2, cmd)):
+    return sq_throwerror(v, "Failed to get command")
+  case cmd:
+  of EX_ALLOW_SAVEGAMES:
+      var enabled: int
+      if SQ_FAILED(get(v, 3, enabled)):
+        return sq_throwerror(v, "Failed to get enabled")
+      gAllowSaveGames = enabled != 0
+  of EX_POP_CHARACTER_SELECTION:
+    # seems not to be used
+    error("TODO: exCommand EX_POP_CHARACTER_SELECTION: not implemented")
+  of EX_CAMERA_TRACKING:
+    error("TODO: exCommand EX_CAMERA_TRACKING: not implemented")
+  of EX_BUTTON_HOVER_SOUND:
+    let sound = soundDef(v, 3)
+    if sound.isNil:
+      return sq_throwerror(v, "failed to get sound for EX_BUTTON_HOVER_SOUND")
+    gEngine.audio.soundHover = sound
+  of EX_RESTART:
+    error("TODO: exCommand EX_RESTART: not implemented")
+  of EX_IDLE_TIME:
+    error("TODO: exCommand EX_IDLE_TIME: not implemented")
+  of EX_AUTOSAVE_STATE:
+    var enabled: int
+    if SQ_FAILED(get(v, 3, enabled)):
+      return sq_throwerror(v, "Failed to get enabled")
+    gAutoSave = enabled != 0
+  of EX_AUTOSAVE:
+    if gAutoSave:
+      saveGame(1)
+  of EX_DISABLE_SAVESYSTEM:
+      error("TODO: exCommand EX_DISABLE_SAVESYSTEM: not implemented")
+  of EX_SHOW_OPTIONS:
+    showOptions()
+  of EX_OPTIONS_MUSIC:
+    error("TODO: exCommand EX_OPTIONS_MUSIC: not implemented");
+  of EX_FORCE_TALKIE_TEXT:
+    var enabled: int
+    if SQ_FAILED(get(v, 3, enabled)):
+      return sq_throwerror(v, "Failed to get enabled")
+    tmpPrefs().forceTalkieText = enabled != 0
+  else:
+    warn "exCommand not implemented"
   0
 
 proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -322,7 +368,7 @@ proc gameTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Saved when the game is saved.
   ## Also used for testing.
   ## The value is a float, so 1 = 1 second, 0.5 = half a second.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## if (gameTime() > (time+testerTronTimeOut)) { // Do something
   ## }
@@ -398,7 +444,7 @@ proc logEvent(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc logInfo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Like a print statement, but gets sent to the output log file instead.
-  ## Useful for testing. 
+  ## Useful for testing.
   var msg: string
   if SQ_FAILED(get(v, 2, msg)):
     return sq_throwerror(v, "failed to get message")
@@ -414,9 +460,9 @@ proc logWarning(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc microTime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  # Returns game time in milliseconds. 
+  # Returns game time in milliseconds.
   # Based on when the machine is booted and runs all the time (not paused or saved).
-  # See also gameTime, which is in seconds. 
+  # See also gameTime, which is in seconds.
   push(v, gEngine.time * 1000.0)
   1
 
@@ -493,7 +539,7 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
   if not name.isNil:
     sq_pop(v, 1) # pop name
   sq_pop(v, 1) # pop closure
-  
+
   gEngine.threads.add(thread)
 
   # call the closure in the thread
@@ -505,18 +551,18 @@ proc pstartthread(v: HSQUIRRELVM, global: bool): SQInteger {.cdecl.} =
 
 proc startthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Calls a function to be run in a new thread.
-  ## 
+  ##
   ## The function is called and executes until the first breakhere, breaktime (or other break command), or the function returns.
   ## The function cannot return a value.
   ## The value returned from startthread is a threadid that can be used to check the state of, or kill the thread.
   ##
   ## Threads started with startthread are local to the room.
   ## When the room exits, all threads are stopped unless the thread is started with startglobalthread.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## startthread(watchExit)
   ## local photocopier_id = startthread(usePhotocopier, 10)
-  ## 
+  ##
   ## See also:
   ## * `startglobalthread`
   ## * `stopthread`
@@ -524,9 +570,9 @@ proc startthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc stopthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Stops a thread specified by threadid.
-  ## 
+  ##
   ## If the thread is not running, the command does nothing.
-  ## 
+  ##
   ## See also:
   ## * `startthread`
   ## * `startglobalthread`
@@ -544,20 +590,20 @@ proc stopthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc startglobalthread(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##  Calls a function to be run in a new thread.
-  ## 
+  ##
   ## The value returned from `startglobalthread` is a threadid that can be used to check the state of, or kill the thread.
   ## Unlike `startthread` which starts a local thread that will be stopped when the room is exited, scripts started with startglobalthread will keep running, even after switching rooms.
-  ## 
-  ## See also: 
+  ##
+  ## See also:
   ## * `startthread`
   ## * `stopthread`
   pstartthread(v, true)
 
 proc threadid(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the thread ID of the currently running script/thread.
-  ## 
+  ##
   ## If no thread is running, it will return 0.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## Phone <-
   ## {
@@ -592,7 +638,7 @@ proc threadpauseable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc register_syslib*(v: HSQUIRRELVM) =
   ## Registers the game system library.
-  ## 
+  ##
   ## It adds all the system functions in the given Squirrel virtual machine `v`.
   v.regGblFun(activeController, "activeController")
   v.regGblFun(addCallback, "addCallback")
@@ -634,4 +680,3 @@ proc register_syslib*(v: HSQUIRRELVM) =
   v.regGblFun(stopthread, "stopthread")
   v.regGblFun(threadid, "threadid")
   v.regGblFun(threadpauseable, "threadpauseable")
-  

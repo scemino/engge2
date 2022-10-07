@@ -18,10 +18,12 @@ import ../game/screen
 import ../game/prefs
 import ../game/states/state
 import ../game/states/dlgstate
+import ../game/gameloader
 import ../io/textdb
 import ../script/squtils
 import ../script/vm
 import ../sys/app
+import ../audio/audio
 
 const
   Options = 99913
@@ -115,7 +117,7 @@ proc onButtonDown(node: Node, id: int) =
     discard
 
 proc enabled(id: int): bool =
-  id != SaveGame or gSelf.mode == FromGame
+  id != SaveGame or gAllowSaveGames
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   let id = cast[int](tag)
@@ -123,6 +125,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   of Enter:
     if enabled(id):
       src.color = Yellow
+      playSoundHover()
   of Leave:
     src.color = White
   of Down:
