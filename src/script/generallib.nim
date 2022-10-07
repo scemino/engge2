@@ -51,13 +51,13 @@ proc arrayShuffle(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var arr: seq[HSQOBJECT]
   obj.getarray(arr)
   shuffle(arr)
-  
+
   sq_newarray(v, 0)
   for o in arr:
     push(v, o)
     discard sq_arrayappend(v, -2)
   1
-  
+
 proc assetExists(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns TRUE if the specified entry exists in the assets.
   var filename: string
@@ -71,7 +71,7 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a spot is specified, will move to the x, y specified by that spot.
   ## .. code-block:: Squirrel
   ## cameraAt(450, 128)
-  ## 
+  ##
   ## enterRoomFromDoor(Bridge.startRight)
   ## actorAt(ray, Bridge.startLeft)
   ## actorAt(reyes, Bridge.startRight)
@@ -88,7 +88,7 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   elif numArgs == 2:
     let obj = obj(v, 2)
     if obj.isNil:
-      return sq_throwerror(v, "failed to get spot or actor")  
+      return sq_throwerror(v, "failed to get spot or actor")
     gEngine.follow(nil)
     gEngine.setRoom(obj.room)
     pos = obj.getUsePos
@@ -128,9 +128,9 @@ proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the camera to the specified room.
-  ## 
+  ##
   ## Does not move any of the actors.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## aStreetPhoneBook =
   ## {
@@ -158,7 +158,7 @@ proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Pans the camera to the specified x, y location over the duration using the transition method.
   ## Transition methods are: EASE_IN, EASE_INOUT, EASE_OUT, LINEAR, SLOW_EASE_IN, SLOW_EASE_OUT.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## cameraPanTo(450, 128, pan_time, EASE_INOUT)
   ## inputOff()
@@ -236,7 +236,7 @@ proc cursorPosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc sqChr(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  # Converts an integer to a char. 
+  # Converts an integer to a char.
   var value: int
   discard get(v, 2, value)
   var s: string
@@ -335,7 +335,7 @@ proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     result = push(v, prefsAsJson(key))
   elif sq_gettop(v) == 3:
     var obj: HSQOBJECT
-    discard sq_getstackobj(v, 3, obj)  
+    discard sq_getstackobj(v, 3, obj)
     push(v, obj)
     result = 1
 
@@ -410,7 +410,7 @@ proc is_table(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   is_oftype(v, [OT_TABLE])
 
 proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns an array of all the lines of the given `filename`. 
+  ## Returns an array of all the lines of the given `filename`.
   var orgFilename: string
   if SQ_FAILED(get(v, 2, orgFilename)):
     return sq_throwerror(v, "failed to get filename")
@@ -478,7 +478,7 @@ proc pushSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns a random number from from to to inclusively.
   ## The number is a pseudo-random number and the game will produce the same sequence of numbers unless primed using randomSeed(seed).
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## wait_time = random(0.5, 2.0)
   if sq_gettype(v, 2) == OT_FLOAT or sq_gettype(v, 3) == OT_FLOAT:
@@ -502,13 +502,13 @@ proc random(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   return 1
 
 proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Selects an item randomly from the given array or listed options. 
-  ## 
+  ## Selects an item randomly from the given array or listed options.
+  ##
   ## .. code-block:: Squirrel
   ## local line = randomfrom(lines)
   ## breakwhiletalking(willie)
   ## mumbleLine(willie, line)
-  ## 
+  ##
   ## local snd = randomfrom(soundBeep1, soundBeep2, soundBeep3, soundBeep4, soundBeep5, soundBeep6)
   ## playObjectSound(snd, Highway.pigeonVan)
   if sq_gettype(v, 2) == OT_ARRAY:
@@ -534,13 +534,13 @@ proc randomFrom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let index = gEngine.rand.rand(0..size - 2)
     sq_push(v, 2 + index)
   1
-  
+
 proc randomOdds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns TRUE or FALSE based on the percent, which needs to be from 0.0 to 1.0.
-  ## 
+  ##
   ## A percent of 0.0 will always return FALSE and 1.0 will always return TRUE.
-  ## `randomOdds(0.3333)` will return TRUE about one third of the time. 
-  ## 
+  ## `randomOdds(0.3333)` will return TRUE about one third of the time.
+  ##
   ## .. code-block:: Squirrel
   ## if (randomOdds(0.5) { ... }
   var value = 0.0f
@@ -563,7 +563,7 @@ proc randomseed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   of 2:
     var seed = 0
     if sq_gettype(v, 2) == OT_NULL:
-      gEngine.seedWithTime()  
+      gEngine.seedWithTime()
       return 0
     if SQ_FAILED(get(v, 2, seed)):
       return sq_throwerror(v, "failed to get seed")
@@ -578,7 +578,7 @@ proc refreshUI(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc screenSize(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns the x and y dimensions of the current screen/window.
-  ## 
+  ##
   ## .. code-block:: Squirrel
   ## function clickedAt(x,y) {
   ##     local screenHeight = screenSize().y
@@ -637,7 +637,7 @@ proc startDialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var dialog: string
   if SQ_FAILED(get(v, 2, dialog)):
     return sq_throwerror(v, "failed to get dialog")
-  
+
   var node = "start"
   if nArgs == 3:
     if SQ_FAILED(get(v, 3, node)):
@@ -647,7 +647,17 @@ proc startDialog(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc stopSentence(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "stopSentence not implemented"
+  let nArgs = sq_gettop(v)
+  case nArgs:
+  of 1:
+    for layer in gEngine.room.layers:
+      for obj in layer.objects:
+        obj.exec = nil
+  of 2:
+    let obj = obj(v, 2)
+    obj.exec = nil
+  else:
+    warn fmt"stopSentence not implemented with {nArgs} arguments"
   0
 
 proc strcount(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -739,7 +749,7 @@ proc translate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc register_generallib*(v: HSQUIRRELVM) =
   ## Registers the game general library
-  ## 
+  ##
   ## It adds all the general functions in the given Squirrel virtual machine.
   v.regGblFun(activeVerb, "activeVerb")
   v.regGblFun(adhocalytics, "adhocalytics")
@@ -795,4 +805,3 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(strreplace, "strreplace")
   v.regGblFun(strsplit, "strsplit")
   v.regGblFun(translate, "translate")
-  

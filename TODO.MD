@@ -390,7 +390,7 @@
 - [ ] setUserPref
 - [x] setVerb
 - [x] startDialog
-- [ ] stopSentence
+- [x] stopSentence
 - [x] strcount
 - [x] strcrc
 - [x] strfind
