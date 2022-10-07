@@ -8,6 +8,7 @@
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] hide sentence when HUD in not visible
 * [x] verb is not reset when executed
 * [x] all actor's text are White
 * [x] actors don't respect useWalkboxes
