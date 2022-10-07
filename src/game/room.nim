@@ -981,13 +981,17 @@ proc shake*(self: Object, amount: float) =
 proc jiggle*(self: Object, amount: float) =
   self.jiggleTo = newJiggle(self.node, amount)
 
+proc disableMotor(motor: Motor) =
+  if not motor.isNil:
+    motor.disable()
+
 proc stopObjectMotors*(self: Object) =
-  self.alphaTo.disable()
-  self.rotateTo.disable()
-  self.moveTo.disable()
-  self.walkTo.disable()
-  self.talking.disable()
-  self.blink.disable()
-  self.turnTo.disable()
-  self.shakeTo.disable()
-  self.jiggleTo.disable()
+  disableMotor(self.alphaTo)
+  disableMotor(self.rotateTo)
+  disableMotor(self.moveTo)
+  disableMotor(self.walkTo)
+  disableMotor(self.talking)
+  disableMotor(self.blink)
+  disableMotor(self.turnTo)
+  disableMotor(self.shakeTo)
+  disableMotor(self.jiggleTo)
