@@ -360,7 +360,7 @@
 - [x] exCommand EX_SHOW_OPTIONS
 - [x] findScreenPosition
 - [x] frameCounter
-- [ ] getPrivatePref
+- [x] getPrivatePref
 - [x] getUserPref
 - [x] in_array
 - [x] incutscene
@@ -372,7 +372,7 @@
 - [x] is_string
 - [x] is_table
 - [x] loadArray
-- [ ] markAchievement
+- [x] markAchievement
 - [ ] markProgress
 - [ ] markStat
 - [x] ord
@@ -386,7 +386,7 @@
 - [x] screenSize
 - [x] setAmbientLight
 - [ ] setDebugger
-- [ ] setPrivatePref
+- [x] setPrivatePref
 - [x] setUserPref
 - [x] setVerb
 - [x] startDialog

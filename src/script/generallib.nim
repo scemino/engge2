@@ -3,6 +3,7 @@ import std/logging
 import std/strformat
 import std/streams
 import std/strutils
+import std/json
 import sqnim
 import glm
 import squtils
@@ -26,7 +27,6 @@ import ../scenegraph/node
 import ../scenegraph/hud
 import ../scenegraph/dialog
 import ../scenegraph/inventory
-import ../io/json
 import ../io/ggpackmanager
 import ../io/textdb
 import ../sys/app
@@ -300,19 +300,6 @@ proc frameCounter(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.frameCounter)
   1
 
-proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var name: string
-  if SQ_FAILED(get(v, 2, name)):
-    return sq_throwerror(v, "failed to get name")
-  var defaultValue: HSQOBJECT
-  sq_resetobject(defaultValue)
-  if sq_gettop(v) == 3:
-    if SQ_FAILED(get(v, 3, defaultValue)):
-      return sq_throwerror(v, "failed to get defaultValue")
-  warn "getPrivatePref not implemented"
-  push(v, defaultValue)
-  1
-
 proc push(v: HSQUIRRELVM, node: JsonNode): SQInteger =
   case node.kind:
   of JInt:
@@ -333,6 +320,18 @@ proc getUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     result = sq_throwerror(v, "failed to get key")
   elif hasPrefs(key):
     result = push(v, prefsAsJson(key))
+  elif sq_gettop(v) == 3:
+    var obj: HSQOBJECT
+    discard sq_getstackobj(v, 3, obj)
+    push(v, obj)
+    result = 1
+
+proc getPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  var key: string
+  if SQ_FAILED(get(v, 2, key)):
+    result = sq_throwerror(v, "failed to get key")
+  elif hasPrivPref(key):
+    result = push(v, privPrefAsJson(key))
   elif sq_gettop(v) == 3:
     var obj: HSQOBJECT
     discard sq_getstackobj(v, 3, obj)
@@ -611,7 +610,29 @@ proc setDebugger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc setPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "setPrivatePref not implemented"
+  var key: string
+  if SQ_FAILED(get(v, 2, key)):
+    return sq_throwerror(v, "failed to get key")
+  let otype = sq_gettype(v, 3)
+  case otype:
+  of OT_STRING:
+    var str: string
+    discard get(v, 3, str)
+    privPref(key, str)
+  of OT_INTEGER:
+    var n: int
+    discard get(v, 3, n)
+    privPref(key, n)
+  of OT_BOOL:
+    var b: bool
+    discard get(v, 3, b)
+    privPref(key, b)
+  of OT_FLOAT:
+    var f: float
+    discard get(v, 3, f)
+    privPref(key, f)
+  else:
+    warn "setPrivatePref not implemented"
   0
 
 proc setUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =

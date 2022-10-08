@@ -7,6 +7,7 @@ import ../engine
 import ../cutscene
 import ../eventmanager
 import ../gameeventmanager
+import ../achievementsmgr
 import ../prefs
 import ../resmanager
 import ../gameloader

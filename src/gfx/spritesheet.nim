@@ -1,5 +1,5 @@
 import std/[sequtils, streams, options, tables]
-import json
+import std/json
 import glm
 import recti
 import ../io/ggpackmanager
@@ -47,7 +47,7 @@ proc parseSpriteSheetMetadata(node: JsonNode): SpriteSheetMetadata =
 proc parseSpriteSheet*(node: JsonNode): SpriteSheet =
   new(result)
   for k,v in node["frames"]:
-    result.frameTable[k] = parseFrame(k, v)  
+    result.frameTable[k] = parseFrame(k, v)
   result.meta = parseSpriteSheetMetadata(node["meta"])
 
 proc parseSpriteSheet*(buffer: string): SpriteSheet =

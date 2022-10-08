@@ -41,3 +41,16 @@ proc privPref*(name: string, value: string) =
   debug fmt"setPrivatePreference({name},{value})"
   gAchievements[name] = newJString(value)
   saveAchievements()
+
+proc privPref*(name: string, value: bool) =
+  debug fmt"setPrivatePreference({name},{value})"
+  gAchievements[name] = newJInt(if value: 1 else: 0)
+  saveAchievements()
+
+proc privPref*(name: string, value: float) =
+  debug fmt"setPrivatePreference({name},{value})"
+  gAchievements[name] = newJFloat(value)
+  saveAchievements()
+
+proc privPrefAsJson*(name: string): JsonNode =
+  gAchievements[name]

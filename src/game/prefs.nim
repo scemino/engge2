@@ -2,7 +2,7 @@ import std/os
 import std/macros
 import std/strutils
 import std/strformat
-import ../io/json
+import std/json
 
 const
   PreferencesFileName = "Prefs.json"
