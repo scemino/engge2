@@ -95,7 +95,7 @@ proc createTextObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     of 0x0000000001000000:
       tvAlign = tvBottom
     else:
-      tvAlign = tvCenter
+      tvAlign = tvTop
   info fmt"Create text {thAlign}, {tvAlign}, max={maxWidth}, text={text}"
   let obj = gEngine.room.createTextObject(fontName, text, thAlign, tvAlign, maxWidth)
   push(v, obj.table)

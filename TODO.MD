@@ -2,11 +2,11 @@
 
 ## Known Bugs
 
-* [ ] when we use the notebook, the text is not at the correct position
 * [ ] wrong actor placement during give animation
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] when we use the notebook, the text is not at the correct position
 * [x] in closeup room, go to the options menus, savegame should be disabled
 * [x] hide sentence when HUD in not visible
 * [x] verb is not reset when executed
