@@ -357,6 +357,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
 
   # exit current room
   self.exitRoom(self.room)
+  self.fadeEffect.effect = None
 
   # sets the current room for scripts
   rootTbl(gVm.v).setf("currentRoom", room.table)
