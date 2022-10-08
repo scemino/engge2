@@ -18,6 +18,7 @@ import ../scenegraph/overlaynode
 import ../scenegraph/spritenode
 import motors/motor
 import motors/shake
+import motors/jiggle
 import objanim
 import ../util/jsonutil
 import ../util/common
@@ -976,7 +977,7 @@ proc update*(self: Anim, elapsed: float) =
       self.disable()
 
 proc shake*(self: Object, amount: float) =
-  self.shakeTo = newShake2(self.node, amount)
+  self.shakeTo = newShake(self.node, amount)
 
 proc jiggle*(self: Object, amount: float) =
   self.jiggleTo = newJiggle(self.node, amount)

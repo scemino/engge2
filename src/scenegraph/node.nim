@@ -28,6 +28,7 @@ type
     children*: seq[Node]
     pos*: Vec2f
     offset*: Vec2f
+    shakeOffset*: Vec2f
     renderOffset*: Vec2f
     scale*: Vec2f
     rotation*, rotationOffset*: float32
@@ -135,7 +136,7 @@ proc setSize*(self: Node, size: Vec2f) =
 proc localTransform(self: Node): Mat4f =
   ## Gets the location transformation = translation * rotation * scale.
   var scale = self.getScale()
-  translate(scale(rotate(translate(mat4(1f), vec3(self.pos + self.offset, 0f)), glm.radians(-self.rotation + self.rotationOffset), 0f, 0f, 1f), scale.x, scale.y, 1f), vec3(self.renderOffset, 0f))
+  translate(scale(rotate(translate(mat4(1f), vec3(self.pos + self.offset + self.shakeOffset, 0f)), glm.radians(-self.rotation + self.rotationOffset), 0f, 0f, 1f), scale.x, scale.y, 1f), vec3(self.renderOffset, 0f))
 
 method transform*(self: Node, parentTrans: Mat4f): Mat4f {.base.} =
   # Gets the full transformation for this node.

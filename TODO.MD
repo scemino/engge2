@@ -4,10 +4,10 @@
 
 * [ ] when we use the notebook, the text is not at the correct position
 * [ ] wrong actor placement during give animation
-* [ ] in closeup room, go to the options menus, savegame should be disabled
 * [ ] music and sounds are interrupted
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
+* [x] in closeup room, go to the options menus, savegame should be disabled
 * [x] hide sentence when HUD in not visible
 * [x] verb is not reset when executed
 * [x] all actor's text are White
@@ -190,10 +190,6 @@
     * [x] SelectPreviousActor
     * [x] SelectNextActor
   * [x] input mapping
-* [ ] preferences
-  * [ ] private preferences (achievement)
-  * [x] user preferences
-  * [x] temp preferences (debug)
 * [ ] camera
     * [ ] advanced camera movement
     * [x] camera follow actor
@@ -236,6 +232,10 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] preferences
+  * [x] private preferences (achievement)
+  * [x] user preferences
+  * [x] temp preferences (debug)
 * [x] sentence
   * [x] classic sentence
   * [x] use lookat verb for inventory object
