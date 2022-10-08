@@ -24,15 +24,15 @@ jobs:
       - run: nimble build -d:release -Y
       - name: Create package
         shell: bash
-        working-directory: ${{runner.workspace}}/ngnim
+        working-directory: ${{runner.workspace}}/engge2
         env:
           GITHUB_OS: ${{ matrix.os }}
         run: |
           if [ "$GITHUB_OS" == "windows-latest" ];
           then
-            tar -cvf ../engge_${{ runner.os }}.tar ngnim.exe
+            tar -cvf ../engge_${{ runner.os }}.tar engge2.exe
           else
-            tar -cvf ../engge_${{ runner.os }}.tar ngnim
+            tar -cvf ../engge_${{ runner.os }}.tar engge2
           fi
       - name: 📦 Upload package
         uses: svenstaro/upload-release-action@v2
