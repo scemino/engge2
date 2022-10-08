@@ -139,6 +139,10 @@ proc setPrefs*(name: string, value: float32) =
   gPrefs.node[name] = newJFloat(value)
   savePrefs()
 
+proc setPrefs*(name: string, value: int) =
+  gPrefs.node[name] = newJInt(value)
+  savePrefs()
+
 proc setPrefs*(name: string, value: bool) =
   gPrefs.node[name] = newJInt(if value: 1 else: 0)
   savePrefs()

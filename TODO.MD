@@ -387,7 +387,7 @@
 - [x] setAmbientLight
 - [ ] setDebugger
 - [ ] setPrivatePref
-- [ ] setUserPref
+- [x] setUserPref
 - [x] setVerb
 - [x] startDialog
 - [x] stopSentence

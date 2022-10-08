@@ -81,6 +81,7 @@ method init*(self: EngineState) =
   info fmt"Nim: {NimVersion}"
 
   initPrefs()
+  loadAchievements()
   regCmds()
 
   let key = prefs("key", "56ad")

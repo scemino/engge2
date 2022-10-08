@@ -3,7 +3,6 @@ import std/logging
 import std/strformat
 import std/streams
 import std/strutils
-import std/parseutils
 import sqnim
 import glm
 import squtils
@@ -15,6 +14,7 @@ import ../game/motors/campanto
 import ../game/prefs
 import ../game/room
 import ../game/resmanager
+import ../game/achievementsmgr
 import ../util/utils
 import ../util/easing
 import ../util/crc
@@ -424,7 +424,24 @@ proc loadArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc markAchievement(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn fmt"markAchievement not implemented"
+  var id: string
+  if SQ_FAILED(get(v, 2, id)):
+    return sq_throwerror(v, "Failed to get id")
+  var earned = getPrivPref("earnedAchievements", "")
+  let numArgs = sq_gettop(v)
+  case numArgs:
+  of 2:
+    privPref("earnedAchievements", earned & '|' & id)
+  of 4:
+    var count, total: int
+    if SQ_FAILED(get(v, 3, count)):
+      return sq_throwerror(v, "Failed to get count")
+    if SQ_FAILED(get(v, 4, total)):
+      return sq_throwerror(v, "Failed to get total")
+    if count == total:
+      privPref("earnedAchievements", earned & '|' & id)
+  else:
+    warn fmt"markAchievement not implemented"
   0
 
 proc markProgress(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -598,7 +615,29 @@ proc setPrivatePref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc setUserPref(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  warn "setUserPref not implemented"
+  var key: string
+  if SQ_FAILED(get(v, 2, key)):
+    return sq_throwerror(v, "failed to get key")
+  let otype = sq_gettype(v, 3)
+  case otype:
+  of OT_STRING:
+    var str: string
+    discard get(v, 3, str)
+    setPrefs(key, str)
+  of OT_INTEGER:
+    var n: int
+    discard get(v, 3, n)
+    setPrefs(key, n)
+  of OT_BOOL:
+    var b: bool
+    discard get(v, 3, b)
+    setPrefs(key, b)
+  of OT_FLOAT:
+    var f: float
+    discard get(v, 3, f)
+    setPrefs(key, f)
+  else:
+    warn "setUserPref not implemented"
   0
 
 proc setVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
