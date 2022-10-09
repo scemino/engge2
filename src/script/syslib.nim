@@ -136,6 +136,9 @@ proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   gEngine.tasks.add newBreakWhileCond(curThread.getId(), name, pred)
   return -666
 
+proc isAnimating(obj: Object): bool =
+  not obj.nodeAnim.anim.isNil and not obj.nodeAnim.disabled
+
 proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
   ## Note, animatingItem can be an actor or an object.
@@ -150,7 +153,7 @@ proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  breakwhilecond(v, fmt"breakwhileanimating({obj.key})", proc (): bool = not obj.nodeAnim.disabled)
+  breakwhilecond(v, fmt"breakwhileanimating({obj.key})", proc (): bool = isAnimating(obj))
 
 proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.

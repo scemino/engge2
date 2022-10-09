@@ -178,7 +178,7 @@ type
     frameDuration: float
     loop: bool
     instant: bool
-    anim: ObjectAnimation
+    anim*: ObjectAnimation
     obj: Object
     disabled*: bool
 
@@ -538,7 +538,10 @@ proc update*(self: Object, elapsedSec: float) =
   self.shakeTo.updateMotor(elapsedSec)
   self.jiggleTo.updateMotor(elapsedSec)
 
-  self.nodeAnim.update(elapsedSec)
+  if self.key == "hotelRoomHallDoor":
+    self.nodeAnim.update(elapsedSec)
+  else:
+    self.nodeAnim.update(elapsedSec)
 
   if self.icons.len > 1 and self.iconFps > 0:
     self.iconElapsed += elapsedSec
