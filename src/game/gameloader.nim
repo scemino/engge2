@@ -6,7 +6,7 @@ type
 var
   gGameLoader*: GameLoader
   gAutoSave*: bool
-  gAllowSaveGames*: bool
+  gAllowSaveGames* = true
 
 method load*(self: GameLoader, json: JsonNode) {.base.} =
   discard
