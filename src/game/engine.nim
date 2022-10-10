@@ -458,6 +458,11 @@ proc giveTo(actor1, actor2, obj: Object) =
   if index != -1:
     actor1.inventory.del index
 
+proc selectable(self: Engine, actor: Object): bool =
+  for slot in self.hud.actorSlots.mitems:
+    if slot.actor == actor:
+      return slot.selectable
+
 proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
   sqCall("onObjectClick", [noun1.table])
 
@@ -490,16 +495,15 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
       self.useFlag = ufGiveTo
       self.noun1 = noun1
     else:
-      var handled: bool
+      var handled = false
       if noun2.table.rawExists(verbFuncName):
         info fmt"call {verbFuncName} on {noun2.key}"
-        noun2.table.call(verbFuncName, [noun1.table])
-        handled = true
-      if noun1.table.rawExists(verbFuncName):
+        noun2.table.callFunc(handled, verbFuncName, [noun1.table])
+      # verbGive is called on object only for non selectable actors
+      if not handled and not self.selectable(noun2) and noun1.table.rawExists(verbFuncName):
         info fmt"call {verbFuncName} on {noun1.key}"
-        noun1.table.call(verbFuncName, [noun2.table])
-        handled = true
-      else:
+        noun1.table.callFunc(handled, verbFuncName, [noun2.table])
+      if not handled:
         info "call objectGive"
         call("objectGive", [noun1.table, self.actor.table, noun2.table])
         self.actor.giveTo(noun2, noun1)

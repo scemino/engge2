@@ -71,7 +71,7 @@ proc parseState(dialog: string): DialogConditionState =
   while i < dialog.len and not isDigit(dialog[i]):
     dialogName.add dialog[i]
     inc i
-  
+
   while not gGGPackMgr.assetExists(dialogName & ".byack") and i < dialog.len:
     dialogName.add dialog[i]
     inc i
@@ -203,7 +203,7 @@ proc loadCallbacks(json: JsonNode) =
   gEngine.callbacks.setLen 0
   if json["callbacks"].kind != JNull:
     for callBackHash in json["callbacks"]:
-      let 
+      let
         id = callBackHash["guid"].getInt()
         time = callBackHash["time"].getInt().float / 1000f
         name = callBackHash["function"].getStr()
@@ -298,7 +298,7 @@ proc loadActor(actor: Object, json: JsonNode) =
         actor.table.newf(k, tmp)
     else:
       warn fmt"load actor: key '{k}' is unknown: {v}"
-  
+
   if actor.table.rawexists("postLoad"):
     sqCall(actor.table, "postLoad", [])
 
@@ -411,7 +411,7 @@ proc loadRoom(room: Room, json: JsonNode) =
           loadObj(o, v)
       else:
         warn fmt"Load room: key '{k}' is unknown"
-  
+
   if room.table.rawexists("postLoad"):
     sqCall(room.table, "postLoad", [])
 
@@ -424,7 +424,7 @@ proc loadGame(json: JsonNode) =
   if version != 2:
     error fmt"Cannot load savegame version {version}"
     return
-  
+
   sqCall("preLoad", [])
   info fmt"top gameScene: {sq_gettop(gVm.v)}"
   loadGameScene(json["gameScene"])
@@ -520,7 +520,7 @@ proc tojson(obj: var HSQOBJECT, checkId: bool, skipObj = false, pseudo = false):
   else:
     discard
 
-proc tostr(pos: Vec2f): string = 
+proc tostr(pos: Vec2f): string =
   let p = vec2i(pos)
   fmt"{{{p.x},{p.y}}}"
 
@@ -560,10 +560,10 @@ proc getCustomAnims(actor: Object): JsonNode =
   result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_left")
   result.add newJString(facingMap.getCustomAnim(StandAnimName) & "_right")
   # add walk anims
-  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_front")  
-  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_back")  
-  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")  
-  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")  
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_front")
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_back")
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")
+  result.add newJString(facingMap.getCustomAnim(WalkAnimName) & "_right")
   # add reach anims
   for dir in ["_front", "_back", "_right", "_right"]:
     result.add newJString(facingMap.getCustomAnim(ReachAnimName) & "_low" & dir)
@@ -590,8 +590,10 @@ proc createJActor(actor: Object): JsonNode =
     result["_costumeSheet"] = newJString(actor.costumeSheet)
   if not actor.room.isNil:
     result["_roomKey"] = newJString(actor.room.name)
-  if not actor.touchable:
+  if not actor.touchable and actor.node.visible:
     result["_untouchable"] = newJInt(1)
+  if not actor.node.visible:
+    result["_hidden"] = newJInt(1)
   if actor.volume != 0f:
     result["_volume"] = newJFloat(actor.volume)
   result.fields.sort(cmpKey)

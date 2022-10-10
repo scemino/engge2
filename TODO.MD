@@ -8,7 +8,8 @@
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] Dave should move
-* [ ] Reyes cannot give a map to Ray
+* [ ] When using bloodtron, the light is not correct and the flashing light is not working
+* [x] Reyes cannot give a map to Ray
 * [x] Ray or Reyes should watch the van
 * [x] Franklin cannot leave his hotel room
 * [x] when we use the notebook, the text is not at the correct position
