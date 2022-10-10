@@ -216,9 +216,9 @@ proc facing*(dir: Direction): Facing =
 
 proc getUsePos*(self: Object): Vec2f =
   if self.table.getId().isActor:
-    result = self.node.pos
+    result = self.node.pos + self.node.offset
   else:
-    result = self.node.pos +  self.usePos
+    result = self.node.pos + self.node.offset + self.usePos
 
 proc `touchable`*(self: Object): bool =
   if self.objType == ObjectType.otNone:
