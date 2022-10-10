@@ -8,6 +8,7 @@ import ../../libs/imgui
 import ../../script/squtils
 import ../../io/textdb
 import ../../scenegraph/node
+import ../../scenegraph/debugobj
 
 type ObjectTool = ref object of DebugTool
   objFilter: ImGuiTextFilter
@@ -19,6 +20,7 @@ proc newObjectTool*(): ObjectTool =
 var 
   gObject: Object
   gShowProperties = true
+  gObjNode: DebugObject
 
 proc animIndex(): int32 =
   for i in 0..<gObject.anims.len:
@@ -36,6 +38,12 @@ proc getAnim(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.}
 
 proc showProperties() =
   if not gObject.isNil and gShowProperties:
+    if gObjNode.isNil or gObject != gObjNode.obj:
+      if not gObjNode.isNil:
+        gObjNode.remove()
+      gObjNode = newDebugObject(gObject)
+      gEngine.screen.addChild gObjNode
+
     let objRoom = if gObject.room.isNil: "Void" else: gObject.room.name
     var animIdx = animIndex()
 

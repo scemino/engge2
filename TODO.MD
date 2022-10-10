@@ -8,7 +8,8 @@
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] Dave should move
-* [ ] Ray or Reyes should watch the van
+* [ ] Reyes cannot give a map to Ray
+* [x] Ray or Reyes should watch the van
 * [x] Franklin cannot leave his hotel room
 * [x] when we use the notebook, the text is not at the correct position
 * [x] in closeup room, go to the options menus, savegame should be disabled

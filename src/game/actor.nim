@@ -33,7 +33,7 @@ proc getFacing(dir: Direction): Facing =
   of dLeft:  FACE_LEFT
   of dFront: FACE_FRONT
   of dBack:  FACE_BACK
-  else: 
+  else:
       FACE_RIGHT
 
 proc setHeadIndex*(self: Object, head: int) =
@@ -97,7 +97,7 @@ proc walk*(self: Object, pos: Vec2f; facing = none(Facing)) =
   self.walkTo = newWalkTo(self, pos, facing)
 
 proc walk*(self: Object, obj: Object) =
-  ## Walks an actor to the `obj` and then faces it. 
+  ## Walks an actor to the `obj` and then faces it.
   info fmt"walk to obj {obj.key}: {obj.getUsePos}"
   self.walk(obj.getUsePos, some(getFacing(obj.useDir)))
 
@@ -134,21 +134,19 @@ proc stopTalking*() =
     for obj in layer.objects:
       obj.stopTalking()
 
-import motors/turnto
-
 proc getFacingToFaceTo*(actor: Object, obj: Object): Facing =
-  let d = obj.node.pos - actor.node.pos
-  if d.x == 0:
-    result = if d.y > 0: FACE_FRONT else: FACE_BACK
+  let d = obj.node.pos + obj.node.offset - (actor.node.pos + actor.node.offset)
+  if abs(d.y) > abs(d.x):
+    result = if d.y > 0: FACE_BACK else: FACE_FRONT
   else:
     result = if d.x > 0: FACE_RIGHT else: FACE_LEFT
 
 proc turn*(self: Object, facing: Facing) =
-  self.turnTo = newTurnTo(self, facing)
+  self.setFacing(facing)
 
 proc turn*(self: Object, obj: Object) =
   let facing = self.getFacingToFaceTo(obj)
-  self.turnTo = newTurnTo(self, facing)
+  self.setFacing(facing)
 
 proc pickupObject*(self: Object, obj: Object) =
   obj.owner = self
