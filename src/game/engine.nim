@@ -44,6 +44,7 @@ const
   DOOR_RIGHT = 0x240
   DOOR_BACK = 0x440
   DOOR_FRONT = 0x840
+  VerbDefault = "verbDefault"
 type
   FadeEffect* = enum
     None,
@@ -517,6 +518,8 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
         call(noun1.table, verbFuncName)
       else:
         call(noun1.table, verbFuncName, [actor.table])
+    elif noun1.table.rawExists(VerbDefault):
+      call(noun1.table, VerbDefault)
     else:
       info fmt"call defaultObject.{verbFuncName}"
       var nilObj: HSQOBJECT
@@ -525,6 +528,8 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
     if noun1.table.rawExists(verbFuncName):
       info fmt"call {noun1.key}.{verbFuncName}"
       call(noun1.table, verbFuncName, [noun2.table])
+    elif noun1.table.rawExists(VerbDefault):
+      call(noun1.table, VerbDefault)
     else:
       info fmt"call defaultObject.{verbFuncName}"
       call(self.defaultObj, verbFuncName, [noun1.table, noun2.table])

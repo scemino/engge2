@@ -7,8 +7,9 @@
 * [ ] actor still walks when switching actors
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
-* [ ] Dave should move
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
+* [x] It's not possible to awake the coroner in his office
+* [x] Dave should move
 * [x] Reyes cannot give a map to Ray
 * [x] Ray or Reyes should watch the van
 * [x] Franklin cannot leave his hotel room
