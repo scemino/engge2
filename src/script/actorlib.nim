@@ -688,7 +688,7 @@ proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = newActor()
   sq_resetobject(actor.table)
   discard sq_getstackobj(v, 2, actor.table)
-  sq_addref(v, actor.table)
+  sq_addref(gVm.v, actor.table)
   actor.table.setId newActorId()
 
   var key: string
