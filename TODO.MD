@@ -8,6 +8,7 @@
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
+* [x] When calling radio station the answers are "$answer1", "$answer2" and so on
 * [x] It's not possible to awake the coroner in his office
 * [x] Dave should move
 * [x] Reyes cannot give a map to Ray

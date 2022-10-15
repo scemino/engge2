@@ -633,7 +633,7 @@ proc parseChoiceExp(p: var YackParser): YChoice =
   var text: string
   let number = parseInt(p.eat(TokenId.Int))
   if p.match([TokenId.Dollar]):
-    text = p.eat(TokenId.Dollar)
+    text = '$' & p.eat(TokenId.Dollar)
   elif p.match([TokenId.String]):
     text = p.eat(TokenId.String)
   else:

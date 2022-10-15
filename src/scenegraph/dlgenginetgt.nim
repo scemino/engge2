@@ -9,6 +9,7 @@ import ../game/room
 import ../game/actor
 import ../game/motors/motor
 import ../scenegraph/hud
+import ../io/textdb
 
 type
   EngineDialogTarget* = ref object of DialogTarget
@@ -38,6 +39,7 @@ method actorColorHover*(self: EngineDialogTarget, actor: string): Color =
   gEngine.hud.actorSlot(actor).verbUiColors.dialogHighlight
 
 method say*(self: EngineDialogTarget, actor, text: string): Motor =
+  let text = getText(text)
   info fmt"say {actor}: {text}"
   let actor = actorOrCurrent(actor)
   actor.say(@[text], actor.talkColor)

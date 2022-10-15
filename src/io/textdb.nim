@@ -4,8 +4,11 @@ import std/streams
 import std/parseutils
 import std/tables
 import std/strutils
+import sqnim
 import ggpackmanager
 import ../game/prefs
+import ../script/vm
+import ../script/squtils
 
 type TextDb = object
   texts: OrderedTable[int, string]
@@ -52,6 +55,22 @@ proc getText*(text: string): string =
       return getText(id)
     elif text[0] == '^':
       return text.substr(1)
+    elif text[0] == '$':
+      var txt: string
+      let top = sq_gettop(gVm.v)
+      sq_pushroottable(gVm.v)
+      let code = "return " & text[1..^1]
+      if SQ_FAILED(sq_compilebuffer(gVm.v, code.cstring, code.len, "execCode", SQTrue)):
+        error fmt"Error executing code {code}"
+      else:
+        sq_push(gVm.v, -2)
+        # call
+        if SQ_FAILED(sq_call(gVm.v, 1, SQTrue, SQTrue)):
+          error fmt"Error calling code {code}"
+        else:
+          discard get(gVm.v, -1, txt)
+          sq_settop(gVm.v, top)
+          return getText(txt)
   return text
 
 when isMainModule:
