@@ -247,6 +247,7 @@ proc setIcon*(self: Object, fps: int, icons: seq[string]) =
 
 proc setIcon*(self: Object, icon: string) =
   self.setIcon(0, @[icon])
+  self.table.setf("icon", icon)
 
 proc getIcon*(self: Object): string =
   if self.icons.len > 0:
@@ -593,7 +594,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   sq_newtable(gVm.v)
   discard sq_getstackobj(gVm.v, -1, obj.table)
   sq_addref(gVm.v, obj.table)
-  sq_pop(gVm.v, 1)
+  sq_pop(gVm.v, 1)  
 
   # assign an id
   obj.table.setId(newObjId())

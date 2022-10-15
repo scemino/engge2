@@ -83,7 +83,6 @@ type
     useFlag: UseFlag
     defaultObj*: HSQOBJECT
     hud*: Hud
-    inventory*: seq[Object]
     cutscene*: ThreadBase
     roomShader: Shader
     followActor*: Object
@@ -233,7 +232,7 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
     # assign parent node
     for layer in result.layers:
       for obj in layer.objects:
-        if obj.parent != "":
+        if obj.parent.len > 0:
           let parent = result.getObj(obj.parent)
           if parent.isNil:
             warn "parent: '" & obj.parent & "' not found"
@@ -267,7 +266,9 @@ proc defineRoom*(name: string, table: HSQOBJECT, pseudo = false): Room =
         obj.node = newNode(k)
         obj.nodeAnim = newAnim(obj)
         obj.node.addChild obj.nodeAnim
-        gEngine.inventory.add obj
+        obj.setRoom(result)
+         # set room as delegate
+        obj.table.setdelegate(table)
       else:
         var obj = result.getObj(k)
         if obj.isNil:
@@ -410,7 +411,7 @@ proc setRoom*(self: Engine, room: Room) =
     self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
 proc inInventory*(obj: Object): bool =
-  gEngine.inventory.contains obj
+  obj.getIcon().len > 0
 
 iterator roomObjs*(self: Engine): Object =
   for room in self.rooms:

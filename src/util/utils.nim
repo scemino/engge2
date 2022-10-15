@@ -59,8 +59,6 @@ proc actor*(v: HSQUIRRELVM, i: int): Object =
     result = actor(table)
 
 iterator objs*(): Object =
-  for obj in gEngine.inventory:
-    yield obj
   for actor in gEngine.actors:
     yield actor
   for room in gEngine.rooms:

@@ -104,15 +104,7 @@ proc loadDialog(json: JsonNode) =
     # TODO: what to do with this dialog value ?
     # let value = property.second.getInt()
 
-proc invObj(key: string): Object =
-  for obj in gEngine.inventory:
-    if obj.key == key:
-      return obj
-
 proc obj(key: string): Object =
-  for o in gEngine.inventory:
-    if o.key == key:
-      return o
   for room in gEngine.rooms:
     for layer in room.layers:
       for o in layer.objects:
@@ -285,7 +277,7 @@ proc loadActor(actor: Object, json: JsonNode) =
       actor.node.renderOffset = vec2f(parseVec2i(v.getStr()))
     of "_roomKey":
       actor.setRoom(room(v.getStr))
-    of "_untouchable":
+    of "_hidden", "_untouchable":
       discard
     of "_volume":
       actor.volume = v.getFloat()
@@ -313,7 +305,7 @@ proc loadInventory(json: JsonNode) =
         if jSlot.hasKey "objects":
           if jSlot["objects"].kind != JNull:
             for jObj in jSlot["objects"]:
-              let obj = invObj(jObj.getStr())
+              let obj = obj(jObj.getStr())
               if obj.isNil:
                 warn fmt"inventory obj '{jObj.getStr()}' not found"
               else:
