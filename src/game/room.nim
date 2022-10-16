@@ -212,7 +212,17 @@ proc popScale*(self: Object): float32 =
   0.5f + 0.5f * sin(-PI/2f + self.popElapsed * 4f * PI)
 
 proc facing*(dir: Direction): Facing =
-  dir.Facing
+  case dir:
+  of dBack:
+    result = FACE_BACK
+  of dLeft:
+    result = FACE_LEFT
+  of dRight:
+    result = FACE_RIGHT
+  of dFront:
+    result = FACE_FRONT
+  else:
+    error fmt"Invalid direction for facing: {dir}"
 
 proc getUsePos*(self: Object): Vec2f =
   if self.table.getId().isActor:
@@ -539,10 +549,7 @@ proc update*(self: Object, elapsedSec: float) =
   self.shakeTo.updateMotor(elapsedSec)
   self.jiggleTo.updateMotor(elapsedSec)
 
-  if self.key == "hotelRoomHallDoor":
-    self.nodeAnim.update(elapsedSec)
-  else:
-    self.nodeAnim.update(elapsedSec)
+  self.nodeAnim.update(elapsedSec)
 
   if self.icons.len > 1 and self.iconFps > 0:
     self.iconElapsed += elapsedSec

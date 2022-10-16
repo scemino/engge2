@@ -107,7 +107,8 @@ proc actorArrived(self: WalkTo) =
       if not verbNotClose(verb) and dist > min_dist.float:
         self.obj.cantReach(noun2)
         return
-      self.obj.setFacing(noun1.useDir.facing)
+      if noun1.useDir != dNone:
+        self.obj.setFacing(noun1.useDir.facing)
     if not noun2.isNil and not noun2.inInventory:
       if not noun2.touchable:
         # Object became untouchable as we were walking there.

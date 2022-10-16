@@ -504,7 +504,8 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
       # verbGive is called on object only for non selectable actors
       if not handled and not self.selectable(noun2) and noun1.table.rawExists(verbFuncName):
         info fmt"call {verbFuncName} on {noun1.key}"
-        noun1.table.callFunc(handled, verbFuncName, [noun2.table])
+        noun1.table.call(verbFuncName, [noun2.table])
+        handled = true
       if not handled:
         info "call objectGive"
         call("objectGive", [noun1.table, self.actor.table, noun2.table])
