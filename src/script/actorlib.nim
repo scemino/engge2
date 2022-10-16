@@ -87,6 +87,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if not spot.isNil:
       let pos = spot.node.pos + spot.usePos
       actor.room = spot.room
+      actor.stopWalking()
       info fmt"actorAt {actor.key} at {spot.key}, room '{spot.room.name}'"
       actor.node.pos = pos
       actor.setFacing(getFacing(spot.useDir.SQInteger, actor.getFacing))
@@ -95,6 +96,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       if room.isNil:
         return sq_throwerror(v, "failed to get spot or room")
       info fmt"actorAt {actor.key} room '{room.name}'"
+      actor.stopWalking()
       actor.room = room
     0
   of 4:
@@ -107,6 +109,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 4, y)):
       return sq_throwerror(v, "failed to get y")
     info fmt"actorAt {actor.key} room {x}, {y}"
+    actor.stopWalking()
     actor.node.pos = vec2f(x.float32, y.float32)
     0
   of 5, 6:
@@ -125,6 +128,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if numArgs == 6 and SQ_FAILED(get(v, 6, dir)):
       return sq_throwerror(v, "failed to get direction")
     info fmt"actorAt {actor.key}, pos = ({x},{y}), dir = {dir}"
+    actor.stopWalking()
     actor.node.pos = vec2f(x.float32, y.float32)
     actor.setFacing(getFacing(dir, actor.getFacing))
     actor.room = room
