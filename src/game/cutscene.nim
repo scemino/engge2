@@ -23,7 +23,7 @@ type
     threadObj, closure, closureOverride, envObj: HSQOBJECT
     state: CutsceneState
     stopped: bool
-    showCursor: bool
+    showCursor*: bool
     inputState*: InputStateFlag
     actor: Object
 
@@ -31,7 +31,6 @@ proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: H
   result = Cutscene(name: "cutscene", v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId(), inputState: gEngine.inputState.getState(), actor: gEngine.followActor, showCursor: gEngine.inputState.showCursor, state: csStart)
   info fmt"Create cutscene {result.id} with input: 0x{result.inputState.int:X}"
   gEngine.inputState.inputActive = false
-  gEngine.inputState.inputVerbsActive = false
   gEngine.inputState.showCursor = false
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
@@ -65,7 +64,7 @@ proc start(self: Cutscene) =
     error "Couldn't call cutscene"
 
 proc isStopped*(self: Cutscene): bool =
-  if self.stopped:
+  if self.stopped or self.state == csQuit:
     return true;
   sq_getvmstate(self.getThread()) == 0
 

@@ -868,7 +868,7 @@ proc update*(self: Engine, elapsed: float) =
         self.inputState.setCursorShape(CursorShape.Normal)
 
       self.inputState.hotspot = not self.noun1.isNil
-      self.hud.visible = self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
+      self.hud.visible = self.inputState.inputActive and self.inputState.inputVerbsActive and self.dlg.state == DialogState.None
       self.sentence.visible = self.hud.visible
       self.uiInv.visible = self.hud.visible and self.cutscene.isNil
       self.actorSwitcher.visible = self.dlg.state == DialogState.None and self.cutscene.isNil

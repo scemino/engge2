@@ -1,4 +1,7 @@
-import std/[logging, strformat, strutils]
+import std/logging
+import std/strformat
+import std/strutils
+import std/bitops
 import sqnim
 import vm
 import glm
@@ -6,7 +9,7 @@ import squtils
 import ../audio/audio
 import ../game/thread
 import ../game/callback
-import ../game/cutscene
+import ../game/cutscene as cs
 import ../game/engine
 import ../game/ids
 import ../game/room
@@ -399,9 +402,19 @@ proc inputOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gEngine.inputState.showCursor = false
 
 proc inputOn(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  if gEngine.cutscene.isNil or cast[Cutscene](gEngine.cutscene).isStopped():
+  var cutscene = cast[Cutscene](gEngine.cutscene)
+  if cutscene.isNil or cutscene.isStopped():
     gEngine.inputState.inputActive = true
     gEngine.inputState.showCursor = true
+  else:
+    var state = gEngine.inputState.getState().int32
+    state.setMask(UI_INPUT_ON.int32)
+    state.clearMask(UI_INPUT_OFF.int32)
+    state.setMask(UI_CURSOR_ON.int32)
+    state.clearMask(UI_CURSOR_OFF.int32)
+    cutscene.inputState = state.InputStateFlag
+    cutscene.showCursor = true
+  result = 0
 
 proc inputSilentOff(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   gEngine.inputState.inputActive = false
