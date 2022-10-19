@@ -630,7 +630,7 @@ proc `verb`(self: Engine): Verb =
     result = self.hud.actorSlot(self.actor).verb(self.noun1.defaultVerbId)
 
 proc clickedAt(self: Engine, scrPos: Vec2f) =
-  if not self.room.isNil and self.inputState.inputActive:
+  if not self.room.isNil and self.inputState.inputActive and not self.actorswitcher.mouseOver:
     let roomPos = self.room.screenToRoom(scrPos)
     let obj = self.objAt(roomPos)
 
@@ -882,7 +882,6 @@ proc update*(self: Engine, elapsed: float) =
           else:
             let mouseDnDur = now() - self.mouseDownTime
             if mouseDnDur > initDuration(milliseconds = 500):
-              echo "walkFast"
               self.walkFast()
         else:
           self.walkFast(false)

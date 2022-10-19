@@ -28,7 +28,7 @@ type
     selectFunc*: proc()
   ActorSwitcher* = ref object of Node
     ## This allows to change the selected actors or to display the options (gear icon)
-    mouseOver: bool                       ## true when mouse is over the icons
+    mouseOver*: bool                       ## true when mouse is over the icons
     down: bool                            ## true when mouse button is down
     alpha: float32                        ## alpha value for the icon when flash is ON (flash != 0)
     flash*: int                           ## flash = 0: disable, flash = -1: enable, other values: time to flash
