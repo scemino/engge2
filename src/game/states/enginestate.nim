@@ -1,4 +1,4 @@
-import std/[logging, os, strformat, times]
+import std/[logging, os, strformat, times, strutils]
 import sqnim
 import state
 import pausestate
@@ -22,6 +22,7 @@ import ../../scenegraph/node
 import ../../scenegraph/dlgenginetgt
 import ../../scenegraph/nooverride
 import ../../scenegraph/hotspotmarker
+import ../../scenegraph/hud
 import ../../sys/debugtool
 import ../../sys/tools
 import ../../sys/app
@@ -43,6 +44,13 @@ proc newEngineState*(packageName, appName: string): EngineState =
 proc onKey(key: InputKey, scancode: int32, action: InputAction, mods: InputModifierKey) =
   if key == Tab:
     gState.hotspot = action == iaPressed
+  if not gEngine.actor.isNil:
+    for verb in gEngine.hud.actorSlot(gEngine.actor).verbs:
+      if verb.key.len > 0: 
+        let letter = getText(verb.key)[0]
+        if letter.InputKey == key:
+          gEngine.hud.verb = verb
+          return
 
 method init*(self: EngineState) =
   gState = self

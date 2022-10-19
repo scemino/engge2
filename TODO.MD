@@ -174,7 +174,6 @@
   * [x] use actor colors
   * [x] hide cursor text* [ ] achievements
 * [ ] input
-  * [ ] verbs shortcuts
   * [ ] command handlers
     * [ ] ToggleHud
     * [x] ShowHotspot
@@ -197,11 +196,8 @@
     * [x] SelectActor6
     * [x] SelectPreviousActor
     * [x] SelectNextActor
+  * [x] verbs shortcuts
   * [x] input mapping
-* [ ] camera
-    * [ ] advanced camera movement
-    * [x] camera follow actor
-    * [x] camera pan
 * [ ] shaders
   * [ ] lighting shader
   * [ ] object shader
@@ -235,6 +231,10 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] camera
+    * [x] advanced camera movement
+    * [x] camera follow actor
+    * [x] camera pan
 * [x] logging
   * [x] add colors to console
   * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)
