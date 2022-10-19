@@ -232,14 +232,14 @@
     * [x] inventory item animation
   * [x] mouse zsort
   * [x] mouse cursor
-* [ ] logging
-  * [ ] add colors to console
-  * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)
-  * [x] console
-  * [x] debug tool console
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] logging
+  * [x] add colors to console
+  * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)
+  * [x] console
+  * [x] debug tool console
 * [x] preferences
   * [x] private preferences (achievement)
   * [x] user preferences

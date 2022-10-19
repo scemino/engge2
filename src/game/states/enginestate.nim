@@ -26,6 +26,7 @@ import ../../sys/debugtool
 import ../../sys/tools
 import ../../sys/app
 import ../../sys/input
+import ../../sys/colorconsolelogger
 
 type
   EngineState = ref object of State
@@ -48,9 +49,10 @@ method init*(self: EngineState) =
   app.setKeyCallback(onKey)
 
   # create loggers
-  addHandler(newConsoleLogger())
-  addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn))
-  addHandler(newRollingFileLogger("ng.log"))
+  var fmtStr = "$datetime | $levelname | "
+  addHandler(newColorConsoleLogger(fmtStr=fmtStr))
+  addHandler(newRollingFileLogger("errors.log", levelThreshold=lvlWarn, fmtStr=fmtStr))
+  addHandler(newRollingFileLogger("ng.log", fmtStr=fmtStr))
 
   let consoleTool = newConsoleTool()
   let threadTool = newThreadTool()
