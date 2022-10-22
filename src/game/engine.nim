@@ -353,6 +353,14 @@ proc actorEnter(self: Engine) =
       if rawExists(self.room.table, "actorEnter"):
         call(self.v, self.room.table, "actorEnter", [self.currentActor.table])
 
+proc cancelSentence(self: Engine, actor: Object) =
+  info("cancelSentence")
+  var actor = actor
+  if actor.isNil:
+    actor = gEngine.actor
+  if not actor.isNil:
+    actor.exec = nil
+
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
@@ -378,10 +386,13 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
     self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
 
   # move current actor to the new room
-  if not door.isNil and not gEngine.actor.isNil:
-    gEngine.actor.room = room
+  if not gEngine.actor.isNil:
+    gEngine.actor.stopObjectMotors()
+    self.cancelSentence(nil)
     if not door.isNil:
-      gEngine.actor.node.pos = door.getUsePos
+      gEngine.actor.room = room
+      if not door.isNil:
+        gEngine.actor.node.pos = door.getUsePos
 
   # call actor enter function and objects enter function
   self.actorEnter()
@@ -605,14 +616,6 @@ proc execSentence*(self: Engine, actor: Object, verbId: VerbId, noun1: Object; n
   else:
     actor.walk(noun2)
   return true
-
-proc cancelSentence(self: Engine, actor: Object) =
-  info("cancelSentence")
-  var actor = actor
-  if actor.isNil:
-    actor = gEngine.actor
-  if not actor.isNil:
-    actor.exec = nil
 
 proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
   let x = roomPos.x.int
