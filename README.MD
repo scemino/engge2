@@ -3,9 +3,9 @@
 [![CI](https://github.com/scemino/engge2/actions/workflows/main.yml/badge.svg)](https://github.com/scemino/engge2/actions/workflows/main.yml)
 [![Twitter URL](https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Ftwitter.com%2Fengge_the_game)](https://twitter.com/engge_the_game)
 
-engge2 is an adventure game engine able to run Thimbleweed Park.
+`engge2` is an adventure game engine able to run `Thimbleweed Park`.
 
-It's an open source remake of Thimbleweed Park's engine.
+It's an open source remake of `Thimbleweed Park`'s engine.
 
 It's still a project in active development, and there are a lot of issues, don't hesitate to contribute or to fill out a [bug report](https://github.com/scemino/engge2/issues/new/choose).
 
@@ -15,7 +15,7 @@ It's still a project in active development, and there are a lot of issues, don't
 
 * Buy [Thimbleweed park](https://thimbleweedpark.com)
 * Go to your installation folder and copy these files:  `ThimbleweedPark.ggpack1` and `ThimbleweedPark.ggpack2` to `engge2` directory
-* You can also copy your savegames from Thimbleweed Park: `Savegame*.save` and `Savegame*.png`
+* You can also copy your savegames from `Thimbleweed Park`: `Savegame*.save` and `Savegame*.png`
 * You can even keep your achievements by copying the Save.dat file
 * Ready ? Just type `./engge2`
 
@@ -25,12 +25,19 @@ It's still a project in active development, and there are a lot of issues, don't
 * Initialize submodules: `git submodule update --init --recursive`
 * Build and run: `nimble run`
 
-## Dependencies
+## Why engge 2 ?
 
-  * [sdl2](https://www.libsdl.org/): Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
-  * [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
-  * [clipper](http://www.angusj.com/clipper2/Docs/Overview.htm): Polygon Clipping and Offsetting Library
-  * [glm](https://github.com/g-truc/glm): (GLM) is a header only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
-  * [stb_image](https://github.com/nothings/stb): from stb, single-file public domain (or MIT licensed) libraries for C/C++
+* [engge](https://github.com/scemino/engge) was a C++ project, during the development I was frustrated by C++, I decided to fix the last bugs by starting from scratch and experimenting a new language: [nim](https://nim-lang.org/)
 
+## Thanks
 
+Thanks to the owners of these projects which help me to accomplish this project:
+
+* [sdl2](https://www.libsdl.org/): Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+* [Dear ImGui](https://github.com/ocornut/imgui): Bloat-free Graphical User interface for C++ with minimal dependencies
+* [stb_image](https://github.com/nothings/stb): from stb, single-file public domain (or MIT licensed) libraries for C/C++
+* [nimgl](https://github.com/nimgl/nimgl): Nim Game Library,
+a collection of bindings for popular libraries, mostly used in computer graphics
+* [squirrel](http://www.squirrel-lang.org/): programming language Squirrel, this repository contains a modified version of the official squirrel library in *extlibs/squirrel*
+* [clipper](http://www.angusj.com/clipper2/Docs/Overview.htm): Polygon Clipping and Offsetting Library
+* [glm](https://github.com/g-truc/glm): (GLM) is a header only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
