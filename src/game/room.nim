@@ -224,6 +224,13 @@ proc facing*(dir: Direction): Facing =
   else:
     error fmt"Invalid direction for facing: {dir}"
 
+proc getOppositeFacing*(facing: Facing): Facing =
+  case facing:
+  of FACE_FRONT: return FACE_BACK
+  of FACE_BACK:return FACE_FRONT
+  of FACE_LEFT:return FACE_RIGHT
+  of FACE_RIGHT:return FACE_LEFT
+
 proc getUsePos*(self: Object): Vec2f =
   if self.table.getId().isActor:
     result = self.node.pos + self.node.offset
@@ -601,7 +608,7 @@ proc createObject*(self: Room; sheet = ""; frames: seq[string]): Object =
   sq_newtable(gVm.v)
   discard sq_getstackobj(gVm.v, -1, obj.table)
   sq_addref(gVm.v, obj.table)
-  sq_pop(gVm.v, 1)  
+  sq_pop(gVm.v, 1)
 
   # assign an id
   obj.table.setId(newObjId())

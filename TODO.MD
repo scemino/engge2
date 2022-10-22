@@ -7,6 +7,7 @@
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
+* [x] actor is not in the good direction when entering a room
 * [x] actor still walks when changing room
 * [x] actor still walks when switching actors
 * [x] When calling radio station the answers are "$answer1", "$answer2" and so on

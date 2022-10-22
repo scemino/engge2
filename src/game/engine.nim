@@ -361,6 +361,17 @@ proc cancelSentence(self: Engine, actor: Object) =
   if not actor.isNil:
     actor.exec = nil
 
+proc getDoorFacing(self: Object): Facing =
+  let flags = self.getFlags()
+  if flags.hasFlag(DOOR_LEFT):
+    result = FACE_LEFT
+  elif flags.hasFlag(DOOR_RIGHT):
+    result = FACE_RIGHT
+  elif flags.hasFlag(DOOR_FRONT):
+    result = FACE_FRONT
+  elif flags.hasFlag(DOOR_BACK):
+    result = FACE_BACK
+
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   ## Called when the room is entered.
   debug fmt"call enter room function of {room.name}"
@@ -390,8 +401,10 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
     gEngine.actor.stopObjectMotors()
     self.cancelSentence(nil)
     if not door.isNil:
+      let facing = getOppositeFacing(door.getDoorFacing())
       gEngine.actor.room = room
       if not door.isNil:
+        gEngine.actor.setFacing(facing)
         gEngine.actor.node.pos = door.getUsePos
 
   # call actor enter function and objects enter function

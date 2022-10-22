@@ -20,15 +20,8 @@ import ../scenegraph/node
 import ../scenegraph/actorswitcher
 import ../game/motors/motor
 
-proc getOppositeFacing(facing: Facing): Facing =
-  case facing:
-  of FACE_FRONT: return FACE_BACK
-  of FACE_BACK:return FACE_FRONT
-  of FACE_LEFT:return FACE_RIGHT
-  of FACE_RIGHT:return FACE_LEFT
-
 proc getFacing(dir: int, facing: Facing): Facing =
-  if dir == 0: 
+  if dir == 0:
     return facing
   if dir == 0x10: getOppositeFacing(facing) else: dir.Facing
 
@@ -72,7 +65,7 @@ proc actorAnimationNames(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   table.getf("walk", walk)
   table.getf("reach", reach)
   actor.setAnimationNames(head, stand, walk, reach)
-  
+
 proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Moves the specified actor to the room and x, y coordinates specified.
   ## Also makes the actor face to given direction (options are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT).
@@ -150,8 +143,8 @@ proc actorBlinkRate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   0
 
 proc actorColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Adjusts the colour of the actor. 
-  ## 
+  ## Adjusts the colour of the actor.
+  ##
   ## . code-block:: Squirrel
   ## actorColor(coroner, 0xc0c0c0)
   var actor = actor(v, 2)
@@ -166,15 +159,15 @@ proc actorColor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc actorCostume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the actor's costume to the (JSON) filename animation file.
   ## If the actor is expected to preform the standard walk, talk, stand, reach animations, they need to exist in the file.
-  ## If a sheet is given, this is a sprite sheet containing all the images needed for the animation. 
+  ## If a sheet is given, this is a sprite sheet containing all the images needed for the animation.
   let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
-  
+
   var name: string
   if SQ_FAILED(get(v, 3, name)):
     return sq_throwerror(v, "failed to get name")
-  
+
   var sheet: string
   if sq_gettop(v) == 4:
     discard get(v, 4, sheet)
@@ -216,7 +209,7 @@ proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes the actor face a given direction.
   ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT.
-  ## Similar to actorTurnTo, but will not animate the change, it will instantly be in the specified direction. 
+  ## Similar to actorTurnTo, but will not animate the change, it will instantly be in the specified direction.
   var actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
@@ -257,7 +250,7 @@ proc actorHidden(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorInTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the actors that are currently within a specified trigger box.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## local stepsArray = triggerActors(AStreet.bookStoreLampTrigger)
   ## if (stepsArray.len()) {    // someone's on the steps
@@ -273,8 +266,8 @@ proc actorInTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc actorInWalkbox(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Returns true if the specified actor is inside the specified walkbox from the wimpy file. 
-  ## 
+  ## Returns true if the specified actor is inside the specified walkbox from the wimpy file.
+  ##
   ## . code-block:: Squirrel
   ## sheriffsOfficeJailDoor =
   ## {
@@ -381,8 +374,8 @@ proc actorSlotSelectable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorLockFacing(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If a direction is specified: makes the actor face a given direction, which cannot be changed no matter what the player does.
-  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT. 
-  ## If "NO" is specified, it removes all locking and allows the actor to change its facing direction based on player input or otherwise. 
+  ## Directions are: FACE_FRONT, FACE_BACK, FACE_LEFT, FACE_RIGHT.
+  ## If "NO" is specified, it removes all locking and allows the actor to change its facing direction based on player input or otherwise.
   let actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
@@ -445,10 +438,10 @@ proc actorPlayAnimation(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorRenderOffset(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the rendering offset of the actor to x and y.
-  ## 
+  ##
   ## A rendering offset of 0,0 would cause them to be rendered from the middle of their image.
   ## Actor's are typically adjusted so they are rendered from the middle of the bottom of their feet.
-  ## To maintain sanity, it is best if all actors have the same image size and are all adjust the same, but this is not a requirement. 
+  ## To maintain sanity, it is best if all actors have the same image size and are all adjust the same, but this is not a requirement.
   var actor = actor(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
@@ -468,7 +461,7 @@ proc actorStand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorStopWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes the specified actor stop moving immediately.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## actorStopWalking(currentActor)
   ## actorStopWalking(postalworker)
@@ -479,7 +472,7 @@ proc actorStopWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   actor.stand()
 
 proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  ## Set the text color of the specified actor's text that appears when they speak. 
+  ## Set the text color of the specified actor's text that appears when they speak.
   let actor = obj(v, 2)
   if actor.isNil:
     return sq_throwerror(v, "failed to get actor")
@@ -491,7 +484,7 @@ proc actorTalkColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc actorTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## If an actor is specified, returns true if that actor is currently talking.
   ## If no actor is specified, returns true if the player's current actor is currently talking.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## actorTalking()
   ## actorTalking(vo)
@@ -557,7 +550,7 @@ proc actorUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorUseWalkboxes(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Specifies whether the actor needs to abide by walkboxes or not.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## actorUseWalkboxes(coroner, NO)
   var actor = actor(v, 2)
@@ -579,7 +572,7 @@ proc actorVolume(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorWalkForward(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Gets the specified actor to walk forward the distance specified.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## script sheriffOpening2() {
   ##     cutscene(@() {
@@ -610,7 +603,7 @@ proc actorWalkForward(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 proc actorWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns true if the specified actor is currently walking.
   ## If no actor is specified, then returns true if the current player character is walking.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## script _startWriting() {
   ##    if (!actorWalking(this)) {
@@ -632,7 +625,7 @@ proc actorWalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc actorWalkSpeed(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Sets the walk speed of an actor.
-  ## 
+  ##
   ## The numbers are in pixel's per second.
   ## The vertical movement is typically half (or more) than the horizontal movement to simulate depth in the 2D world.
   var actor = actor(v, 2)
@@ -684,11 +677,11 @@ proc addSelectableActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc createActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Creates a new actor from a table.
-  ## 
+  ##
   ## An actor is defined in the DefineActors.nut file.
   if sq_gettype(v, 2) != OT_TABLE:
     return sq_throwerror(v, "failed to get a table")
-  
+
   let actor = newActor()
   sq_resetobject(actor.table)
   discard sq_getstackobj(v, 2, actor.table)
@@ -824,7 +817,7 @@ proc is_actor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc masterActorArray(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array with every single actor that has been defined in the game so far, including non-player characters.
-  ## See also masterRoomArray. 
+  ## See also masterRoomArray.
   let actors = gEngine.actors
   sq_newarray(v, 0)
   for actor in actors:
@@ -837,13 +830,13 @@ proc mumbleLine(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Unlike sayLine this line will not interrupt any other talking on the screen.
   ## Cannot be interrupted by normal sayLines.
   ## See also:
-  ## - `sayLine method`. 
+  ## - `sayLine method`.
   sayOrMumbleLine(v)
 
 proc stopTalking(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Stops all the current sayLines or mumbleLines that the actor is currently saying or are queued to be said.
   ## Passing ALL will stop anyone who is talking to stop.
-  ## If no parameter is passed, it will stop the currentActor talking. 
+  ## If no parameter is passed, it will stop the currentActor talking.
   let nArgs = sq_gettop(v)
   if nArgs == 2:
     if sq_gettype(v, 2) == OT_INTEGER:
@@ -861,13 +854,13 @@ proc selectActor(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Causes the actor to become the selected actor.
   ## If they are in the same room as the last selected actor the camera will pan over to them.
   ## If they are in a different room, the camera will cut to the new room.
-  ## The UI will change to reflect the new actor and their inventory. 
+  ## The UI will change to reflect the new actor and their inventory.
   gEngine.setCurrentActor obj(v, 2)
   0
 
 proc triggerActors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Returns an array of all the actors that are currently within a specified trigger box.
-  ## 
+  ##
   ## . code-block:: Squirrel
   ## local stepsArray = triggerActors(AStreet.bookStoreLampTrigger)
   ## if (stepsArray.len()) {    // someone's on the steps
@@ -920,7 +913,7 @@ proc verbUIColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   table.getf("dialogNormal", dialogNormal)
   table.getf("dialogHighlight", dialogHighlight)
 
-  gEngine.hud.actorSlots[actorSlot - 1].verbUiColors = 
+  gEngine.hud.actorSlots[actorSlot - 1].verbUiColors =
     VerbUiColors(sentence: rgb(sentence), verbNormal: rgb(verbNormal),
     verbNormalTint: rgb(verbNormalTint), verbHighlight: rgb(verbHighlight), verbHighlightTint: rgb(verbHighlightTint),
     inventoryFrame: rgb(inventoryFrame), inventoryBackground: rgb(inventoryBackground),
@@ -929,7 +922,7 @@ proc verbUIColors(v: HSQUIRRELVM): SQInteger {.cdecl.} =
 
 proc register_actorlib*(v: HSQUIRRELVM) =
   ## Registers the game actor library
-  ## 
+  ##
   ## It adds all the actor functions in the given Squirrel virtual machine.
   v.regGblFun(actorAnimationFlags, "actorAnimationFlags")
   v.regGblFun(actorAnimationNames, "actorAnimationNames")
