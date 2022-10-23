@@ -14,7 +14,7 @@ import ../game/walkbox
 import ../util/easing
 import ../gfx/color
 import ../script/vm
-import ../script/fadeconsts
+import ../script/scriptconsts
 
 proc addTrigger(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let nArgs = sq_gettop(v)

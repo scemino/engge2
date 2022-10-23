@@ -20,6 +20,7 @@ import ../game/callback
 import ../game/prefs
 import ../game/room
 import ../game/actor
+import ../game/actoranim
 import ../game/engine
 import ../game/ids
 import ../game/gameloader

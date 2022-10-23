@@ -121,29 +121,6 @@
   * [x] Main menu (StartScreen) does not pause game
   * [x] pause game (cursor is changed)
   * [x] quit game (is over options, background is darker, no: go back to main menu or options)
-* [ ] actor
-  * [ ] actor reach animation
-  * [x] actor costume
-  * [x] actor animations
-  * [x] actor walking
-    * [x] path finding
-    * [x] animation
-    * [x] animation offsets
-    * [x] zsort
-    * [x] scaling
-    * [x] walk facing
-    * [x] final facing
-    * [x] walkboxes
-  * [x] actor blink
-  * [x] actor talking
-    * [x] talking speed should be adjustable
-    * [x] actor lips movement
-    * [x] change state if in {}
-    * [x] replace \" by "
-    * [x] ignore text if in ()
-    * [x] ignore #M or #F at the end of a text
-    * [x] sound
-  * [x] actor walk fast
 * [ ] dialogs
   * [ ] choice anim
   * [ ] expressions
@@ -237,6 +214,29 @@
     * [ ] advanced camera movement
     * [x] camera follow actor
     * [x] camera pan
+* [x] actor
+  * [x] actor reach animation
+  * [x] actor costume
+  * [x] actor animations
+  * [x] actor walking
+    * [x] path finding
+    * [x] animation
+    * [x] animation offsets
+    * [x] zsort
+    * [x] scaling
+    * [x] walk facing
+    * [x] final facing
+    * [x] walkboxes
+  * [x] actor blink
+  * [x] actor talking
+    * [x] talking speed should be adjustable
+    * [x] actor lips movement
+    * [x] change state if in {}
+    * [x] replace \" by "
+    * [x] ignore text if in ()
+    * [x] ignore #M or #F at the end of a text
+    * [x] sound
+  * [x] actor walk fast
 * [x] logging
   * [x] add colors to console
   * [x] file log: ng.log (all levels) and errors.log (only for warnings and errors)

@@ -22,7 +22,7 @@ import ../scenegraph/dialog
 import ../gfx/color
 import ../util/utils
 import ../sys/app
-import ../script/fadeconsts
+import ../script/scriptconsts
 
 proc activeController(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   error("TODO: activeController: not implemented")

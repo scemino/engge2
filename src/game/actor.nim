@@ -17,15 +17,7 @@ import objanim
 import motors/motor
 import motors/walkto
 import motors/blink
-
-const
-  StandAnimName* = "stand"
-  HeadAnimName*  = "head"
-  WalkAnimName*  = "walk"
-  ReachAnimName* = "reach"
-
-proc getAnimName*(self: Object, key: string): string
-proc isWalking*(self: Object): bool
+import actoranim
 
 proc getFacing(dir: Direction): Facing =
   case dir:
@@ -35,10 +27,6 @@ proc getFacing(dir: Direction): Facing =
   of dBack:  FACE_BACK
   else:
       FACE_RIGHT
-
-proc setHeadIndex*(self: Object, head: int) =
-  for i in 1..6:
-    self.showLayer(fmt"{self.getAnimName(HeadAnimName)}{i}", i == head)
 
 proc newActor*(): Object =
   result = newObject()
@@ -52,30 +40,6 @@ proc newActor*(): Object =
 
 proc getName*(self: Object): string =
   getf(self.table, "name", result)
-
-proc getAnimName*(self: Object, key: string): string =
-  if self.animNames.contains(key):
-    result = self.animNames[key]
-  else:
-    result = key
-
-proc stand*(self: Object) =
-  self.play(self.getAnimName(StandAnimName))
-
-proc setAnimationNames*(self: Object, head, stand, walk, reach: string) =
-  if head.len > 0:
-    self.setHeadIndex(0)
-    self.animNames[HeadAnimName] = head
-    self.showLayer(self.animNames[HeadAnimName], true)
-    self.setHeadIndex(1)
-  if stand.len > 0:
-    self.animNames[StandAnimName] = stand
-  if walk.len > 0:
-    self.animNames[WalkAnimName] = walk
-  if reach.len > 0:
-    self.animNames[ReachAnimName] = reach
-  if self.isWalking():
-    self.play(self.getAnimName(WalkAnimName), true)
 
 proc setCostume*(self: Object, name, sheet: string) =
   let stream = gGGPackMgr.loadStream(name & ".json")
@@ -116,9 +80,6 @@ proc blinkRate*(self: Object, slice: HSlice[float, float]) =
     self.blink = nil
   else:
     self.blink = newBlink(self, slice)
-
-proc isWalking*(self: Object): bool =
-  not self.walkTo.isNil and self.walkTo.enabled()
 
 proc stopWalking*(self: Object) =
   if not self.walkTo.isNil:

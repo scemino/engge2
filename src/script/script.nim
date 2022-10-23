@@ -8,7 +8,7 @@ import objlib
 import actorlib
 import soundlib
 import flags
-import fadeconsts
+import scriptconsts
 import ../game/shaders
 
 proc register_vars(v: HSQUIRRELVM) =
@@ -112,9 +112,9 @@ proc register_gameconstants*(v: HSQUIRRELVM) =
       FEMALE = 0x80000
       MALE = 0x100000
       PERSON = 0x200000
-      REACH_HIGH = 0x8000
-      REACH_MED = 0x10000
-      REACH_LOW = 0x20000
+      REACH_HIGH = REACH_HIGH
+      REACH_MED = REACH_MED
+      REACH_LOW = REACH_LOW
       REACH_NONE = 0x40000
       VERB_WALKTO = 1
       VERB_LOOKAT = 2

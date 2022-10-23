@@ -5,6 +5,7 @@ import ../debugtool
 import ../../game/engine
 import ../../game/room
 import ../../game/actor
+import ../../game/actoranim
 import ../../game/motors/motor
 import ../../libs/imgui
 import ../../script/squtils
@@ -18,7 +19,7 @@ type ActorTool = ref object of DebugTool
 proc newActorTool*(): ActorTool =
   result = ActorTool()
 
-var 
+var
   gActor: Object
   gShowProperties = true
 

@@ -6,6 +6,7 @@ import std/parseutils
 import glm
 import sqnim
 import motor
+import ../actoranim
 import ../../scenegraph/node
 import ../../scenegraph/textnode
 import ../../game/engine
@@ -115,11 +116,11 @@ proc say(self: Talking, text: string) =
   self.obj.sayNode.color = self.color
   self.node = self.obj.sayNode
   var pos = gEngine.room.roomToScreen(self.obj.node.pos + vec2(self.obj.talkOffset.x.float32, self.obj.talkOffset.y.float32))
-  
+
   # clamp position to keep it on screen
   pos.x = clamp(pos.x, 10f + text.bounds.x / 2f, ScreenWidth - text.bounds.x / 2f)
   pos.y = clamp(pos.y, 10f + text.bounds.y.float32, ScreenHeight - text.bounds.y.float32)
-  
+
   self.obj.sayNode.pos = pos
   self.obj.sayNode.setAnchorNorm(vec2(0.5f, 0.5f))
   gEngine.screen.addChild self.obj.sayNode
@@ -153,4 +154,3 @@ method update(self: Talking, elapsed: float) =
         self.texts.del 0
       else:
         self.disable()
-  
