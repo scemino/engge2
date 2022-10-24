@@ -352,7 +352,7 @@ proc exCommand(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     gAutoSave = enabled != 0
   of EX_AUTOSAVE:
     if gAutoSave:
-      saveGame(1)
+      saveGame(0)
   of EX_DISABLE_SAVESYSTEM:
       error("TODO: exCommand EX_DISABLE_SAVESYSTEM: not implemented")
   of EX_SHOW_OPTIONS:
