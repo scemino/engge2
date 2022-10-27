@@ -210,8 +210,8 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
-* [ ] camera
-    * [ ] advanced camera movement
+* [x] camera
+    * [x] advanced camera movement
     * [x] camera follow actor
     * [x] camera pan
 * [x] actor
