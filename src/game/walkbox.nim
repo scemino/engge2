@@ -30,13 +30,15 @@ proc mergePolygons(walkboxes: openArray[Walkbox]): Paths =
     for wb in walkboxes:
       if wb.visible:
         subjects.add wb.toPolygon
+      else:
+        clips.add wb.toPolygon
     result = Union(subjects, clips, pftEvenOdd)
 
 proc toWalkbox(polygon: Path): Walkbox =
   var pts: seq[Vec2i]
   for p in polygon:
     pts.add vec2(p.X.int32, p.Y.int32)
-  Walkbox(visible: true, polygon: pts)
+  Walkbox(visible: Orientation(polygon), polygon: pts)
 
 iterator toWalkboxes(polygons: Paths): Walkbox =
   for p in polygons:
@@ -54,7 +56,7 @@ proc concave*(self: Walkbox, vertex: int): bool =
   let right = vec2(next.x - current.x, next.y - current.y)
 
   let cross = (left.x * right.y) - (left.y * right.x)
-  cross < 0
+  result = if self.visible: cross < 0 else: cross >= 0
 
 proc distanceSquared*(v1, v2: Vec2f): float =
   var dx = v1.x - v2.x
@@ -151,9 +153,9 @@ proc contains*(self: Walkbox, pos: Vec2f, toleranceOnOutside = true): bool =
 
 when isMainModule:
   let wbTexts = [
-    "{91,113};{173,113};{186,104};{329,104};{331,109};{412,109};{416,102};{494,102};{506,97};{532,94};{554,90};{660,66};{7,70};{8,86};{25,90};{19,104}", 
-    "{730,114};{732,109};{554,90};{532,94}", 
-    "{730,114};{731,121};{737,125};{750,120};{746,114};{732,109}", 
+    "{91,113};{173,113};{186,104};{329,104};{331,109};{412,109};{416,102};{494,102};{506,97};{532,94};{554,90};{660,66};{7,70};{8,86};{25,90};{19,104}",
+    "{730,114};{732,109};{554,90};{532,94}",
+    "{730,114};{731,121};{737,125};{750,120};{746,114};{732,109}",
     "{693,130};{695,132};{737,125};{731,121}",
     "{639,136};{695,132};{693,130};{638,134}",
     "{198,116};{197,113};{190,112};{186,104};{173,113}",

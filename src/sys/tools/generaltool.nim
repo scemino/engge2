@@ -27,12 +27,14 @@ type
     fadeEffect: int32
     fadeDuration: float32
     fadeToSepia: bool
+    walkboxMode: int32
   WinStatus* = object
     name: string
     visible: ptr bool
 
 var
   gPathNode: PathNode
+  gWalkboxNode: WalkboxNode
   gWinVisibles: seq[WinStatus]
 
 proc newGeneralTool*(): GeneralTool =
@@ -124,14 +126,67 @@ method render*(self: GeneralTool) =
       var overlay = room.overlay
       if igColorEdit4("Overlay", overlay.arr):
         room.overlay = overlay
-      var mode = gEngine.walkboxNode.mode.int32
-      if igCombo("Walkbox", mode.addr, WalkboxModes):
-        gEngine.walkboxNode.mode = mode.WalkboxMode
-        if gEngine.walkboxNode.mode != WalkboxMode.None and gPathNode.isNil:
-          gPathNode = newPathNode()
-          gEngine.screen.addChild gPathNode
-        elif gEngine.walkboxNode.mode == WalkboxMode.None:
-          gPathNode.remove()
+      if igCollapsingHeader("Walkboxes"):
+        if igButton("Reset") and not room.pathFinder.isNil:
+          room.pathFinder.graph = nil
+        if igCombo("Walkbox", self.walkboxMode.addr, WalkboxModes):
+          if self.walkboxMode != WalkboxMode.None.int32:
+            if gPathNode.isNil:
+              gPathNode = newPathNode()
+              gEngine.screen.addChild gPathNode
+            if gWalkboxNode.isNil:
+              gWalkboxNode = newWalkboxNode()
+              gEngine.scene.addChild gWalkboxNode
+            gWalkboxNode.mode = self.walkboxMode.WalkboxMode
+          else:
+            gPathNode.remove()
+            gWalkboxNode.remove()
+            gPathNode = nil
+            gWalkboxNode = nil
+        igSeparator()
+
+        var wbName: string
+        if self.walkboxMode == WalkboxMode.All.int32:
+          var i = 0
+          for wb in room.walkboxes.mitems:
+            let name = if wb.name.len > 0: wb.name else: fmt"walkbox #{i}"
+            if wb.contains(gEngine.actor.node.pos):
+              wbName = name
+            igCheckbox(name.cstring, wb.visible.addr)
+            inc i
+        elif self.walkboxMode == WalkboxMode.Merged.int32:
+          var i = 0
+          for wb in room.mergedPolygon.mitems:
+            let name = if wb.name.len > 0: wb.name else: fmt"walkbox #{i}"
+            if wb.contains(gEngine.actor.node.pos):
+              wbName = name
+            igCheckbox(name.cstring, wb.visible.addr)
+            inc i
+        igText(fmt"actor in {wbName}".cstring)
+
+      if not gEngine.room.isNil and not gEngine.room.pathFinder.isNil and not gEngine.room.pathFinder.graph.isNil:
+        let graph = gEngine.room.pathFinder.graph
+        if igCollapsingHeader("Graph"):
+          if igTreeNode(fmt"nodes ({graph.nodes.len})##graph".cstring):
+            for node in graph.nodes:
+              igText(fmt"x={node.x}, y={node.y}".cstring)
+            igTreePop()
+          var edgeCount = 0
+          for i in 0..<graph.edges.len:
+            edgeCount = edgeCount + graph.edges[i].len
+          if igTreeNode(fmt"edges ({edgeCount})##graph".cstring):
+            for i in 0..<graph.edges.len:
+              let edge = graph.edges[i]
+              if edge.len > 0 and igTreeNode(fmt"edge{i+1}".cstring):
+                for e in edge:
+                  igText(fmt"edge (s={e.start}, t={e.to}) = {e.cost}".cstring)
+                igTreePop()
+            igTreePop()
+          if igTreeNode(fmt"concaveVertices ({graph.concaveVertices.len})##graph".cstring):
+            for i in 0..<graph.concaveVertices.len:
+              let vtx = graph.concaveVertices[i]
+              igText(fmt"x={vtx.x}, y={vtx.y}".cstring)
+            igTreePop()
 
       if igCollapsingHeader("Room Shader"):
         var effect = room.effect.int32
@@ -154,11 +209,6 @@ method render*(self: GeneralTool) =
           gEngine.fadeTo(self.fadeEffect.FadeEffect, self.fadeDuration, self.fadeToSepia)
 
       igSeparator()
-      for wb in room.mergedPolygon.mitems:
-        igCheckbox("enabled", wb.visible.addr)
-        igSameLine()
-        let c = not gEngine.actor.isNil and wb.contains(gEngine.actor.node.pos)
-        igText(fmt"{wb.name}: {c}".cstring)
 
       if igCollapsingHeader("Layers"):
         for layer in room.layers:

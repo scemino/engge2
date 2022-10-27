@@ -28,7 +28,6 @@ import ../scenegraph/node
 import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/hud
-import ../scenegraph/walkboxnode
 import ../scenegraph/dialog
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
@@ -88,7 +87,6 @@ type
     followActor*: Object
     mouseDownTime: DateTime
     walkFastState: bool
-    walkboxNode*: WalkboxNode
     bounds*: Recti
     frameCounter*: int
     dlg*: Dialog
@@ -388,10 +386,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.room = room
   self.scene.addChild self.room.scene
   self.room.numLights = 0
-  if not self.walkboxNode.isNil:
-    self.walkboxNode.remove()
-  self.walkboxNode = newWalkboxNode(room)
-  self.scene.addChild self.walkboxNode
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
   if not self.actor.isNil:
     self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]

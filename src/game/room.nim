@@ -158,7 +158,7 @@ type
     numLights*: int               ## Number of lights
     ambientLight*: Color          ## Ambient light color
     mergedPolygon*: seq[Walkbox]
-    pathFinder: PathFinder
+    pathFinder*: PathFinder
     overlayTo*: Motor
     rotateTo*: Motor
     triggers*: seq[Object]        ## Triggers currently enabled in the room
@@ -873,9 +873,10 @@ proc walkboxHidden*(self: Room, name: string, hidden: bool) =
       return
 
 proc calculatePath*(self: Room, frm, to: Vec2f): seq[Vec2f] =
-  if self.pathFinder.isNil:
-    self.pathFinder = newPathFinder(self.mergedPolygon)
-  self.pathFinder.calculatePath(frm, to)
+  if self.mergedPolygon.len > 0:
+    if self.pathFinder.isNil:
+      self.pathFinder = newPathFinder(self.mergedPolygon)
+    result = self.pathFinder.calculatePath(frm, to)
 
 proc update*(self: Room, elapsedSec: float) =
   self.overlayTo.updateMotor(elapsedSec)

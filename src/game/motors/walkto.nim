@@ -129,7 +129,7 @@ proc execVerb(self: Object) =
       let min_dist = if verb == VERB_TALKTO: noun1.min_talk_dist else: noun1.min_use_dist
       info fmt"actorArrived: noun1 min_dist: {dist} > {min_dist} (actor: {self.getUsePos}, obj: {noun1.getUsePos}) ?"
       if not verbNotClose(verb) and dist > min_dist.float:
-        self.cantReach(noun2)
+        self.cantReach(noun1)
         return
       if noun1.useDir != dNone:
         self.setFacing(noun1.useDir.facing)

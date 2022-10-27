@@ -19,8 +19,8 @@ type
     ## A graph helps to find a path between two points.
     ## This class has been ported from http://www.groebelsloot.com/2016/03/13/pathfinding-part-2/
     ## and modified
-    nodes: seq[Vec2f]
-    edges: seq[seq[GraphEdge]]
+    nodes*: seq[Vec2f]
+    edges*: seq[seq[GraphEdge]]
     concaveVertices*: seq[Vec2i]
 
   AStar = ref object of RootObj
@@ -32,13 +32,27 @@ type
 
   PathFinder* = ref object of RootObj
     ## A PathFinder is used to find a walkable path within one or several walkboxes.
-    walkboxes: seq[Walkbox]
-    graph: Graph
+    walkboxes*: seq[Walkbox]
+    graph*: Graph
 
   Segment = object
     start, to: Vec2f
     left, right, top, bottom: float32
     a, b, c: float32
+
+proc newGraphEdge(start, to: int, cost: float): GraphEdge =
+  GraphEdge(start: start, to: to, cost: cost)
+
+proc newGraph*(graph: Graph): Graph =
+  let nodes = graph.nodes.toSeq
+  let concaveVertices = graph.concaveVertices.toSeq
+  var edges: seq[seq[GraphEdge]]
+  for e in graph.edges:
+    var sEdges: seq[GraphEdge]
+    for se in e:
+      sEdges.add(newGraphEdge(se.start, se.to, se.cost))
+    edges.add(sEdges)
+  result = Graph(nodes: nodes, edges: edges, concaveVertices: concaveVertices)
 
 proc distance*[N,T](v1,v2: Vec[N,T]): T = length(v2 - v1)
 
@@ -63,9 +77,6 @@ proc newSegment(start, to: Vec2f): Segment =
 
 proc distance(self: Segment, p: Vec2f): float =
   self.a * p.x + self.b * p.y + self.c
-
-proc newGraphEdge(start, to: int, cost: float): GraphEdge =
-  GraphEdge(start: start, to: to, cost: cost)
 
 proc edge*(self: Graph, start, to: int): GraphEdge =
   ## Gets the edge from 'from' index to 'to' index.
@@ -203,17 +214,13 @@ proc inLineOfSight(self: PathFinder, start, to: Vec2f): bool =
 proc createGraph(self: PathFinder): Graph =
   result = Graph()
   for walkbox in self.walkboxes:
-    if walkbox.polygon.len <= 2:
-      continue
-
-    let visible = walkbox.visible
-    for i in 0..<walkbox.polygon.len:
-      if walkbox.concave(i) != visible:
-        continue
-
-      var vertex = walkbox.polygon[i]
-      result.concaveVertices.add(vertex)
-      result.addNode(vec2(vertex.x.float32,vertex.y.float32))
+    if walkbox.polygon.len > 2:
+      let visible = walkbox.visible
+      for i in 0..<walkbox.polygon.len:
+        if walkbox.concave(i) == visible:
+          let vertex = walkbox.polygon[i]
+          result.concaveVertices.add(vertex)
+          result.addNode(vec2f(vertex))
 
   for i in 0..<result.concaveVertices.len:
     for j in 0..<result.concaveVertices.len:
@@ -230,27 +237,25 @@ proc search(self: AStar, source, target: int) =
   var pq = newIndexedPriorityQueue(addr self.fCost)
   pq.insert(source)
   while pq.len > 0:
-    var NCN = pq.pop()
+    let NCN = pq.pop()
     self.spt[NCN] = self.sf[NCN]
-    if NCN == target:
-      return
-    var edges = self.graph.edges[NCN]
-    for edge in edges.mitems:
-      let Hcost = length(self.graph.nodes[edge.to] - self.graph.nodes[target])
-      let Gcost = self.gCost[NCN] + edge.cost
-      if self.sf[edge.to].isNil:
-        self.fCost[edge.to] = Gcost + Hcost
-        self.gCost[edge.to] = Gcost
-        pq.insert(edge.to)
-        self.sf[edge.to] = edge
-      elif Gcost < self.gCost[edge.to] and self.spt[edge.to].isNil:
-        self.fCost[edge.to] = Gcost + Hcost
-        self.gCost[edge.to] = Gcost
-        pq.reorderUp()
-        self.sf[edge.to] = edge
+    if NCN != target:
+      for edge in self.graph.edges[NCN]:
+        let Hcost = length(self.graph.nodes[edge.to] - self.graph.nodes[target])
+        let Gcost = self.gCost[NCN] + edge.cost
+        if self.sf[edge.to].isNil:
+          self.fCost[edge.to] = Gcost + Hcost
+          self.gCost[edge.to] = Gcost
+          pq.insert(edge.to)
+          self.sf[edge.to] = edge
+        elif Gcost < self.gCost[edge.to] and self.spt[edge.to].isNil:
+          self.fCost[edge.to] = Gcost + Hcost
+          self.gCost[edge.to] = Gcost
+          pq.reorderUp()
+          self.sf[edge.to] = edge
 
 proc getPath(graph: Graph, source, target: int): seq[int] =
-  var astar = newAStar(graph)
+  let astar = newAStar(graph)
   if target >= 0:
     astar.search(source, target)
     var nd = target
@@ -260,44 +265,46 @@ proc getPath(graph: Graph, source, target: int): seq[int] =
       result.add(nd)
     result.reverse()
 
-proc calculatePath*(self: var PathFinder, start1, to1: Vec2f): seq[Vec2f] =
+proc calculatePath*(self: PathFinder, start, to: Vec2f): seq[Vec2f] =
   if self.walkboxes.len > 0:
-    if self.graph.isNil:
-      self.graph = self.createGraph()
-
-    # find the walkbox where the actor is
-    var walkgraph = self.graph
+     # find the walkbox where the actor is and put it first
     for i in 0..<self.walkboxes.len:
       let wb = self.walkboxes[i]
-      if wb.inside(start1):
+      if wb.inside(start) and i != 0:
         swap(self.walkboxes[0], self.walkboxes[i])
         break
 
     # if no walkbox has been found => find the nearest walkbox
-    if not self.walkboxes[0].inside(start1):
+    if not self.walkboxes[0].inside(start):
       var dists = newSeq[float](self.walkboxes.len)
       for i in 0..<self.walkboxes.len:
         let wb = self.walkboxes[i]
-        dists[i] = distance(wb.getClosestPointOnEdge(start1), start1)
+        dists[i] = distance(wb.getClosestPointOnEdge(start), start)
 
       let index = minIndex(dists)
-      swap(self.walkboxes[0], self.walkboxes[index])
+      if index != 0:
+        swap(self.walkboxes[0], self.walkboxes[index])
+
+    if self.graph.isNil:
+      self.graph = self.createGraph()
 
     # create new node on start position
-    var start = start1
-    var to = to1
+    var walkgraph = newGraph(self.graph)
+    var start = start
+    var to = to
     let startNodeIndex = walkgraph.nodes.len
-    if not self.walkboxes[0].inside(start):
-      start = self.walkboxes[0].getClosestPointOnEdge(start)
-    if not self.walkboxes[0].inside(to):
-      to = self.walkboxes[0].getClosestPointOnEdge(to)
 
-    # Are there more polygons? Then check if endpoint is inside oine of them and find closest point on edge
-    if self.walkboxes.len > 1:
-      for i in 1..<self.walkboxes.len:
-        if self.walkboxes[i].inside(to):
-          to = self.walkboxes[i].getClosestPointOnEdge(to)
-          break
+    for i in 1..<self.walkboxes.len:
+      let wb = self.walkboxes[i]
+      if wb.inside(start):
+        start = self.walkboxes[i].getClosestPointOnEdge(start)
+      if wb.inside(to):
+        to = self.walkboxes[i].getClosestPointOnEdge(to)
+
+    # if destination is not inside current walkable area, then get the closest point
+    let wb = self.walkboxes[0]
+    if wb.visible and not wb.contains(to):
+      to = wb.getClosestPointOnEdge(to)
 
     walkgraph.addNode(start)
 
@@ -313,11 +320,10 @@ proc calculatePath*(self: var PathFinder, start1, to1: Vec2f): seq[Vec2f] =
     for i in 0..<walkgraph.concaveVertices.len:
       let c = vec2(walkgraph.concaveVertices[i])
       if self.inLineOfSight(to, c):
-        let edge = newGraphEdge(i, endNodeIndex, distance(to, c))
-        walkgraph.addEdge(edge)
+        walkgraph.addEdge newGraphEdge(i, endNodeIndex, distance(to, c))
+
     if self.inLineOfSight(start, to):
-      let edge = newGraphEdge(startNodeIndex, endNodeIndex, distance(start, to))
-      walkgraph.addEdge(edge)
+      walkgraph.addEdge newGraphEdge(startNodeIndex, endNodeIndex, distance(start, to))
 
     let indices = getPath(walkgraph, startNodeIndex, endNodeIndex)
     for i in indices:
