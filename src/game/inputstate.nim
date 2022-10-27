@@ -40,7 +40,7 @@ type
   Sentence* = ref object of Node
     text: string
 
-const 
+const
   CursorShapeNames = {Normal: "cursor", Left: "cursor_left", Right: "cursor_right", Front: "cursor_front", Back: "cursor_back", Pause: "cursor_pause"}.toTable
   Margin = 60f
 
@@ -100,7 +100,7 @@ method drawCore(self: InputState, transf: Mat4f) =
   drawSprite(frame, texture, self.color, scale(transf, vec3(2f, 2f, 1f)))
 
 proc newSentence*(): Sentence =
-  result = Sentence()
+  result = Sentence(zOrder: -100)
   result.init()
 
 proc setText*(self: Sentence, text: string) =
