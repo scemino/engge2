@@ -2,11 +2,12 @@ import std/strformat
 import glm
 import sqnim
 import ../debugtool
-import ../../game/camera
+import ../../gfx/recti
 import ../../game/engine
 import ../../game/prefs
 import ../../game/room
 import ../../game/walkbox
+import ../../game/motors/motor
 import ../../game/shaders
 import ../../scenegraph/dialog
 import ../../scenegraph/walkboxnode
@@ -108,13 +109,13 @@ method render*(self: GeneralTool) =
   # camera
   if igCollapsingHeader("Camera"):
     igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.key.cstring)
-    igText("Camera isMoving: %s", if gEngine.camera.isMoving: "yes".cstring else: "no")
+    igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
     var camPos = gEngine.cameraPos()
     if igDragFloat2("Camera pos", camPos.arr):
       gEngine.follow(nil)
       let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
       gEngine.cameraAt(camPos - halfScreenSize)
-    igDragFloat4("Bounds", gEngine.camera.bounds.arr)
+    igDragInt4("Bounds", gEngine.bounds.arr)
 
   if not room.isNil:
     if igCollapsingHeader("Room"):

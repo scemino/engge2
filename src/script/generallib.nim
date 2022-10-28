@@ -8,7 +8,6 @@ import sqnim
 import glm
 import squtils
 import vm
-import ../game/camera
 import ../game/verb
 import ../game/ids
 import ../game/motors/motor
@@ -95,6 +94,8 @@ proc cameraAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     pos = obj.getUsePos
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
+  if not gEngine.cameraPanTo.isNil:
+    gEngine.cameraPanTo.disable()
   let screenSize = gEngine.room.getScreenSize()
   let at = pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2f
   gEngine.follow(nil)
@@ -112,7 +113,7 @@ proc cameraBounds(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get yMin")
   if SQ_FAILED(get(v, 5, yMax)):
       return sq_throwerror(v, "failed to get yMax")
-  gEngine.camera.bounds = rectFromMinMax(vec2f(xMin.float32, yMin.float32), vec2f(xMax.float32, yMax.float32))
+  gEngine.bounds = rectFromMinMax(vec2(xMin, yMin), vec2(xMax, yMax))
 
 proc cameraFollow(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   let actor = actor(v, 2)
@@ -214,7 +215,7 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
   info fmt"cameraPanTo: {pos}, dur={duration}, method={interpolation}"
   gEngine.follow(nil)
-  gEngine.camera.panTo(pos, duration, interpolation)
+  gEngine.cameraPanTo = newCameraPanTo(duration, pos, interpolation)
   0
 
 proc cameraPos(v: HSQUIRRELVM): SQInteger {.cdecl.} =

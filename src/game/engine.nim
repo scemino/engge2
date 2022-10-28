@@ -11,7 +11,7 @@ import screen
 import verb
 import shaders
 import inputmap
-import camera
+import motors/motor
 import ../audio/audio
 import ../script/squtils
 import ../script/flags
@@ -75,6 +75,7 @@ type
     scene*: Scene
     screen*: Scene
     ui*: Scene
+    cameraPanTo*: Motor
     inputState*: InputState
     noun1*: Object
     noun2*: Object
@@ -96,7 +97,6 @@ type
     sentence: inputState.Sentence
     fadeEffect*: FadeEffectParameters
     fadeShader: Shader
-    camera*: Camera
 
 var gEngine*: Engine
 
@@ -400,8 +400,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
       if not door.isNil:
         gEngine.actor.setFacing(facing)
         gEngine.actor.node.pos = door.getUsePos
-      self.camera.room = room
-      self.camera.at = gEngine.actor.node.pos
 
   # call actor enter function and objects enter function
   self.actorEnter()
@@ -428,7 +426,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
 proc setRoom*(self: Engine, room: Room) =
   if not room.isNil and self.room != room:
     self.enterRoom(room)
-    self.camera.bounds = rectFromMinMax(vec2(0'f,0'f), vec2f(room.roomSize))
+    self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
 
 proc inInventory*(obj: Object): bool =
   obj.getIcon().len > 0
@@ -708,10 +706,15 @@ proc updateTriggers(self: Engine) =
 proc update(self: Engine, node: Node, elapsed: float) =
   node.update(elapsed, self.mouseState)
 
+proc clampPos(self: Engine, at: Vec2f): Vec2f =
+  let screenSize = self.room.getScreenSize()
+  let x = clamp(at.x, self.bounds.left.float32, max(self.bounds.right.float32 - screenSize.x.float32, 0.0f))
+  let y = clamp(at.y, self.bounds.bottom.float32, max(self.bounds.top.float32 - screenSize.y.float32, 0.0f))
+  vec2(x, y)
+
 proc cameraAt*(self: Engine, at: Vec2f) =
   ## Set the camera position to the given `at` position.
-  self.camera.room = self.room
-  self.camera.at = at
+  cameraPos(self.clampPos(at))
 
 proc walkFast(self: Engine, state = true) =
   if self.walkFastState != state:
@@ -819,7 +822,10 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
 proc update*(self: Engine, elapsed: float) =
   self.time += elapsed
 
+  # update camera
   let screenSize = self.room.getScreenSize()
+  if not self.followActor.isNil:
+    self.cameraAt(self.followActor.node.pos - vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f)
 
   # update mouse pos
   let scrPos = winToScreen(mousePos())
@@ -935,8 +941,9 @@ proc update*(self: Engine, elapsed: float) =
   # update audio
   self.audio.update()
 
-  # update camera
-  self.camera.update(self.room, self.followActor, elapsed)
+  # update motors
+  if not self.cameraPanTo.isNil and self.cameraPanTo.enabled:
+    self.cameraPanTo.update(elapsed)
 
   # update actorswitcher
   self.actorswitcher.update(self.actorSwitcherSlots(), elapsed)
@@ -963,7 +970,7 @@ proc cameraPos*(self: Engine): Vec2f =
   ## Returns the camera position: the position of the middle of the screen.
   if not self.room.isNil:
     let screenSize = self.room.getScreenSize()
-    result = self.camera.at + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
+    result = cameraPos() + vec2(screenSize.x.float32, screenSize.y.float32) / 2.0f
 
 proc fadeTo*(self: Engine, effect: FadeEffect, duration: float, fadeToSep = false) =
   self.fadeEffect.fadeToSepia = fadeToSep

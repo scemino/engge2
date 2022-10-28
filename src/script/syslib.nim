@@ -7,7 +7,6 @@ import vm
 import glm
 import squtils
 import ../audio/audio
-import ../game/camera
 import ../game/thread
 import ../game/callback
 import ../game/cutscene as cs
@@ -163,7 +162,7 @@ proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.
   ## Once the thread finishes execution, the method will continue running.
   ## It is an error to call breakwhilecamera in a function that was not started with startthread.
-  breakwhilecond(v, "breakwhilecamera()", proc (): bool = gEngine.camera.isMoving)
+  breakwhilecond(v, "breakwhilecamera()", proc (): bool = not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled)
 
 proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a cutscene is running.
