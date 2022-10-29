@@ -33,7 +33,7 @@ import ../sys/app
 
 proc getarray(obj: HSQOBJECT, arr: var seq[HSQOBJECT]) =
   for o in obj.items:
-    arr.add(obj)
+    arr.add(o)
 
 proc activeVerb(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   push(v, gEngine.hud.verb.id.int)

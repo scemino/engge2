@@ -140,6 +140,7 @@ proc newEngine*(v: HSQUIRRELVM): Engine =
   result.fadeShader = newShader(vertexShader, fadeShader)
   result.fadeEffect = FadeEffectParameters(duration: 3f)
   sq_resetobject(result.defaultObj)
+  randomize()
 
   regCmdFunc(GameCommand.SelectActor1, proc () = selectActor(0))
   regCmdFunc(GameCommand.SelectActor2, proc () = selectActor(1))
