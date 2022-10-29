@@ -386,6 +386,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.room = room
   self.scene.addChild self.room.scene
   self.room.numLights = 0
+  self.room.overlay = Transparent
   self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
   if not self.actor.isNil:
     self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]

@@ -892,10 +892,12 @@ proc createLight*(self: Room, color: Color, pos: Vec2i): Light =
   result.pos = pos
 
 proc `overlay=`*(self: Room, color: Color) =
-  self.overlayNode.ovlColor = color
+  if not self.overlayNode.isNil:
+    self.overlayNode.ovlColor = color
 
 proc `overlay`*(self: Room): Color =
-  self.overlayNode.ovlColor
+  if not self.overlayNode.isNil:
+    result = self.overlayNode.ovlColor
 
 proc getFrames(self: Object, sheet: string, frames: seq[string]): seq[SpriteFrame] =
   let ss = self.getSpriteSheet(sheet)
