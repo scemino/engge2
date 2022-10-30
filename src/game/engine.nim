@@ -368,7 +368,7 @@ proc getDoorFacing(self: Object): Facing =
     result = FACE_RIGHT
   elif flags.hasFlag(DOOR_FRONT):
     result = FACE_FRONT
-  elif flags.hasFlag(DOOR_BACK):
+  else:
     result = FACE_BACK
 
 proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
