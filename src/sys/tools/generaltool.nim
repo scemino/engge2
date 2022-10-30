@@ -2,12 +2,11 @@ import std/strformat
 import glm
 import sqnim
 import ../debugtool
-import ../../gfx/recti
+import ../../game/camera
 import ../../game/engine
 import ../../game/prefs
 import ../../game/room
 import ../../game/walkbox
-import ../../game/motors/motor
 import ../../game/shaders
 import ../../scenegraph/dialog
 import ../../scenegraph/walkboxnode
@@ -69,6 +68,13 @@ proc text(state: DialogState): string =
   of DialogState.Active: result = "active"
   of DialogState.WaitingForChoice: result = "waiting for choice"
 
+proc speedFactor(label: string, speeds: openArray[float32], value: ptr float32) =
+  igText(label.cstring)
+  for speed in speeds:
+    igSameLine()
+    if igButton((fmt"{speed:.1f}").cstring):
+      value[] = speed
+
 method render*(self: GeneralTool) =
   if gEngine.isNil or not gGeneralVisible:
     return
@@ -85,7 +91,7 @@ method render*(self: GeneralTool) =
   igText("Pos (screen): (%.0f, %0.f)", scrPos.x, scrPos.y)
   igText("Pos (room): (%.0f, %0.f)", roomPos.x, roomPos.y)
   igText("VM stack top: %d", sq_gettop(gVm.v))
-  igDragFloat("Game speed factor", tmpPrefs().gameSpeedFactor.addr, 1'f32, 0'f32, 100'f32)
+  speedFactor("Game speed factor", [0.5f, 1f, 5f, 10f], tmpPrefs().gameSpeedFactor.addr)
   igCheckbox("HUD", gEngine.inputState.inputHUD.addr)
   igCheckbox("Input", gEngine.inputState.inputActive.addr)
   igCheckbox("Cursor", gEngine.inputState.showCursor.addr)
@@ -109,13 +115,13 @@ method render*(self: GeneralTool) =
   # camera
   if igCollapsingHeader("Camera"):
     igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.key.cstring)
-    igText("Camera isMoving: %s", if not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled: "yes".cstring else: "no")
+    igText("Camera isMoving: %s", if gEngine.camera.isMoving: "yes".cstring else: "no")
     var camPos = gEngine.cameraPos()
     if igDragFloat2("Camera pos", camPos.arr):
       gEngine.follow(nil)
       let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
       gEngine.cameraAt(camPos - halfScreenSize)
-    igDragInt4("Bounds", gEngine.bounds.arr)
+    igDragFloat4("Bounds", gEngine.camera.bounds.arr)
 
   if not room.isNil:
     if igCollapsingHeader("Room"):

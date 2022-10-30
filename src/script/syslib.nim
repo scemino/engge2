@@ -7,6 +7,7 @@ import vm
 import glm
 import squtils
 import ../audio/audio
+import ../game/camera
 import ../game/thread
 import ../game/callback
 import ../game/cutscene as cs
@@ -110,7 +111,7 @@ proc breakhere(v: HSQUIRRELVM): SQInteger {.cdecl.} =
       return sq_throwerror(v, "failed to get time")
     return breakfunc(v, proc (t: ThreadBase) = t.waitTime = time)
   else:
-    return sq_throwerror(v, fmt"failed to get numFrames (wrong type = {t})")
+    return sq_throwerror(v, fmt"failed to get numFrames (wrong type = {t})".cstring)
 
 proc breaktime(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended for time seconds.
@@ -162,7 +163,7 @@ proc breakwhilecamera(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a camera is moving.
   ## Once the thread finishes execution, the method will continue running.
   ## It is an error to call breakwhilecamera in a function that was not started with startthread.
-  breakwhilecond(v, "breakwhilecamera()", proc (): bool = not gEngine.cameraPanTo.isNil and gEngine.cameraPanTo.enabled)
+  breakwhilecond(v, "breakwhilecamera()", proc (): bool = gEngine.camera.isMoving)
 
 proc breakwhilecutscene(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Breaks while a cutscene is running.

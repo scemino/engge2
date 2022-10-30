@@ -8,7 +8,7 @@
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
 * [ ] When we give an object, the give verb is still active
-* [ ] When play with franklin the first is icon is a ghost
+* [ ] When play first with franklin the icon is a ghost
 * [x] Array shuffle returns an array of array
 * [x] After the bridge cutscene video, if we go back to the bridge, the room is black
 * [x] actor is not in the good direction when entering a room
@@ -214,8 +214,8 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
-* [ ] camera
-    * [ ] advanced camera movement
+* [x] camera
+    * [x] advanced camera movement
     * [x] camera follow actor
     * [x] camera pan
 * [x] actor

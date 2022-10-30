@@ -1,4 +1,4 @@
-import std/[logging, os, strformat, times, strutils]
+import std/[logging, os, strformat, times]
 import sqnim
 import state
 import pausestate
@@ -46,7 +46,7 @@ proc onKey(key: InputKey, scancode: int32, action: InputAction, mods: InputModif
     gState.hotspot = action == iaPressed
   if not gEngine.actor.isNil:
     for verb in gEngine.hud.actorSlot(gEngine.actor).verbs:
-      if verb.key.len > 0: 
+      if verb.key.len > 0:
         let letter = getText(verb.key)[0]
         if letter.InputKey == key:
           gEngine.hud.verb = verb

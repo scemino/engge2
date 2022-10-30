@@ -1,6 +1,6 @@
 import easing
 
-type 
+type
   Tween*[T] = object
     frm, to, delta: T
     elapsed, duration: float # duration in ms
@@ -32,7 +32,7 @@ proc update*[T](self: var Tween[T], elapsed: float) =
         self.dir_forward = not self.dir_forward
     if not self.easing.isNil:
       f = self.easing(f)
-      self.value = self.frm + f * self.delta
+      self.value = self.frm + f.float32 * self.delta
   else:
     self.value = self.to
 
@@ -40,7 +40,6 @@ proc current*[T](self: Tween[T]): T {.inline.} =
   self.value
 
 when isMainModule:
-  import easing
   var t = newTween[float](0, 5, 2, ikLinear)
   t.update(0.5)
   echo t.current()

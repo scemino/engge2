@@ -134,8 +134,6 @@ proc newTalking*(obj: Object, texts: seq[string], color: Color): Talking =
   result.say(texts[0])
   result.init()
 
-import ../actor
-
 method disable(self: Talking) =
   procCall self.Motor.disable()
   self.texts.setLen 0

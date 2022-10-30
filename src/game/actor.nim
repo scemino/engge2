@@ -1,7 +1,6 @@
 import std/logging
 import std/json
 import std/options
-import std/tables
 import std/strformat
 import glm
 import sqnim
