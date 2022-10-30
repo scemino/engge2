@@ -490,6 +490,13 @@ proc selectable(self: Engine, actor: Object): bool =
     if slot.actor == actor:
       return slot.selectable
 
+proc resetVerb(self: Engine) =
+  info "reset nouns"
+  gEngine.noun1 = nil
+  gEngine.noun2 = nil
+  gEngine.useFlag = ufNone
+  self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
+
 proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2: Object = nil): bool =
   sqCall("onObjectClick", [noun1.table])
 
@@ -500,14 +507,11 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
   let verbFuncName = gEngine.hud.actorSlot(actor).verb(verbId).fun
   info fmt"callVerb({name},{verbFuncName},{noun1name},{noun2name})"
 
-  # TODO: gEngine.selectedActor.stopWalking()
   # test if object became untouchable
   if not noun1.inInventory and not noun1.touchable:
     return false
   if not noun2.isNil and not noun2.inInventory and not noun2.touchable:
     return false
-
-  # TODO: Do reach before calling verb so we can kill it if needed.
 
   # check if verb is use and object can be used with or in or on
   if verbId == VERB_USE and noun2.isNil:
@@ -535,6 +539,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
         info "call objectGive"
         call("objectGive", [noun1.table, self.actor.table, noun2.table])
         self.actor.giveTo(noun2, noun1)
+      self.resetVerb()
     return
 
   if noun2.isNil:
@@ -564,11 +569,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
   if verbId == VERB_PICKUP:
     call("onPickup", [noun1.table, self.actor.table])
 
-  info "reset nouns"
-  gEngine.noun1 = nil
-  gEngine.noun2 = nil
-  gEngine.useFlag = ufNone
-  self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
+  self.resetVerb()
 
 import actor
 
