@@ -554,8 +554,7 @@ proc callVerb*(self: Engine, actor: Object, verbId: VerbId, noun1: Object, noun2
       call(noun1.table, VerbDefault)
     else:
       info fmt"call defaultObject.{verbFuncName}"
-      var nilObj: HSQOBJECT
-      call(self.defaultObj, verbFuncName, [noun1.table, nilObj])
+      call(self.defaultObj, verbFuncName, [noun1.table, actor.table])
   else:
     if noun1.table.rawExists(verbFuncName):
       info fmt"call {noun1.key}.{verbFuncName}"

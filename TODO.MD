@@ -7,8 +7,9 @@
 * [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
-* [ ] When we give an object, the give verb is still active
 * [ ] When play first with franklin the icon is a ghost
+* [x] We should be able to talk to agents
+* [x] When we give an object, the give verb is still active
 * [x] Array shuffle returns an array of array
 * [x] After the bridge cutscene video, if we go back to the bridge, the room is black
 * [x] actor is not in the good direction when entering a room

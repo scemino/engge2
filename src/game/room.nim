@@ -207,6 +207,8 @@ proc `defaultVerbId`*(self: Object): int =
   result = VERB_LOOKAT
   if self.table.rawexists("defaultVerb"):
     self.table.getf("defaultVerb", result)
+  elif self.table.getId.isActor:
+    result = if self.table.rawexists("verbTalkTo"): VERB_TALKTO else: VERB_WALKTO
 
 proc popScale*(self: Object): float32 =
   0.5f + 0.5f * sin(-PI/2f + self.popElapsed * 4f * PI)
