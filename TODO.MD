@@ -4,7 +4,6 @@
 
 * [ ] wrong actor placement during give animation
 * [ ] music and sounds are interrupted
-* [ ] actor in countymap does not follow the path
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
 * [ ] When play first with franklin the icon is a ghost
@@ -13,6 +12,7 @@
 * [ ] Weird animation when agents go up in the bus
 * [ ] CountyMap.bnut line [141], Helpers.bnut line [752] [failed to get object]
 * [ ] In closeup room, the actor seems to walk
+* [x] Each time we enter a room with a fan, the fan rotation has a weird rotation
 * [x] actors sounds are still played when changing room
 * [x] PhoneBook.bnut line [186] objectState(previous_button, OFF) can be null
 * [x] ThimbleCon.bnut line [500] actorDistanceWithin(batdork, nextSpot ) not implemented

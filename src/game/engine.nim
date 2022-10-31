@@ -332,6 +332,8 @@ proc exitRoom(self: Engine, nextRoom: Room) =
       for obj in layer.objects.toSeq:
         if obj.temporary:
           obj.delObject()
+        else:
+          obj.stopObjectMotors()
 
     # call global function enteredRoom with the room as argument
     call("exitedRoom", [self.room.table])
