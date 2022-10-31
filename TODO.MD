@@ -13,6 +13,7 @@
 * [ ] Weird animation when agents go up in the bus
 * [ ] CountyMap.bnut line [141], Helpers.bnut line [752] [failed to get object]
 * [ ] In closeup room, the actor seems to walk
+* [x] actors sounds are still played when changing room
 * [x] PhoneBook.bnut line [186] objectState(previous_button, OFF) can be null
 * [x] ThimbleCon.bnut line [500] actorDistanceWithin(batdork, nextSpot ) not implemented
 * [x] The phone book in the library is empty (correct after loading game)

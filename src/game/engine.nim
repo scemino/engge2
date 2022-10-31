@@ -960,7 +960,8 @@ proc update*(self: Engine, elapsed: float) =
 
   # update actors
   for actor in self.actors:
-    actor.update(elapsed)
+    if actor.room == gEngine.room:
+      actor.update(elapsed)
 
   self.updateTriggers()
 
