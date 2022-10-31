@@ -190,12 +190,23 @@ proc actorDistanceTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   1
 
 proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
-  var actor = actor(v, 2)
-  if actor.isNil:
-    return sq_throwerror(v, "failed to get actor")
-  var obj: Object
-  if sq_gettop(v) == 4:
-    obj = obj(v, 3)
+  let nArgs = sq_gettop(v)
+  if nArgs == 3:
+    let actor1 = gEngine.actor
+    let actor2 = actor(v, 2)
+    if actor2.isNil:
+      return sq_throwerror(v, "failed to get actor")
+    let obj = obj(v, 3)
+    if obj.isNil:
+      return sq_throwerror(v, "failed to get spot")
+    # not sure about this, needs to be check one day ;)
+    push(v, distance(actor1.node.pos, obj.getUsePos()) < distance(actor2.node.pos, obj.getUsePos()))
+    return 1
+  elif nArgs == 4:
+    let actor = actor(v, 2)
+    if actor.isNil:
+      return sq_throwerror(v, "failed to get actor")
+    let obj = obj(v, 3)
     if obj.isNil:
       return sq_throwerror(v, "failed to get object")
     var dist: int
@@ -204,8 +215,7 @@ proc actorDistanceWithin(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, distance(actor.node.pos, obj.getUsePos()) < dist.float)
     return 1
   else:
-    # TODO:
-    return sq_throwerror(v, "not implemented")
+    return sq_throwerror(v, "actorDistanceWithin not implemented")
 
 proc actorFace(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Makes the actor face a given direction.

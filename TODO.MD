@@ -11,6 +11,9 @@
 * [ ] When willie snore, his head vanishes
 * [ ] When Delores use pickup verb, Delores walks
 * [ ] Weird animation when agents go up in the bus
+* [ ] PhoneBook.bnut line [186] objectState(previous_button, OFF) can be null
+* [ ] CountyMap.bnut line [141], Helpers.bnut line [752] [failed to get object]
+* [x] ThimbleCon.bnut line [500] actorDistanceWithin(batdork, nextSpot ) not implemented
 * [x] The phone book in the library is empty (correct after loading game)
 * [x] When using map the actor is big
 * [x] We should be able to talk to agents
