@@ -645,7 +645,7 @@ proc clickedAtHandled(self: Engine, roomPos: Vec2f): bool =
 
 proc `verb`(self: Engine): Verb =
   result = self.hud.verb
-  if result.id == VERB_WALKTO and self.noun1.inInventory():
+  if result.id == VERB_WALKTO and not self.noun1.isNil and self.noun1.inInventory():
     result = self.hud.actorSlot(self.actor).verb(self.noun1.defaultVerbId)
 
 proc clickedAt(self: Engine, scrPos: Vec2f) =
@@ -729,6 +729,9 @@ proc walkFast(self: Engine, state = true) =
 
 proc cursorText(self: Engine): string =
   if self.dlg.state == DialogState.None:
+    if self.hud.visible and self.hud.over:
+      return if self.hud.verb.id > 1: getText(self.verb.text) else: ""
+
     # give can be used only on inventory and talkto to talkable objects (actors)
     result = if self.noun1.isNil or (self.hud.verb.id == VERB_GIVE and not self.noun1.inInventory()) or (self.hud.verb.id == VERB_TALKTO and not self.noun1.getFlags().hasFlag(TALKABLE)): "" else: getText(self.noun1.name)
 
@@ -826,8 +829,6 @@ proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
 proc update*(self: Engine, elapsed: float) =
   self.time += elapsed
 
-  let screenSize = self.room.getScreenSize()
-
   # update mouse pos
   let scrPos = winToScreen(mousePos())
   self.inputState.visible = self.inputState.showCursor or self.dlg.state == WaitingForChoice
@@ -858,6 +859,7 @@ proc update*(self: Engine, elapsed: float) =
       # update cursor shape
       # if cursor is in the margin of the screen and if camera can move again
       # then show a left arrow or right arrow
+      let screenSize = self.room.getScreenSize()
       if scrPos.x < ScreenMargin and cameraPos().x >= 1f:
         self.inputState.setCursorShape(CursorShape.Left)
       elif scrPos.x > (ScreenWidth - ScreenMargin) and cameraPos().x < (self.room.roomSize.x.float32 - screenSize.x.float32):
@@ -886,7 +888,7 @@ proc update*(self: Engine, elapsed: float) =
       self.sentence.setText(self.cursorText)
 
       # call clickedAt if any button down
-      if self.dlg.state == DialogState.None:
+      if self.dlg.state == DialogState.None and not self.hud.over:
         if self.mouseState.pressed():
           if self.mouseState.click():
             self.mouseDownTime = now()

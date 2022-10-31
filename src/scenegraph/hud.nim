@@ -51,6 +51,7 @@ type
     shader: Shader
     mousePos: Vec2f
     mouseClick: bool
+    over*: bool
     defaultVerbId: int
   VerbRect = object
     hud*: Hud
@@ -107,16 +108,20 @@ method drawCore(self: Hud, transf: Mat4f) =
   self.shader.setUniform("u_normalColor", actorSlot.verbUiColors.verbHighlight)
   self.shader.setUniform("u_highlightColor", actorSlot.verbUiColors.verbHighlightTint)
 
+  var isOver = false
   for i in 1..<actorSlot.verbs.len:
     let verb = actorSlot.verbs[i]
     if verb.image.len > 0:
       let verbFrame = verbSheet.frame(fmt"{verb.image}{verbSuffix}_{lang}")
       let over = verbFrame.spriteSourceSize.contains(vec2i(self.mousePos))
+      if over:
+        isOver = true
       let color = if over or verb.id == self.defaultVerbId: verbHighlight else: verbColor
       if self.mouseClick and over:
         self.verb = verb
       drawSprite(verbFrame, verbTexture, color, transf)
   gfxShader(saveShader)
+  self.over = isOver
 
 proc verb*(self: ActorSlot, verbId: VerbId): Verb =
   for verb in self.verbs:

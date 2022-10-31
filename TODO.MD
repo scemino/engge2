@@ -7,11 +7,13 @@
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
 * [ ] When play first with franklin the icon is a ghost
-* [ ] When willie snore, his head vanishes
-* [ ] When Delores use pickup verb, Delores walks
+* [ ] When willie snore, his head vanishes (lips contains head1 and 2 but not the anim)
 * [ ] Weird animation when agents go up in the bus
 * [ ] CountyMap.bnut line [141], Helpers.bnut line [752] [failed to get object]
 * [ ] In closeup room, the actor seems to walk
+* [ ] weird animation when climbing stairs in the mansion library
+* [ ] When Delores in the pillowtron, the ghost effect with franklin does not work
+* [x] When Delores use pickup verb, Delores walks
 * [x] Each time we enter a room with a fan, the fan rotation has a weird rotation
 * [x] actors sounds are still played when changing room
 * [x] PhoneBook.bnut line [186] objectState(previous_button, OFF) can be null
