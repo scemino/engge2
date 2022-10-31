@@ -8,6 +8,10 @@
 * [ ] annoying kid is walking like a crab
 * [ ] When using bloodtron, the light is not correct and the flashing light is not working
 * [ ] When play first with franklin the icon is a ghost
+* [ ] When willie snore, his head vanishes
+* [ ] When Delores use pickup verb, Delores walks
+* [ ] Weird animation when agents go up in the bus
+* [x] The phone book in the library is empty (correct after loading game)
 * [x] When using map the actor is big
 * [x] We should be able to talk to agents
 * [x] When we give an object, the give verb is still active

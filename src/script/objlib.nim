@@ -160,14 +160,8 @@ proc isObject(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##
   ## .. code-block:: Squirrel
   ## if (isObject(obj) && objectValidUsePos(obj) && objectTouchable(obj)) {
-  var obj: HSQOBJECT
-  discard sq_getstackobj(v, 2, obj)
-  let isObj = obj.objType == OT_TABLE and obj.getId().isObject()
-  if not isObj and obj.objType == OT_TABLE:
-    var name: string
-    getf(obj, "name", name)
-    info fmt"Object {name} {obj.getId()} is not an object"
-  push(v, isObj)
+  let obj = obj(v, 2)
+  push(v, not obj.isNil and obj.id.isObject)
   1
 
 proc jiggleInventory(v: HSQUIRRELVM): SQInteger {.cdecl.} =
