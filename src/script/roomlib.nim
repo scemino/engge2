@@ -310,20 +310,27 @@ proc roomEffect(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var effect = 0
   if SQ_FAILED(get(v, 2, effect)):
     return sq_throwerror(v, "failed to get effect")
-  warn "roomEffect not implemented"
+  let roomEffect = effect.RoomEffect
   let nArgs = sq_gettop(v)
-  if nArgs == 14:
-    discard get(v, 3, gShaderParams.iFade)
-    discard get(v, 4, gShaderParams.wobbleIntensity)
-    discard get(v, 6, gShaderParams.shadows.r)
-    discard get(v, 7, gShaderParams.shadows.g)
-    discard get(v, 8, gShaderParams.shadows.b)
-    discard get(v, 9, gShaderParams.midtones.r)
-    discard get(v, 10, gShaderParams.midtones.g)
-    discard get(v, 11, gShaderParams.midtones.b)
-    discard get(v, 12, gShaderParams.highlights.r)
-    discard get(v, 13, gShaderParams.highlights.g)
-    discard get(v, 14, gShaderParams.highlights.b)
+  if roomEffect == RoomEffect.Ghost:
+    if nArgs == 14:
+      discard get(v, 3, gShaderParams.iFade)
+      discard get(v, 4, gShaderParams.wobbleIntensity)
+      discard get(v, 6, gShaderParams.shadows.r)
+      discard get(v, 7, gShaderParams.shadows.g)
+      discard get(v, 8, gShaderParams.shadows.b)
+      discard get(v, 9, gShaderParams.midtones.r)
+      discard get(v, 10, gShaderParams.midtones.g)
+      discard get(v, 11, gShaderParams.midtones.b)
+      discard get(v, 12, gShaderParams.highlights.r)
+      discard get(v, 13, gShaderParams.highlights.g)
+      discard get(v, 14, gShaderParams.highlights.b)
+    else:
+      gShaderParams.iFade = 1f
+      gShaderParams.wobbleIntensity = 1f
+      gShaderParams.shadows = vec3(-0.3f, 0f, 0f)
+      gShaderParams.midtones = vec3(-0.2f, 0f, 0.1f)
+      gShaderParams.highlights = vec3(0f, 0f, 0.2f)
   gEngine.room.effect = effect.RoomEffect
   0
 
