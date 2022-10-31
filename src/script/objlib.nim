@@ -686,6 +686,8 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## .. code-block:: Squirrel
   ## objectState(coin, HERE)
   ## objectTouchable(coin, YES)
+  if sq_gettype(v, 2) == OT_NULL:
+    return 0
   let obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
@@ -693,13 +695,14 @@ proc objectState(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if nArgs == 2:
     push(v, obj.getState())
     return 1
-  if nArgs != 3:
+  elif nArgs == 3:
+    var state: int
+    if SQ_FAILED(get(v, 3, state)):
+      return sq_throwerror(v, "failed to get state")
+    obj.setState(state)
+    return 0
+  else:
     return sq_throwerror(v, "invalid number of arguments")
-  var state: int
-  if SQ_FAILED(get(v, 3, state)):
-    return sq_throwerror(v, "failed to get state")
-  obj.setState(state)
-  0
 
 proc objectTouchable(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Gets or sets if an object is player touchable.
