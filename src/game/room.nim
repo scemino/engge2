@@ -921,7 +921,7 @@ proc getFps(fps, animFps: float32): float32 =
     result = if animFps == 0f: DefaultFps else: animFps
 
 proc newAnim*(obj: Object): Anim =
-  result = Anim(obj: obj)
+  result = Anim(obj: obj, zOrder: 1000)
   result.init()
 
 proc setAnim*(self: Anim, anim: ObjectAnimation, fps = 0f, loop = false, instant = false) =
