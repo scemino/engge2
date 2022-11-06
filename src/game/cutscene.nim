@@ -1,5 +1,6 @@
 import std/logging
 import std/strformat
+import std/sequtils
 import sqnim
 import ../script/vm
 import ../script/squtils
@@ -32,6 +33,9 @@ proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: H
   info fmt"Create cutscene {result.id} with input: 0x{result.inputState.int:X}"
   gEngine.inputState.inputActive = false
   gEngine.inputState.showCursor = false
+  for thread in gEngine.threads.toSeq:
+    if thread.global:
+      thread.pause()
   sq_addref(gVm.v, result.threadObj)
   sq_addref(gVm.v, result.closure)
   sq_addref(gVm.v, result.closureOverride)
@@ -104,6 +108,9 @@ method stop*(self: Cutscene) =
     gEngine.inputState.inputActive = true
   info fmt"Restore cutscene input: {self.inputState.int:X}"
   gEngine.follow(gEngine.actor)
+  for thread in gEngine.threads.toSeq:
+    if thread.global:
+      thread.unpause()
   call("onCutsceneEnded")
   discard sq_wakeupvm(self.v, SQFalse, SQFalse, SQTrue, SQFalse)
   discard sq_suspendvm(self.getThread())

@@ -29,6 +29,7 @@ import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/hud
 import ../scenegraph/dialog
+import ../scenegraph/dlgtgt
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
 import ../scenegraph/inventory
@@ -438,7 +439,7 @@ proc setRoom*(self: Engine, room: Room) =
     self.camera.bounds = rectFromMinMax(vec2(0'f,0'f), vec2f(room.roomSize))
 
 proc inInventory*(obj: Object): bool =
-  obj.getIcon().len > 0
+  obj.id.isObject and obj.getIcon().len > 0
 
 iterator roomObjs*(self: Engine): Object =
   for room in self.rooms:
@@ -910,11 +911,6 @@ proc update*(self: Engine, elapsed: float) =
       if self.mouseState.click():
         self.clickedAt(scrPos)
 
-  # update cutscene
-  if not self.cutscene.isNil:
-    if self.cutscene.update(elapsed):
-      self.cutscene = nil
-
   self.dlg.update(elapsed)
   self.fadeEffect.elapsed += elapsed
 
@@ -924,6 +920,11 @@ proc update*(self: Engine, elapsed: float) =
   if not self.screen.isNil:
     self.update(self.screen, elapsed)
 
+  # update cutscene
+  if not self.cutscene.isNil:
+    if self.cutscene.update(elapsed):
+      self.cutscene = nil
+    
   # update threads
   for thread in self.threads.toSeq:
     if thread.update(elapsed):

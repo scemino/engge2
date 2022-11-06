@@ -11,6 +11,7 @@ type
     waitTime*: float
     pauseable*: bool
     stopRequest: bool
+    paused: bool
   Thread* = ref object of ThreadBase
     id: int
     v*: HSQUIRRELVM
@@ -44,6 +45,15 @@ proc resume*(self: ThreadBase) =
 proc suspend*(self: ThreadBase) =
   if self.pauseable and not self.isSuspended:
     discard sq_suspendvm(self.getThread())
+
+proc pause*(self: ThreadBase) =
+  if self.pauseable:
+    self.paused = true
+    self.suspend()
+
+proc unpause*(self: ThreadBase) =
+  self.paused = false
+  self.resume()
 
 method stop*(self: ThreadBase) {.base.} =
   discard
@@ -104,7 +114,9 @@ method stop*(self: Thread) =
   self.suspend()
 
 method update*(self: Thread, elapsed: float): bool =
-  if self.waitTime > 0:
+  if self.paused:
+    discard
+  elif self.waitTime > 0:
     self.waitTime -= elapsed
     if self.waitTime <= 0:
       self.waitTime = 0
