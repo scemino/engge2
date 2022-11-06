@@ -740,10 +740,11 @@ proc sayOrMumbleLine(v: HSQUIRRELVM): SQInteger =
   else:
     let numIds = sq_gettop(v) - index + 1
     for i in 0..<numIds:
-      var text: string
-      if SQ_FAILED(get(v, index + i, text)):
-        return sq_throwerror(v, "failed to get text")
-      texts.add text
+      if sq_gettype(v, index + i) != OT_NULL:
+        var text: string
+        if SQ_FAILED(get(v, index + i, text)):
+          return sq_throwerror(v, "failed to get text")
+        texts.add text
   info fmt"sayline: {obj.key}, {texts}"
   obj.say(texts, obj.talkColor)
   0
