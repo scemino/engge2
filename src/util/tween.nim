@@ -8,8 +8,8 @@ type
     easing: easing_func
     enabled*: bool
     dir_forward: bool
-    swing: bool
-    loop: bool
+    swing*: bool
+    loop*: bool
 
 proc newTween*[T](frm, to: T, duration: float, im: InterpolationMethod): Tween[T] =
   Tween[T](frm: frm, to: to, delta: to - frm, duration: duration, value: frm, easing: easing(im), enabled: true, swing: im.swing, loop: im.loop, dir_forward: true)

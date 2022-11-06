@@ -18,7 +18,8 @@ proc newRotateTo*(duration: float, node: Node, to: float, im: InterpolationMetho
 
 method disable*(self: RotateTo) =
   procCall self.Motor.disable()
-  self.node.rotation = self.rotation
+  if self.tween.swing or self.tween.loop:
+    self.node.rotation = self.rotation
 
 method update(self: RotateTo, el: float) =
   self.tween.update(el)
