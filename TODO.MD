@@ -10,6 +10,10 @@
 * [ ] CountyMap.bnut line [141], Helpers.bnut line [752] [failed to get object]
 * [ ] In closeup room, the actor seems to walk
 * [ ] clock movement is incorrect
+* [ ] failed to get text: BStreet.bnut line [221]: sayLine("@28912", (_ringPhoneTID ? "@28999" : null))
+* [ ] failed to get object: [buildBooks()] MansionLibrary.bnut line [404]
+* [ ] failed to get object: FUNCTION [createSpeckOfDust()] Helpers.bnut line [2072], enteredRoom()] Helpers.bnut line [1467], NATIVE line [-1], QuickiePalOutside.bnut line [156], NATIVE line [-1], MainStreet.bnut line [749]
+* [ ] failed to get object or actor: animateBirdObject()] Vista.bnut line [128]
 * [x] postal worker cutscene does not end
 * [x] weird animation when climbing stairs in the mansion library
 * [x] Franklin shouldn't be touchable before becoming a ghost
