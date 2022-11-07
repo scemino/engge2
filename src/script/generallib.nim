@@ -757,6 +757,17 @@ proc strfirst(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     push(v, "")
   1
 
+proc strlast(v: HSQUIRRELVM): SQInteger {.cdecl.} =
+  ## Returns the last character of the given `string`.
+  var str: string
+  if SQ_FAILED(get(v, 2, str)):
+    return sq_throwerror(v, "Failed to get str")
+  if str.len > 0:
+    push(v, str[^1..^1])
+  else:
+    push(v, "")
+  1
+
 proc strlines(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## Splits the string `str` into its containing lines.
   var str: string
@@ -856,6 +867,7 @@ proc register_generallib*(v: HSQUIRRELVM) =
   v.regGblFun(strcount, "strcount")
   v.regGblFun(strfind, "strfind")
   v.regGblFun(strfirst, "strfirst")
+  v.regGblFun(strlast, "strlast")
   v.regGblFun(strlines, "strlines")
   v.regGblFun(strreplace, "strreplace")
   v.regGblFun(strsplit, "strsplit")
