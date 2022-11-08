@@ -12,6 +12,7 @@ import ../game/thread
 import ../game/callback
 import ../game/cutscene as cs
 import ../game/engine
+import ../game/actoranim
 import ../game/ids
 import ../game/room
 import ../game/inputstate
@@ -141,7 +142,7 @@ proc breakwhilecond(v: HSQUIRRELVM, name: string, pred: Predicate): SQInteger =
   return -666
 
 proc isAnimating(obj: Object): bool =
-  not obj.nodeAnim.anim.isNil and not obj.nodeAnim.disabled
+  not obj.nodeAnim.anim.isNil and not obj.nodeAnim.disabled and obj.animName != obj.getAnimName(StandAnimName)
 
 proc breakwhileanimating(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ## When called in a function started with startthread, execution is suspended until animatingItem has completed its animation.
