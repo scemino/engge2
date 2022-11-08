@@ -46,6 +46,7 @@ type
   YLabel* = ref object of YackNode
     name*: string
     stmts*: seq[YStatement]
+    line*: int
   YStatement* = ref object of YackNode
     exp*: YExp
     conds*: seq[YCond]
@@ -62,6 +63,7 @@ type
   YExp* = ref object of YackNode ## Expression
   YGoto* = ref object of YExp
     name*: string
+    line*: int
   YCodeExp* = ref object of YExp
     code*: string
   YChoice* = ref object of YExp
@@ -627,7 +629,7 @@ proc parseWaitForExp(p: var YackParser): YWaitFor =
 
 proc parseGotoExp(p: var YackParser): YGoto =
   discard p.eat(TokenId.Goto)
-  result = YGoto(name: p.eat(TokenId.Identifier))
+  result = YGoto(name: p.eat(TokenId.Identifier), line: p.getLine())
 
 proc parseChoiceExp(p: var YackParser): YChoice =
   var text: string
@@ -735,7 +737,7 @@ proc parseStat(p: var YackParser): YStatement =
     result.conds.add(p.parseCond())
 
 proc parseLabel(p: var YackParser): YLabel =
-  result = YLabel()
+  result = YLabel(line: p.getLine())
 
   # skip new lines
   while p.match([TokenId.NewLine]):

@@ -13,6 +13,8 @@
 * [ ] failed to get object: FUNCTION [createSpeckOfDust()] Helpers.bnut line [2072], enteredRoom()] Helpers.bnut line [1467], NATIVE line [-1], QuickiePalOutside.bnut line [156], NATIVE line [-1], MainStreet.bnut line [749]
 * [ ] failed to get object or actor: animateBirdObject()] Vista.bnut line [128]
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
+* [ ] when ransome pushes the trampoline, it never ends
+* [x] Delores cannot guess the number to decode the will
 * [x] the walkbox in cemetery is wrong (at the end of the path)
 * [x] strlast not implemented
 * [x] clock movement is incorrect in mansion entry

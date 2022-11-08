@@ -109,9 +109,13 @@ proc isCond*(self: Dialog, cond: string): bool =
   result = self.tgt.execCond(cond)
   info fmt"isCond '{cond}': {result}"
 
-proc label(self: Dialog, name: string): YLabel =
-  for label in self.cu.labels.reversed:
-    if label.name == name:
+proc label(self: Dialog, line: int, name: string): YLabel =
+  for label in self.cu.labels:
+    if label.name == name and label.line >= line:
+      return label
+  var line = 0
+  for label in self.cu.labels:
+    if label.name == name and label.line >= line:
       return label
 
 proc numSlots(self: Dialog): int =
@@ -124,9 +128,9 @@ proc clearSlots(self: Dialog) =
     if not self.slots[i].isNil:
       self.slots[i] = nil
 
-proc selectLabel(self: Dialog, name: string) =
+proc selectLabel(self: Dialog, line: int, name: string) =
   info fmt"select label {name}"
-  self.lbl = self.label(name)
+  self.lbl = self.label(line, name)
   self.currentStatement = 0
   self.clearSlots()
   self.state = if self.lbl.isNil: None else: Active
@@ -173,7 +177,7 @@ method visit(self: ExpVisitor, node: YCodeExp) =
 
 method visit(self: ExpVisitor, node: YGoto) =
   info fmt"execute goto {node.name}"
-  self.dialog.selectLabel(node.name)
+  self.dialog.selectLabel(node.line, node.name)
 
 method visit(self: ExpVisitor, node: YShutup) =
   info "shutup"
@@ -224,10 +228,10 @@ proc choose(slot: DialogSlot) =
     if slot.dlg.context.parrot:
       slot.dlg.state = DialogState.Active
       slot.dlg.action = newSerialMotors(
-        [slot.dlg.tgt.say(slot.dlg.context.actor, slot.choice.text), newActionMotor(proc () = slot.dlg.selectLabel(slot.choice.goto.name))])
+        [slot.dlg.tgt.say(slot.dlg.context.actor, slot.choice.text), newActionMotor(proc () = slot.dlg.selectLabel(slot.choice.goto.line, slot.choice.goto.name))])
       slot.dlg.clearSlots()
     else:
-      slot.dlg.selectLabel(slot.choice.goto.name)
+      slot.dlg.selectLabel(slot.choice.goto.line, slot.choice.goto.name)
 
 proc choose*(self: Dialog, choice: int) =
   if self.state == WaitingForChoice:
@@ -264,7 +268,8 @@ proc gotoNextLabel(self: Dialog) =
   if not self.lbl.isNil:
     let i = self.cu.labels.find(self.lbl)
     if i != -1 and i != self.cu.labels.len - 1:
-      self.selectLabel(self.cu.labels[i+1].name)
+      let label = self.cu.labels[i+1]
+      self.selectLabel(label.line, label.name)
     else:
       self.state = None
 
@@ -366,5 +371,5 @@ proc start*(self: Dialog, actor, name, node: string) =
   info fmt"start dialog {path}"
   let code = gGGPackMgr.loadString(path)
   self.cu = parseYack(code, path)
-  self.selectLabel(node)
+  self.selectLabel(0, node)
   self.update(0)
