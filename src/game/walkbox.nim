@@ -30,8 +30,6 @@ proc mergePolygons(walkboxes: openArray[Walkbox]): Paths =
     for wb in walkboxes:
       if wb.visible:
         subjects.add wb.toPolygon
-      else:
-        clips.add wb.toPolygon
     result = Union(subjects, clips, pftEvenOdd)
 
 proc toWalkbox(polygon: Path): Walkbox =
