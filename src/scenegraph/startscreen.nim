@@ -1,5 +1,6 @@
 import glm
 import node
+import uinode
 import textnode
 import sqnim
 import ../gfx/color
@@ -23,7 +24,7 @@ const
   Help = 99961
   Quit = 99915
 
-type StartScreen* = ref object of Node
+type StartScreen* = ref object of UINode
 
 proc onQuitClick(node: Node, id: int) =
   case id:
@@ -75,8 +76,13 @@ proc newLabel(id: int, y: float): TextNode =
 proc newStartScreen*(): StartScreen =
   result = StartScreen()
   result.init()
-  result.addChild newLabel(LoadGame, 600f)
-  result.addChild newLabel(NewGame, 500f)
-  result.addChild newLabel(Options, 400f)
-  result.addChild newLabel(Help, 300f)
-  result.addChild newLabel(Quit, 200f)
+  
+method activate*(self: StartScreen) =
+  self.addChild newLabel(LoadGame, 600f)
+  self.addChild newLabel(NewGame, 500f)
+  self.addChild newLabel(Options, 400f)
+  self.addChild newLabel(Help, 300f)
+  self.addChild newLabel(Quit, 200f)
+
+method deactivate*(self: StartScreen) =
+  self.children.setLen 0

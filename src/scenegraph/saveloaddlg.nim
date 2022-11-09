@@ -4,6 +4,7 @@ import std/times
 import std/json
 import glm
 import node
+import uinode
 import textnode
 import spritenode
 import nimyggpack
@@ -32,7 +33,7 @@ type
   SaveLoadDialogMode* = enum
     smLoad
     smSave
-  SaveLoadDialog* = ref object of Node
+  SaveLoadDialog* = ref object of UINode
     mode: SaveLoadDialogMode
     savegames: array[9, Savegame]
     clickCbk: ClickCallback

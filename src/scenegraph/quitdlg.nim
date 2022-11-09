@@ -1,5 +1,6 @@
 import glm
 import node
+import uinode
 import textnode
 import spritenode
 import ../gfx/color
@@ -17,7 +18,7 @@ const
 
 type
   ClickCallback* = proc(node: Node, id: int)
-  QuitDialog* = ref object of Node
+  QuitDialog* = ref object of UINode
     clickCbk: ClickCallback
 
 proc newHeader(id: int): TextNode =

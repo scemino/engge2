@@ -1,6 +1,7 @@
 import std/tables
 import glm
 import node
+import uinode
 import textnode
 import spritenode
 import checkbox
@@ -65,7 +66,7 @@ type
   OptionsDialogMode* = enum
     FromStartScreen
     FromGame
-  OptionsDialog* = ref object of Node
+  OptionsDialog* = ref object of UINode
     mode: OptionsDialogMode
   State = enum
     sOptions
