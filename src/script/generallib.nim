@@ -730,7 +730,7 @@ proc strcrc(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var str: string
   if SQ_FAILED(get(v, 2, str)):
     return sq_throwerror(v, "Failed to get str")
-  push(v, crc32(str).tohex)
+  push(v, crc32(str).int)
   1
 
 proc strfind(v: HSQUIRRELVM): SQInteger {.cdecl.} =
