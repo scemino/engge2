@@ -13,7 +13,9 @@
 * [ ] failed to get object: FUNCTION [createSpeckOfDust()] Helpers.bnut line [2072], enteredRoom()] Helpers.bnut line [1467], NATIVE line [-1], QuickiePalOutside.bnut line [156], NATIVE line [-1], MainStreet.bnut line [749]
 * [ ] failed to get object or actor: animateBirdObject()] Vista.bnut line [128]
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
-* [ ] the hitbox for the yes and no button in the quit dialog starts a few pixels too low 
+* [ ] text and speech: language is not centered when changed
+* [ ] text and speech: language is not translated
+* [x] the hitbox for the yes and no button in the quit dialog starts a few pixels too low 
 * [x] main menu is not translated if language is changed
 * [x] strcrc should return an integer not a string
 * [x] when ransome pushes the trampoline, it never ends

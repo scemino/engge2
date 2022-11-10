@@ -33,7 +33,7 @@ type
     scale*: Vec2f
     rotation*, rotationOffset*: float32
     zOrder*: int32
-    anchorNorm: Vec2f
+    anchorNorm*: Vec2f
     anchor: Vec2f
     size*: Vec2f
     visible*: bool
@@ -169,7 +169,7 @@ method drawCore(self: Node, transf: Mat4f) {.base, locks: "unknown".} =
 
 method getRect*(self: Node): Rectf {.base.} =
   let size = self.size * self.scale
-  rectFromPositionSize(self.absolutePosition() + vec2(-size.x, size.y) * self.anchorNorm, size)
+  rectFromPositionSize(self.absolutePosition() + vec2f(-size.x, size.y) * self.anchorNorm, size)
 
 proc draw*(self: Node; parent = mat4(1f)) =
   ## Draws `self` node.

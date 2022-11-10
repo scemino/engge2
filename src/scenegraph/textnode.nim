@@ -24,4 +24,4 @@ method drawCore(self: TextNode, transf: Mat4f) =
 
 method getRect*(self: TextNode): Rectf =
   let size = self.size * self.scale
-  rectFromPositionSize(self.absolutePosition() - vec2f(0f, size.y), size)
+  rectFromPositionSize(self.absolutePosition() + vec2f(0, -size.y) + vec2f(-size.x, size.y) * self.anchorNorm, size)

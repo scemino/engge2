@@ -1,6 +1,7 @@
 import glm
 import node
 import ../gfx/recti
+import ../gfx/color
 import ../gfx/texture
 import ../gfx/graphics
 import ../gfx/spritesheet
