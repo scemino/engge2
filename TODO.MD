@@ -12,9 +12,9 @@
 * [ ] failed to get object: FUNCTION [createSpeckOfDust()] Helpers.bnut line [2072], enteredRoom()] Helpers.bnut line [1467], NATIVE line [-1], QuickiePalOutside.bnut line [156], NATIVE line [-1], MainStreet.bnut line [749]
 * [ ] failed to get object or actor: animateBirdObject()] Vista.bnut line [128]
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
-* [ ] text and speech: language is not centered when changed
 * [ ] text and speech: language is not translated
 * [ ] Save game should be disabled in start screen/options
+* [x] text and speech: language is not centered when changed
 * [x] sound and focus events for the underlying menu
 * [x] the hitbox for the yes and no button in the quit dialog starts a few pixels too low 
 * [x] main menu is not translated if language is changed

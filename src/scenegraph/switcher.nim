@@ -18,7 +18,7 @@ type
     callback: SwitcherCallback
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let switcher = cast[Switcher](tag)
+  var switcher = cast[Switcher](tag)
   case event:
   of Enter:
     src.getParent().color = Yellow
@@ -29,8 +29,12 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     src.getParent().color = White
     switcher.index = (switcher.index + 1) mod switcher.values.len
     let id = switcher.values[switcher.index]
-    switcher.text.text.text = getText(id)
-    switcher.text.pos = vec2f(ScreenWidth/2f - switcher.text.text.bounds.x/2f, 0f)
+    switcher.text.remove()
+    let text = newText(gResMgr.font("UIFontMedium"), getText(id), thCenter)
+    switcher.text = newTextNode(text)
+    switcher.text.pos = vec2f(ScreenWidth/2f - text.bounds.x/2f, 0f)
+    switcher.text.addButton(onButton, cast[pointer](switcher))
+    switcher.addChild switcher.text
     switcher.callback(switcher, switcher.index)
   else:
     discard

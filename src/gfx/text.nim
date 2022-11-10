@@ -175,6 +175,7 @@ proc update*(self: Text) =
 
     # Reset
     self.vertices.setLen 0
+    self.quads.setLen 0
     self.bnds = Vec2f()
     var color = self.color
     
