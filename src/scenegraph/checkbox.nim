@@ -33,6 +33,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   of Leave:
     src.getParent().color = White
   of Down:
+    src.getParent().color = White
     checkbox.callback(checkbox, not checkbox.checked)
   else:
     discard

@@ -121,19 +121,21 @@ proc enabled(id: int): bool =
   id != SaveGame or gAllowSaveGames
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let id = cast[int](tag)
-  case event:
-  of Enter:
-    if enabled(id):
-      src.color = Yellow
-      playSoundHover()
-  of Leave:
-    src.color = White
-  of Down:
-    if enabled(id):
-      onButtonDown(src.getParent, id)
-  else:
-    discard
+  if src.uiNode().active:
+    let id = cast[int](tag)
+    case event:
+    of Enter:
+      if enabled(id):
+        src.color = Yellow
+        playSoundHover()
+    of Leave:
+      src.color = White
+    of Down:
+      if enabled(id):
+        src.color = White
+        onButtonDown(src.getParent, id)
+    else:
+      discard
 
 proc newHeader(id: int): TextNode =
   let titleTxt = newText(gResMgr.font("HeadingFont"), getText(id), thCenter)

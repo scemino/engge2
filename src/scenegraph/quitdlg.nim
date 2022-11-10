@@ -10,6 +10,7 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
+import ../audio/audio
 
 const
   Yes* = 99907
@@ -31,10 +32,12 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Enter:
     src.color = Yellow
+    playSoundHover()
   of Leave:
     src.color = White
   of Down:
     let dlg = cast[QuitDialog](src.getParent())
+    src.color = White
     dlg.clickCbk(dlg, id)
   else:
     discard

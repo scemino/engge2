@@ -8,6 +8,7 @@ import ../gfx/spritesheet
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
+import ../audio/audio
 
 type
   SliderCallback* = proc(self: Slider, value: float32)
@@ -28,10 +29,13 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer = nil) =
   of Enter:
     slider.text.color = Yellow
     slider.slider.color = Yellow
+    playSoundHover()
   of Leave:
     slider.text.color = White
     slider.slider.color = White
   of Drag:
+    slider.text.color = White
+    slider.slider.color = White
     let x = clamp(pos.x, slider.min, slider.max)
     let value = (x - slider.min) / (slider.max - slider.min)
     slider.handle.pos = vec2(x, src.pos.y)

@@ -55,17 +55,19 @@ proc onButtonDown(node: Node, id: int) =
     discard
 
 proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
-  let id = cast[int](tag)
-  case event:
-  of Enter:
-    src.color = Yellow
-    playSoundHover()
-  of Leave:
-    src.color = White
-  of Down:
-    onButtonDown(src.getParent, id)
-  else:
-    discard
+  if src.uiNode().active:
+    let id = cast[int](tag)
+    case event:
+    of Enter:
+      src.color = Yellow
+      playSoundHover()
+    of Leave:
+      src.color = White
+    of Down:
+      src.color = White
+      onButtonDown(src.getParent, id)
+    else:
+      discard
 
 proc newLabel(id: int, y: float): TextNode =
   let titleTxt = newText(gResMgr.font("UIFontLarge"), getText(id), thCenter)
@@ -77,12 +79,12 @@ proc newStartScreen*(): StartScreen =
   result = StartScreen()
   result.init()
   
-method activate*(self: StartScreen) =
+method onActivate*(self: StartScreen) =
   self.addChild newLabel(LoadGame, 600f)
   self.addChild newLabel(NewGame, 500f)
   self.addChild newLabel(Options, 400f)
   self.addChild newLabel(Help, 300f)
   self.addChild newLabel(Quit, 200f)
 
-method deactivate*(self: StartScreen) =
+method onDeactivate*(self: StartScreen) =
   self.children.setLen 0

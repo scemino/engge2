@@ -6,6 +6,7 @@ import ../gfx/color
 import ../game/resmanager
 import ../game/screen
 import ../io/textdb
+import ../audio/audio
 
 type
   SwitcherCallback* = proc(self: Switcher, value: int)
@@ -21,9 +22,11 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
   case event:
   of Enter:
     src.getParent().color = Yellow
+    playSoundHover()
   of Leave:
     src.getParent().color = White
   of Down:
+    src.getParent().color = White
     switcher.index = (switcher.index + 1) mod switcher.values.len
     let id = switcher.values[switcher.index]
     switcher.text.text.text = getText(id)

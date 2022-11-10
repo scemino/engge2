@@ -3,7 +3,6 @@
 ## Known Bugs
 
 * [ ] wrong actor placement during give animation
-* [ ] music and sounds are interrupted
 * [ ] annoying kid is walking like a crab
 * [ ] When play first with franklin the icon is a ghost
 * [ ] When willie snore, his head vanishes (lips contains head1 and 2 but not the anim)
@@ -15,6 +14,8 @@
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
 * [ ] text and speech: language is not centered when changed
 * [ ] text and speech: language is not translated
+* [ ] Save game should be disabled in start screen/options
+* [x] sound and focus events for the underlying menu
 * [x] the hitbox for the yes and no button in the quit dialog starts a few pixels too low 
 * [x] main menu is not translated if language is changed
 * [x] strcrc should return an integer not a string
@@ -149,13 +150,21 @@
     * [x] Save game (enabled only in game)
     * [x] Load game (back: go back to main menu or game)
     * [x] Sound
-    * [x] Video
+    * [ ] Video
+      * [ ] safe area
+      * [ ] ransome unbeeped
     * [x] Controls
     * [x] Text & Speech
   * [x] the background is greyed out (and is inactive)
   * [x] Main menu (StartScreen) does not pause game
   * [x] pause game (cursor is changed)
   * [x] quit game (is over options, background is darker, no: go back to main menu or options)
+* [ ] audio
+  * [ ] support italian dub
+  * [x] sound position
+  * [x] talk
+  * [x] sound
+  * [x] music
 * [ ] dialogs
   * [ ] choice anim
   * [ ] expressions
@@ -304,11 +313,6 @@
 * [x] cutscene
   * [x] cutscene UI (ESC)
   * [x] cutscene override
-* [x] audio
-  * [x] sound position
-  * [x] talk
-  * [x] sound
-  * [x] music
 * [x] triggers
   * [x] room trigger should be called in a thread (to be breakable)
   * [x] sound triggers

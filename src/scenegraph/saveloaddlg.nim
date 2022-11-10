@@ -51,6 +51,7 @@ proc onButton(src: Node, event: EventKind, pos: Vec2f, tag: pointer) =
     src.color = White
   of Down:
     let dlg = cast[SaveLoadDialog](src.getParent())
+    src.color = White
     dlg.clickCbk(dlg, Back)
   else:
     discard
