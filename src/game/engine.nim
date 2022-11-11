@@ -332,6 +332,8 @@ proc exitRoom(self: Engine, nextRoom: Room) =
       for obj in layer.objects.toSeq:
         if obj.temporary:
           obj.delObject()
+        elif obj.id.isActor and self.currentActor != obj:
+          obj.stopObjectMotors()
 
     # call global function enteredRoom with the room as argument
     call("exitedRoom", [self.room.table])
@@ -346,7 +348,6 @@ proc exitRoom(self: Engine, nextRoom: Room) =
 
 proc actorEnter(self: Engine) =
   if not self.currentActor.isNil:
-    # TODO: self.currentActor.stopWalking()
     call(self.v, self.currentActor.table, "actorEnter")
     if not self.room.isNil:
       if rawExists(self.room.table, "actorEnter"):
