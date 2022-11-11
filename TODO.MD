@@ -15,7 +15,7 @@
 * [ ] text and speech: language is not translated
 * [ ] Save game should be disabled in start screen/options
 * [ ] pizza code is almost not visible
-* [ ] the camera constraints are not correct in the library
+* [x] the camera constraints are not correct in the library
 * [x] when we se the elevator in the van, we don't see the actor
 * [x] Delores cannot pickup SR-01 programming book
 * [x] Delores cannot take the key in the workshop

@@ -87,7 +87,6 @@ type
     followActor*: Object
     mouseDownTime: DateTime
     walkFastState: bool
-    bounds*: Recti
     frameCounter*: int
     dlg*: Dialog
     uiInv*: Inventory
@@ -389,7 +388,7 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   self.scene.addChild self.room.scene
   self.room.numLights = 0
   self.room.overlay = Transparent
-  self.bounds = rectFromMinMax(vec2(0'i32,0'i32), room.roomSize)
+  self.camera.bounds = rectFromMinMax(vec2(0f,0f), vec2f(room.roomSize))
   if not self.actor.isNil:
     self.hud.verb = self.hud.actorSlot(self.actor).verbs[0]
 
@@ -433,7 +432,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
 proc setRoom*(self: Engine, room: Room) =
   if not room.isNil and self.room != room:
     self.enterRoom(room)
-    self.camera.bounds = rectFromMinMax(vec2(0'f,0'f), vec2f(room.roomSize))
 
 proc inInventory*(obj: Object): bool =
   obj.id.isObject and obj.getIcon().len > 0

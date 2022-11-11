@@ -21,8 +21,8 @@ proc clamp(self: var Camera, at: Vec2f) =
 
     self.pos.x = clamp(at.x, screenSize.x / 2 + self.bounds.left, screenSize.x / 2 + self.bounds.right)
     self.pos.y = clamp(at.y, self.bounds.bottom, self.bounds.top - screenSize.y / 2)
-    self.pos.x = clamp(at.x, screenSize.x / 2f, max(roomSize.x - screenSize.x / 2f, 0f))
-    self.pos.y = clamp(at.y, screenSize.y / 2, max(roomSize.y - screenSize.y / 2, 0f))
+    self.pos.x = clamp(self.pos.x, screenSize.x / 2f, max(roomSize.x - screenSize.x / 2f, 0f))
+    self.pos.y = clamp(self.pos.y, screenSize.y / 2, max(roomSize.y - screenSize.y / 2, 0f))
 
 proc setAt(self: var Camera, at: Vec2f) =
   let screenSize = vec2f(self.room.getScreenSize())
