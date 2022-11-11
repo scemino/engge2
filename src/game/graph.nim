@@ -294,13 +294,6 @@ proc calculatePath*(self: PathFinder, start, to: Vec2f): seq[Vec2f] =
     var to = to
     let startNodeIndex = walkgraph.nodes.len
 
-    for i in 1..<self.walkboxes.len:
-      let wb = self.walkboxes[i]
-      if wb.inside(start):
-        start = self.walkboxes[i].getClosestPointOnEdge(start)
-      if wb.inside(to):
-        to = self.walkboxes[i].getClosestPointOnEdge(to)
-
     # if destination is not inside current walkable area, then get the closest point
     let wb = self.walkboxes[0]
     if wb.visible and not wb.contains(to):

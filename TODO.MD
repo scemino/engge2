@@ -16,6 +16,8 @@
 * [ ] Save game should be disabled in start screen/options
 * [ ] when we se the elevator in the van, we don't see the actor
 * [ ] pizza code is almost not visible
+* [ ] the camera constraints are not correct in the library
+* [x] Delores cannot pickup SR-01 programming book
 * [x] Delores cannot take the key in the workshop
 * [x] The pigeon van should arrive in front of the hotel
 * [x] Cannot give pigeons card to hotel manager

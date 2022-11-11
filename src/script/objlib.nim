@@ -764,7 +764,7 @@ proc objectUsePosX(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.usePos.x.int)
+  push(v, obj.getUsePos.x.int)
   1
 
 proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -775,7 +775,7 @@ proc objectUsePosY(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   var obj = obj(v, 2)
   if obj.isNil:
     return sq_throwerror(v, "failed to get object")
-  push(v, obj.usePos.y.int)
+  push(v, obj.getUsePos.y.int)
   1
 
 proc objectValidUsePos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
