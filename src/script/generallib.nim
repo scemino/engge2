@@ -135,19 +135,14 @@ proc cameraInRoom(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   ##         cameraInRoom(PhoneBook)
   ##      }
   ## }
-  var table: HSQOBJECT
-  sq_resetobject(table)
-  discard sq_getstackobj(v, 2, table)
-  let id = table.getId()
-  if id.isRoom():
-    gEngine.setRoom(room(id))
-  elif id.isObject():
-    let room = objRoom(table)
-    if room.isNil:
-      return sq_throwerror(v, "failed to get room")
+  let room = room(v, 2)
+  if not room.isNil:
     gEngine.setRoom(room)
   else:
-    return sq_throwerror(v, "failed to get room")
+    let obj = obj(v, 2)
+    if obj.isNil or obj.room.isNil:
+      return sq_throwerror(v, "failed to get room")
+    gEngine.setRoom(obj.room)
   0
 
 proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
@@ -809,7 +804,7 @@ proc translate(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   if SQ_FAILED(get(v, 2, text)):
     return sq_throwerror(v, "Failed to get text")
   let newText = getText(text)
-  info fmt"translate({text}): {newText}"
+  # info fmt"translate({text}): {newText}"
   push(v, newText)
   1
 
