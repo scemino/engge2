@@ -14,6 +14,7 @@
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
 * [ ] text and speech: language is not translated
 * [ ] Save game should be disabled in start screen/options
+* [x] Cannot give pigeons card to hotel manager
 * [x] Voice not hear in dialog
 * [x] text and speech: language is not centered when changed
 * [x] sound and focus events for the underlying menu

@@ -17,7 +17,7 @@ import ../../util/common
 import ../../script/scriptconsts
 
 const
-  MIN_USE_DIST  = 10
+  MIN_USE_DIST  = 15
   MIN_TALK_DIST = 60
 
 type ReachAnim* = ref object of Motor
