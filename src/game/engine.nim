@@ -333,8 +333,6 @@ proc exitRoom(self: Engine, nextRoom: Room) =
       for obj in layer.objects.toSeq:
         if obj.temporary:
           obj.delObject()
-        else:
-          obj.stopObjectMotors()
 
     # call global function enteredRoom with the room as argument
     call("exitedRoom", [self.room.table])
@@ -398,7 +396,6 @@ proc enterRoom*(self: Engine, room: Room, door: Object = nil) =
   # move current actor to the new room
   var camPos: Vec2f
   if not gEngine.actor.isNil:
-    gEngine.actor.stopObjectMotors()
     self.cancelSentence(nil)
     if not door.isNil:
       let facing = getOppositeFacing(door.getDoorFacing())
@@ -962,11 +959,6 @@ proc update*(self: Engine, elapsed: float) =
   # update room
   if not self.room.isNil:
     self.room.update(elapsed)
-
-  # update actors
-  for actor in self.actors:
-    if actor.room == gEngine.room:
-      actor.update(elapsed)
 
   self.updateTriggers()
 

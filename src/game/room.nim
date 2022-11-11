@@ -398,8 +398,25 @@ proc `room=`*(self: Object, room: Room) =
         layer.node.addChild self.node
     self.r = room
 
+proc disableMotor(motor: Motor) =
+  if not motor.isNil:
+    motor.disable()
+
+proc stopObjectMotors*(self: Object) =
+  disableMotor(self.alphaTo)
+  disableMotor(self.rotateTo)
+  disableMotor(self.moveTo)
+  disableMotor(self.walkTo)
+  disableMotor(self.talking)
+  disableMotor(self.blink)
+  disableMotor(self.turnTo)
+  disableMotor(self.shakeTo)
+  disableMotor(self.jiggleTo)
+  
 proc setRoom*(self: Object, room: Room) =
-  self.room = room
+  if self.room != room:
+    self.stopObjectMotors()
+    self.room = room
 
 proc lockFacing*(self: Object, facing: int) =
   self.facingLockValue = facing
@@ -1005,17 +1022,3 @@ proc shake*(self: Object, amount: float) =
 proc jiggle*(self: Object, amount: float) =
   self.jiggleTo = newJiggle(self.node, amount)
 
-proc disableMotor(motor: Motor) =
-  if not motor.isNil:
-    motor.disable()
-
-proc stopObjectMotors*(self: Object) =
-  disableMotor(self.alphaTo)
-  disableMotor(self.rotateTo)
-  disableMotor(self.moveTo)
-  disableMotor(self.walkTo)
-  disableMotor(self.talking)
-  disableMotor(self.blink)
-  disableMotor(self.turnTo)
-  disableMotor(self.shakeTo)
-  disableMotor(self.jiggleTo)

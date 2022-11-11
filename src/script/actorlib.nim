@@ -80,7 +80,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     let spot = obj(v, 3)
     if not spot.isNil:
       let pos = spot.node.pos + spot.usePos
-      actor.room = spot.room
+      actor.setRoom spot.room
       actor.stopWalking()
       info fmt"actorAt {actor.key} at {spot.key}, room '{spot.room.name}'"
       actor.node.pos = pos
@@ -91,7 +91,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
         return sq_throwerror(v, "failed to get spot or room")
       info fmt"actorAt {actor.key} room '{room.name}'"
       actor.stopWalking()
-      actor.room = room
+      actor.setRoom room
     0
   of 4:
     let actor = actor(v, 2)
@@ -125,7 +125,7 @@ proc actorAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     actor.stopWalking()
     actor.node.pos = vec2f(x.float32, y.float32)
     actor.setFacing(getFacing(dir, actor.getFacing))
-    actor.room = room
+    actor.setRoom room
     0
   else:
     sq_throwerror(v, "invalid number of arguments")

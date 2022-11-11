@@ -14,9 +14,9 @@
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
 * [ ] text and speech: language is not translated
 * [ ] Save game should be disabled in start screen/options
-* [ ] when we se the elevator in the van, we don't see the actor
 * [ ] pizza code is almost not visible
 * [ ] the camera constraints are not correct in the library
+* [x] when we se the elevator in the van, we don't see the actor
 * [x] Delores cannot pickup SR-01 programming book
 * [x] Delores cannot take the key in the workshop
 * [x] The pigeon van should arrive in front of the hotel
