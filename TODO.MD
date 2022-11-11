@@ -14,6 +14,7 @@
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory
 * [ ] text and speech: language is not translated
 * [ ] Save game should be disabled in start screen/options
+* [ ] Voice not hear in dialog
 * [x] text and speech: language is not centered when changed
 * [x] sound and focus events for the underlying menu
 * [x] the hitbox for the yes and no button in the quit dialog starts a few pixels too low 
@@ -159,12 +160,6 @@
   * [x] Main menu (StartScreen) does not pause game
   * [x] pause game (cursor is changed)
   * [x] quit game (is over options, background is darker, no: go back to main menu or options)
-* [ ] audio
-  * [ ] support italian dub
-  * [x] sound position
-  * [x] talk
-  * [x] sound
-  * [x] music
 * [ ] dialogs
   * [ ] choice anim
   * [ ] expressions
@@ -254,6 +249,12 @@
 * [ ] resource management
   * [ ] ref counting with resource management
   * [x] if a resource name contains "_en" then replace by the selected language: texture, spritesheet, ThimbleweedText_en.tsv, loadArray
+* [x] audio
+  * [x] support italian voiceover
+  * [x] sound position
+  * [x] talk
+  * [x] sound
+  * [x] music
 * [x] camera
     * [x] advanced camera movement
     * [x] camera follow actor

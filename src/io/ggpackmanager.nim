@@ -9,6 +9,7 @@ type
   GGPackFileManager = ref object of GGPackManager
     path: string
     ggpacks: seq[GGPackDecoder]
+    packEntries: Table[string, int]
 
 proc newGGPackFileSystemManager*(root: string, directories: varargs[string]): GGPackFileSystemManager =
   new(result)
@@ -53,34 +54,35 @@ method assetExists*(self: GGPackFileSystemManager, entry: string): bool =
   false
 
 proc newGGPackFileManager*(path, key: string): GGPackFileManager =
-  new(result)
-  result.path = path
+  result = GGPackFileManager(path: path, packEntries: initTable[string,int](65536))
   info fmt"Search ggpack in {path.substr(0, path.len-2) & '*'}"
   for file in os.walkFiles(path.substr(0, path.len-2) & '*'):
     info fmt"Add ggpack {file}"
-    result.ggpacks.add newGGPackDecoder(newFileStream(file), xorKeys[key])
+    let ggpack = newGGPackDecoder(newFileStream(file), xorKeys[key])
+    for (name, entry) in ggpack.entries.pairs:
+      # info fmt" . Adding entry {name}"
+      result.packEntries[name] = result.ggpacks.len
+    result.ggpacks.add ggpack
 
 method loadStream(self: GGPackFileManager, entry: string): Stream =
   var (_, _, ext) = splitFile(entry)
-  for pack in self.ggpacks:
-    if pack.entries.contains(entry):
-      if ext == ".wimpy":
-        return newStringStream(pretty(pack.extractTable(entry)))
-      else:
-        return pack.extract(entry)
-  error fmt"{entry} not found"
-  for pack in self.ggpacks:
-    error pack.entries
+  if self.packEntries.contains(entry):
+    let ggpack = self.ggpacks[self.packEntries[entry]]
+    if ext == ".wimpy":
+      result = newStringStream(pretty(ggpack.extractTable(entry)))
+    else:
+      result = ggpack.extract(entry)
+  else:
+    error fmt"{entry} not found"
+    for (name, _) in self.packEntries.pairs:
+      error name
 
 method listFiles*(self: GGPackFileManager): seq[string] =
-  for pack in self.ggpacks:
-    for (entry,_) in pack.entries.pairs:
-      result.add("ggpack://" & self.path & "/" & entry)
+  for (name,_) in self.packEntries.pairs:
+    result.add("ggpack://" & self.path & "/" & name)
 
 method assetExists*(self: GGPackFileManager, entry: string): bool =
-  for pack in self.ggpacks:
-    if pack.entries.contains(entry):
-      return true
+  self.packEntries.contains(entry)
 
 proc loadString*(self: GGPackManager, entry: string): string =
   self.loadStream(entry).readAll
