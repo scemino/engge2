@@ -69,7 +69,10 @@ proc showProperties() =
       gObject.node.color = color
       gObject.node.alpha = color[3]
     igText("Room: %s", objRoom.cstring)
-    igText("Layer: %d", gObject.layer.zsort)
+    if gObject.layer.isNil:
+      igText("Layer: (none)")
+    else:
+      igText("Layer: %d", gObject.layer.zsort)
     igText("Facing: %d", gObject.facing)
     igDragInt("Z-Order", gObject.node.zOrder.addr)
     igDragFloat("Volume", addr gObject.volume, 1f, 0f, 1f)
