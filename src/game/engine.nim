@@ -806,7 +806,7 @@ proc actorSwitcherSlot(self: Engine, slot: ActorSlot): ActorSwitcherSlot =
   ActorSwitcherSlot(icon: slot.actor.getIcon(), back: slot.verbUiColors.inventoryBackground, frame: slot.verbUiColors.inventoryFrame, selectFunc: selectFunc)
 
 proc showOptions*() =
-  pushState newDlgState(newOptionsDialog(FromGame))
+  pushState newDlgState(newOptionsDialog(FromGame, sOptions))
 
 proc actorSwitcherSlots(self: Engine): seq[ActorSwitcherSlot] =
   if not self.actor.isNil:

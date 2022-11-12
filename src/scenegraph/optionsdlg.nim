@@ -9,6 +9,7 @@ import slider
 import switcher
 import saveloaddlg
 import quitdlg
+import helpdlg
 import sqnim
 import ../gfx/color
 import ../gfx/graphics
@@ -55,6 +56,11 @@ const
   MusicVolume = 99938
   VoiceVolume = 99939
   Help = 99961
+  Introduction = 99966
+  MouseTips = 99967
+  ControllerTips = 99968
+  ControllerMap = 99969
+  KeyboardMap = 99970
   Quit = 99915
   Back = 99904
   varNames = {Fullscreen: "windowFullscreen", ToiletPaperOver: "toilet_paper_over", AnnoyingInJokes: "annoying_injokes", Controller: "controller", ScrollSyncCursor: "controllerScollLockCursor", InvertVerbColors: "invertVerbHighlight", RetroFonts: "retroFonts", RetroVerbs: "retroVerbs", ClassicSentence: "hudSentence", TextSpeed: "sayLineSpeed", DisplayText: "talkiesShowText", HearVoice: "talkiesHearVoice"}.toTable
@@ -68,12 +74,13 @@ type
     FromGame
   OptionsDialog* = ref object of UINode
     mode: OptionsDialogMode
-  State = enum
+  State* = enum
     sOptions
     sVideo
     sControls
     sTextAndSpeech
     sSound
+    sHelp
 
 var
   gState: State
@@ -110,10 +117,22 @@ proc onButtonDown(node: Node, id: int) =
     setState(sTextAndSpeech)
   of Sound:
     setState(sSound)
+  of Help:
+    setState(sHelp)
   of LoadGame:
     pushState newDlgState(newSaveLoadDialog(smLoad, onSaveLoadBackClick))
   of SaveGame:
     pushState newDlgState(newSaveLoadDialog(smSave, onSaveLoadBackClick))
+  of Introduction:
+    pushState newDlgState(newHelpDialog([1, 2, 3, 4, 5, 6]))
+  of MouseTips:
+    pushState newDlgState(newHelpDialog([7, 8, 9]))
+  of ControllerTips:
+    pushState newDlgState(newHelpDialog([10, 11, 12, 13, 14]))
+  of ControllerMap:
+    pushState newDlgState(newHelpDialog([15]))
+  of KeyboardMap:
+    pushState newDlgState(newHelpDialog([16]))
   else:
     discard
 
@@ -258,16 +277,24 @@ proc update() =
     sqCallFunc(vol, "talkieMixVolume", [])
     gSelf.addChild newSlider(VoiceVolume, 340f, onSlide, vol)
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
+  of sHelp:
+    gSelf.addChild newHeader(Help)
+    gSelf.addChild newButton(Introduction, 570f)
+    gSelf.addChild newButton(MouseTips, 500f)
+    gSelf.addChild newButton(ControllerTips, 430f)
+    gSelf.addChild newButton(ControllerMap, 360f)
+    gSelf.addChild newButton(KeyboardMap, 290f)
+    gSelf.addChild newButton(Back, 100f, "UIFontMedium")
 
 proc setState(state: State) =
   gState = state
   update()
 
-proc newOptionsDialog*(mode: OptionsDialogMode): OptionsDialog =
+proc newOptionsDialog*(mode: OptionsDialogMode, state: State): OptionsDialog =
   gSelf = OptionsDialog(mode: mode)
   result = gSelf
   result.init()
-  update()
+  setState(state)
 
 method drawCore(self: OptionsDialog, transf: Mat4f) =
   gfxDrawQuad(vec2(0f, 0f), vec2f(ScreenWidth, ScreenHeight), rgbaf(Black, 0.5f), transf)

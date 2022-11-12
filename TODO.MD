@@ -147,18 +147,18 @@
 
 * [ ] UI dialogs
   * [ ] Options
-    * [ ] Help
-      * [ ] Intro            (back: back to options even from mainmenu)
-      * [ ] Mouse tips       (back: back to options even from mainmenu)
-      * [ ] Controller tips  (back: back to options even from mainmenu)
-      * [ ] Controller map   (back: back to options even from mainmenu)
-      * [ ] Keyboard map     (back: back to options even from mainmenu)
-    * [x] Save game (enabled only in game)
-    * [x] Load game (back: go back to main menu or game)
-    * [x] Sound
     * [ ] Video
       * [ ] safe area
       * [ ] ransome unbeeped
+    * [x] Help
+      * [x] Intro            (back: back to options even from mainmenu)
+      * [x] Mouse tips       (back: back to options even from mainmenu)
+      * [x] Controller tips  (back: back to options even from mainmenu)
+      * [x] Controller map   (back: back to options even from mainmenu)
+      * [x] Keyboard map     (back: back to options even from mainmenu)
+    * [x] Save game (enabled only in game)
+    * [x] Load game (back: go back to main menu or game)
+    * [x] Sound
     * [x] Controls
     * [x] Text & Speech
   * [x] the background is greyed out (and is inactive)
