@@ -29,7 +29,6 @@ import ../scenegraph/scene
 import ../scenegraph/parallaxnode
 import ../scenegraph/hud
 import ../scenegraph/dialog
-import ../scenegraph/dlgtgt
 import ../scenegraph/actorswitcher
 import ../scenegraph/optionsdlg
 import ../scenegraph/inventory

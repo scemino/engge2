@@ -1,6 +1,4 @@
 import sqnim
-import std/logging
-import std/strformat
 import ../../libs/imgui
 import ../../game/engine
 import ../../game/thread

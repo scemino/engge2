@@ -1,7 +1,6 @@
 import std/logging
 import std/strformat
 import std/sequtils
-import std/algorithm
 import glm
 import node
 import dlgtgt

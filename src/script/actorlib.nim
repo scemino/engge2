@@ -794,7 +794,7 @@ proc sayLineAt(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     if SQ_FAILED(get(v, 6, text)):
       return sq_throwerror(v, "failed to get text")
 
-  warn fmt"TODO: sayline: ({x},{y}) text={text} color={color} duration={duration}"
+  warn fmt"TODO: saylineAt: ({x},{y}) text={text} color={color} duration={duration}"
   0
 
 proc isActorOnScreen(v: HSQUIRRELVM): SQInteger {.cdecl.} =

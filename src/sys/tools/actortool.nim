@@ -1,10 +1,8 @@
 import std/strformat
-import std/tables
 import glm
 import ../debugtool
 import ../../game/engine
 import ../../game/room
-import ../../game/actor
 import ../../game/actoranim
 import ../../game/motors/motor
 import ../../libs/imgui

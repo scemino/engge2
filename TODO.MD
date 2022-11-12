@@ -7,8 +7,6 @@
 * [ ] When play first with franklin the icon is a ghost
 * [ ] When willie snore, his head vanishes (lips contains head1 and 2 but not the anim)
 * [ ] In closeup room, the actor seems to walk
-* [ ] failed to get object: CountyMap.bnut line [141], Helpers.bnut line [752]
-* [ ] failed to get object: [buildBooks()] MansionLibrary.bnut line [404]
 * [ ] failed to get object: FUNCTION [createSpeckOfDust()] Helpers.bnut line [2072], enteredRoom()] Helpers.bnut line [1467], NATIVE line [-1], QuickiePalOutside.bnut line [156], NATIVE line [-1], MainStreet.bnut line [749]
 * [ ] failed to get object or actor: animateBirdObject()] Vista.bnut line [128]
 * [ ] inventory_slot indicates where the inventory object should be present in the inventory

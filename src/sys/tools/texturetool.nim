@@ -34,7 +34,7 @@ method render*(self: TextureTool) =
   igSetNextWindowSize(ImVec2(x: 520, y: 600), ImGuiCond.FirstUseEver)
   igBegin("Textures".cstring, addr self.visible)
   igText("# textures: %d", gResMgr.textures.len)
-  igText("Total memory: %s", convertSize(total))
+  igText("Total memory: %s", convertSize(total).cstring)
   igSeparator()
     
   if igBeginTable("Textures", 3, (Borders.int or SizingFixedFit.int or Resizable.int or RowBg.int).ImGuiTableFlags):

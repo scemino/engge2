@@ -214,7 +214,6 @@ proc loopObjectSound(v: HSQUIRRELVM): SQInteger {.cdecl.} =
   discard get(v, 4, loopTimes)
   var fadeInTime = -1.0
   discard get(v, 5, fadeInTime)
-  # TODO: loopObjectSound, add object
   warn "loopObjectSound not fully implemented"
   if not obj.sound.isNil:
     gEngine.audio.fadeOut(obj.sound)

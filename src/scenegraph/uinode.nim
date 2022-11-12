@@ -10,10 +10,10 @@ proc uiNode*(self: Node): UINode =
       return cast[UINode](node)
     node = self.parent
 
-method onActivate(self: UINode) =
+method onActivate(self: UINode) {.base.} =
   self.active = true
 
-method onDeactivate(self: UINode) =
+method onDeactivate(self: UINode) {.base.} =
   self.active = false
 
 proc activate*(self: UINode) =

@@ -10,7 +10,6 @@ import squtils
 import vm
 import ../game/camera
 import ../game/verb
-import ../game/ids
 import ../game/prefs
 import ../game/room
 import ../game/resmanager

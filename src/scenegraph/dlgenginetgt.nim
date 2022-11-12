@@ -9,7 +9,6 @@ import ../game/room
 import ../game/actor
 import ../game/motors/motor
 import ../scenegraph/hud
-import ../io/textdb
 
 type
   EngineDialogTarget* = ref object of DialogTarget

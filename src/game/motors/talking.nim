@@ -56,8 +56,7 @@ proc loadActorSpeech(self: Talking, name: string): SoundId =
       error fmt"File {name}.ogg not found"
     else:
       gEngine.audio.soundDefs.add(soundDefinition)
-      # TODO: add actor id
-      result = gEngine.audio.play(soundDefinition, Talk)
+      result = gEngine.audio.play(soundDefinition, Talk, 0, 0, self.obj.id)
 
 proc setDuration(self: Talking, text: string) =
   self.elapsed = 0
