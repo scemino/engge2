@@ -20,6 +20,22 @@ It's still a project in active development, and there are a lot of issues, don't
 * You can even keep your achievements by copying the `Save.dat` file
 * Ready ? Just type `./engge2`
 
+## Ransome unbeeped DLC, Italian voice over and more
+
+`engge 2` now supports [Ransome unbeeped](https://www.gog.com/game/thimbleweed_park_ransome_unbeeped) and also [Italian voiceover](https://www.gugames.eu/twp_voice.html).
+
+Go to your installation folder and copy these files:  `ThimbleweedPark.ggpack3` to `engge2` directory.
+
+You can even create your own `ggpack` and override the original assets à la [Doom WAD](https://en.wikipedia.org/wiki/Doom_modding) :wink: 
+
+Rename your `ggpack` `ThimbleweedPark.ggpack3` or `ThimbleweedPark.ggpack4` or `ThimbleweedPark.ggpack5` or ... you get it now :smile:.
+
+## You found a bug or have questions
+
+If you found a bug or something is annoying, don't give up! and please fill out a [bug report](https://github.com/scemino/engge2/issues/new/choose).
+
+You have 1 question or more, don't hesitate, [ask](https://github.com/scemino/engge2/issues/new/choose).
+
 ## How to build
 
 * Clone the repository: `git clone https://github.com/scemino/engge2.git`
