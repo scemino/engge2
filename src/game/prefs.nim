@@ -39,6 +39,8 @@ const
   ToiletPaperOverDefValue* = false
   AnnoyingInJokes* = "annoyingInJokes"
   AnnoyingInJokesDefValue* = false
+  RansomeUnbeeped* = "forceRansomeUnbeeped"
+  RansomeUnbeepedDefValue* = false
   SafeArea = "safeScale"
   Fullscreen* = "windowFullscreen"
   FullscreenDefValue* = false

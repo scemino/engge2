@@ -10,6 +10,7 @@ import switcher
 import saveloaddlg
 import quitdlg
 import helpdlg
+import questiondlg
 import sqnim
 import ../gfx/color
 import ../gfx/graphics
@@ -22,6 +23,7 @@ import ../game/states/state
 import ../game/states/dlgstate
 import ../game/gameloader
 import ../io/textdb
+import ../io/ggpackmanager
 import ../script/squtils
 import ../script/vm
 import ../sys/app
@@ -42,6 +44,7 @@ const
   Fullscreen = 99927
   ToiletPaperOver = 99965
   AnnoyingInJokes = 99971
+  RansomeUnbeeped = 99981
   TextAndSpeech = 99919
   TextSpeed = 99941
   DisplayText = 99942
@@ -63,9 +66,9 @@ const
   KeyboardMap = 99970
   Quit = 99915
   Back = 99904
-  varNames = {Fullscreen: "windowFullscreen", ToiletPaperOver: "toilet_paper_over", AnnoyingInJokes: "annoying_injokes", Controller: "controller", ScrollSyncCursor: "controllerScollLockCursor", InvertVerbColors: "invertVerbHighlight", RetroFonts: "retroFonts", RetroVerbs: "retroVerbs", ClassicSentence: "hudSentence", TextSpeed: "sayLineSpeed", DisplayText: "talkiesShowText", HearVoice: "talkiesHearVoice"}.toTable
-  varPrefNames = {Fullscreen: prefs.Fullscreen, ToiletPaperOver: prefs.ToiletPaperOver, AnnoyingInJokes: prefs.AnnoyingInJokes, Controller: prefs.Controller, ScrollSyncCursor: prefs.ScrollSyncCursor, InvertVerbColors: prefs.InvertVerbHighlight, RetroFonts: prefs.RetroFonts, RetroVerbs: prefs.RetroVerbs, ClassicSentence: prefs.ClassicSentence, TextSpeed: prefs.SayLineSpeed, DisplayText: prefs.DisplayText, HearVoice: prefs.HearVoice}.toTable
-  varPrefDefValues = {Fullscreen: prefs.FullscreenDefValue, ToiletPaperOver: prefs.ToiletPaperOverDefValue, AnnoyingInJokes: prefs.AnnoyingInJokesDefValue, Controller: prefs.ControllerDefValue, ScrollSyncCursor: prefs.ScrollSyncCursorDefValue, InvertVerbColors: prefs.InvertVerbHighlightDefValue, RetroFonts: prefs.RetroFontsDefValue, RetroVerbs: prefs.RetroVerbsDefValue, ClassicSentence: prefs.ClassicSentenceDefValue, DisplayText: prefs.DisplayTextDefValue, HearVoice: prefs.HearVoiceDefValue}.toTable
+  varNames = {Fullscreen: "windowFullscreen", ToiletPaperOver: "toilet_paper_over", AnnoyingInJokes: "annoying_injokes", RansomeUnbeeped: "ransome_unbeeped", Controller: "controller", ScrollSyncCursor: "controllerScollLockCursor", InvertVerbColors: "invertVerbHighlight", RetroFonts: "retroFonts", RetroVerbs: "retroVerbs", ClassicSentence: "hudSentence", TextSpeed: "sayLineSpeed", DisplayText: "talkiesShowText", HearVoice: "talkiesHearVoice"}.toTable
+  varPrefNames = {Fullscreen: prefs.Fullscreen, ToiletPaperOver: prefs.ToiletPaperOver, AnnoyingInJokes: prefs.AnnoyingInJokes, RansomeUnbeeped: prefs.RansomeUnbeeped, Controller: prefs.Controller, ScrollSyncCursor: prefs.ScrollSyncCursor, InvertVerbColors: prefs.InvertVerbHighlight, RetroFonts: prefs.RetroFonts, RetroVerbs: prefs.RetroVerbs, ClassicSentence: prefs.ClassicSentence, TextSpeed: prefs.SayLineSpeed, DisplayText: prefs.DisplayText, HearVoice: prefs.HearVoice}.toTable
+  varPrefDefValues = {Fullscreen: prefs.FullscreenDefValue, ToiletPaperOver: prefs.ToiletPaperOverDefValue, AnnoyingInJokes: prefs.AnnoyingInJokesDefValue, RansomeUnbeeped: prefs.RansomeUnbeepedDefValue, Controller: prefs.ControllerDefValue, ScrollSyncCursor: prefs.ScrollSyncCursorDefValue, InvertVerbColors: prefs.InvertVerbHighlightDefValue, RetroFonts: prefs.RetroFontsDefValue, RetroVerbs: prefs.RetroVerbsDefValue, ClassicSentence: prefs.ClassicSentenceDefValue, DisplayText: prefs.DisplayTextDefValue, HearVoice: prefs.HearVoiceDefValue}.toTable
   varPrefDefFloatValues = {TextSpeed: prefs.SayLineSpeedDefValue}.toTable
 
 type
@@ -183,6 +186,13 @@ proc checkbox(self: Node, id: int): Checkbox =
       if checkbox.id == id:
         return checkbox
 
+proc onQuestion(node: Node, id: int) =
+  case id:
+  of Ok:
+    popState(1)
+  else:
+    discard
+
 proc onCheckVar(self: Checkbox, state: bool) =
   let id = cast[int](self.tag)
   setPrefs(varPrefNames[id], state)
@@ -195,6 +205,9 @@ proc onCheckVar(self: Checkbox, state: bool) =
     self.parent.checkbox(ClassicSentence).onCheckVar(true)
   elif id == Fullscreen:
     app.setFullscreen(state)
+  elif id == RansomeUnbeeped:
+    if state:
+      pushState newDlgState(newQuestionDialog(onQuestion))
 
 proc onSliderVar(self: Slider, value: float32) =
   let id = cast[int](self.tag)
@@ -250,6 +263,7 @@ proc update() =
     gSelf.addChild newCheckVar(Fullscreen, 420f)
     gSelf.addChild newCheckVar(ToiletPaperOver, 360f)
     gSelf.addChild newCheckVar(AnnoyingInJokes, 300f)
+    gSelf.addChild newCheckVar(RansomeUnbeeped, 240f, gGGPackMgr.assetExists("RANSOME_212310.ogg"))
     gSelf.addChild newButton(Back, 100f, "UIFontMedium")
   of sControls:
     gSelf.addChild newHeader(Controls)

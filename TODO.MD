@@ -149,7 +149,7 @@
   * [ ] Options
     * [ ] Video
       * [ ] safe area
-      * [ ] ransome unbeeped
+      * [x] ransome unbeeped
     * [x] Help
       * [x] Intro            (back: back to options even from mainmenu)
       * [x] Mouse tips       (back: back to options even from mainmenu)

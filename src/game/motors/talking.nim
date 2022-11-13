@@ -21,6 +21,7 @@ import ../../audio/audio
 import ../../gfx/text
 import ../../gfx/color
 import ../../script/squtils
+import ../../script/vm
 
 const letterToIndex = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 1 ,'H': 4, 'X': 1}.toTable
 
@@ -34,10 +35,7 @@ type Talking = ref object of Motor
   texts: seq[string]
 
 proc onTalkieId(self: Talking, id: int): int =
-  var idObj: HSQOBJECT
-  idObj.objType = OT_INTEGER
-  idObj.value.nInteger = id
-  callFunc(self.obj.table, result, "onTalkieID", [idObj])
+  sqCallFunc(result, "onTalkieID", [self.obj.table, id])
   if result == 0:
     result = id
 
@@ -72,9 +70,9 @@ proc say(self: Talking, text: string) =
   if text[0] == '@':
     var id: int
     discard parseInt(text, id, 1)
-    id = self.onTalkieId(id)
     txt = getText(id)
 
+    id = self.onTalkieId(id)
     let name = fmt"{self.talkieKey().toUpper()}_{id}"
     let path = name & ".lip"
 
