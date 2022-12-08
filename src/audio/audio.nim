@@ -23,8 +23,9 @@ type
     vol*: float
     panning: float
     buffer*: SoundBuffer
-  SoundBuffer = ref object of RootObj
+  SoundBufferObj = object of RootObj
     chunk: ptr Chunk
+  SoundBuffer = ref SoundBufferObj
   SoundCategory* = enum
     Music,
     Sound,
@@ -59,16 +60,13 @@ proc checkError() =
   sdl2.clearError()
 
 # SoundBuffer
-proc newSoundBuffer*(): SoundBuffer =
-  new(result)
-
-proc free(self: SoundBuffer) =
+proc `=destroy`*(self: var SoundBufferObj) =
   if not self.chunk.isNil:
     mixer.freeChunk(self.chunk)
     self.chunk = nil
 
-proc destroy*(self: SoundBuffer) =
-  self.free()
+proc newSoundBuffer*(): SoundBuffer =
+  new(result)
 
 proc loadMem*(self: SoundBuffer, data: pointer, sizeInBytes: cint) =
   self.chunk = mixer.loadWAV_RW(rwFromConstMem(data, sizeInBytes), 1)

@@ -14,10 +14,16 @@ proc onPrintInfo(v: HSQUIRRELVM, message: SQString) {.cdecl.} =
 proc onPrintError(v: HSQUIRRELVM, message: SQString) {.cdecl.} =
   error message
 
-type VM* = ref object of RootObj
-  v*: HSQUIRRELVM
+type 
+  VMObj* = object of RootObj
+    v*: HSQUIRRELVM
+  VM* = ref VMObj
 
 var gVm*: VM
+
+proc `=destroy`*(self: var VMObj) =
+  debug fmt"destroy VM"
+  sq_close(self.v)
 
 proc newVM*(): VM =
   new(result)
@@ -26,9 +32,6 @@ proc newVM*(): VM =
   sqstd_seterrorhandlers(result.v)
   sq_setcompilererrorhandler(result.v, onError)
   gVm = result
-
-proc destroy*(self: VM) =
-  sq_close(self.v)
 
 proc push*(v: HSQUIRRELVM, value: bool) {.inline.} =
   sq_pushinteger(v, if value: 1 else: 0)

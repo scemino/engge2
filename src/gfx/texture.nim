@@ -1,4 +1,5 @@
 import std/strformat
+import std/logging
 import glm
 import stb_image
 import image
@@ -6,11 +7,13 @@ import glutils
 import ../libs/opengl
 
 type
-  Texture* = ref object of RootObj
+  TextureObj* = object of RootObj
     id*: GLuint
     width*, height*: int
     fbo*: GLuint
-  RenderTexture* = ref object of Texture
+  Texture* = ref TextureObj
+  RenderTextureObj* = object of TextureObj
+  RenderTexture* = ref RenderTextureObj
 
 proc size*(self: Texture): Vec2i = 
   vec2(self.width.int32, self.height.int32)
@@ -20,6 +23,10 @@ proc getFormat(channels: int): GLint =
   of 3: result = GL_RGB.GLint
   of 4: result = GL_RGBA.GLint
   else: raiseAssert(fmt"Can't get format for {channels} channels")
+
+proc `=destroy`*(self: var TextureObj) =
+  debug fmt"destroy texture {self.id}"
+  glDeleteTextures(1, addr self.id)
 
 proc newTexture*(image: Image): Texture =
   result = Texture(width: image.width, height: image.height)
@@ -52,8 +59,10 @@ proc capture*(self: Texture, filename: string) =
   flipVerticallyOnWrite(true)
   img.writePNG(filename)
 
-proc destroy*(self: Texture) =
+proc `=destroy`*(self: var RenderTextureObj) =
+  glBindFramebuffer(GL_FRAMEBUFFER, 0)
   glDeleteTextures(1, addr self.id)
+  glDeleteFramebuffers(1, addr self.fbo)
 
 proc newRenderTexture*(size: Vec2i): RenderTexture =
   result = RenderTexture(width: size.x, height: size.y)
@@ -74,8 +83,3 @@ proc newRenderTexture*(size: Vec2i): RenderTexture =
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, result.id, 0)
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-proc destroy*(self: RenderTexture) =
-  glBindFramebuffer(GL_FRAMEBUFFER, 0)
-  glDeleteTextures(1, addr self.id)
-  glDeleteFramebuffers(1, addr self.fbo)

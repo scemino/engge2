@@ -4,7 +4,7 @@ import sqnim
 import ids
 
 type
-  ThreadBase* = ref object of RootObj
+  ThreadBaseObj* = object of RootObj
     name*: string
     global*: bool
     numFrames*: int
@@ -12,12 +12,14 @@ type
     pauseable*: bool
     stopRequest: bool
     paused: bool
-  Thread* = ref object of ThreadBase
+  ThreadBase* = ref ThreadBaseObj
+  ThreadObj* = object of ThreadBase
     id: int
     v*: HSQUIRRELVM
     threadObj*, envObj*, closureObj*: HSQOBJECT
     args*: seq[HSQOBJECT]
     init: bool
+  Thread* = ref ThreadObj
 
 method getThread*(self: ThreadBase): HSQUIRRELVM {.base.} =
   discard
@@ -61,8 +63,16 @@ method stop*(self: ThreadBase) {.base.} =
 method update*(self: ThreadBase, elapsed: float): bool {.base.} =
   return false
 
+proc `=destroy`*(self: var ThreadObj) =
+  debug fmt"destroy thread {self.id}"
+  for arg in self.args.mitems:
+    discard sq_release(self.v, arg)  
+  discard sq_release(self.v, self.threadObj)
+  discard sq_release(self.v, self.envObj)
+  discard sq_release(self.v, self.closureObj)
+
 proc newThread*(name: string, global: bool, v: HSQUIRRELVM, threadObj, envObj, closureObj: HSQOBJECT, args: seq[HSQOBJECT]): Thread =
-  new(result)
+  result = Thread()
   result.id = newThreadId()
   result.name = name
   result.global = global
@@ -87,14 +97,6 @@ method getId*(self: Thread): int =
 
 method getName*(self: Thread): string =
   self.name
-
-proc destroy*(self: Thread) =
-  debug fmt"destroy thread {self.id}"
-  for arg in self.args.mitems:
-    discard sq_release(self.v, arg)  
-  discard sq_release(self.v, self.threadObj)
-  discard sq_release(self.v, self.envObj)
-  discard sq_release(self.v, self.closureObj)
 
 proc call*(self: Thread): bool =
   let thread = self.getThread()

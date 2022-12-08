@@ -18,7 +18,7 @@ type
     csCheckOverride
     csEnd
     csQuit
-  Cutscene* = ref object of ThreadBase
+  CutsceneObj* = object of ThreadBase
     id: int
     v: HSQUIRRELVM
     threadObj, closure, closureOverride, envObj: HSQOBJECT
@@ -27,6 +27,7 @@ type
     showCursor*: bool
     inputState*: InputStateFlag
     actor: Object
+  Cutscene* = ref object of CutsceneObj
 
 proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: HSQOBJECT): Cutscene =
   result = Cutscene(name: "cutscene", v: v, threadObj: threadObj, closure: closure, closureOverride: closureOverride, envObj: envObj, id: newThreadId(), inputState: gEngine.inputState.getState(), actor: gEngine.followActor, showCursor: gEngine.inputState.showCursor, state: csStart)
@@ -41,7 +42,8 @@ proc newCutscene*(v: HSQUIRRELVM, threadObj, closure, closureOverride, envObj: H
   sq_addref(gVm.v, result.closureOverride)
   sq_addref(gVm.v, result.envObj)
 
-proc destroy*(self: Cutscene) =
+proc `=destroy`*(self: var CutsceneObj) =
+  debug fmt"destroy cutscene {self.id}"
   discard sq_release(gVm.v, self.threadObj)
   discard sq_release(gVm.v, self.closure)
   discard sq_release(gVm.v, self.closureOverride)

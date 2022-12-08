@@ -9,6 +9,7 @@ import glm
 import squtils
 import vm
 import ../game/camera
+import ../game/screen
 import ../game/verb
 import ../game/prefs
 import ../game/room
@@ -202,9 +203,10 @@ proc cameraPanTo(v: HSQUIRRELVM): SQInteger {.cdecl.} =
     interpolation = im
   else:
     return sq_throwerror(v, fmt"invalid argument number: {numArgs}".cstring)
+  let halfScreen = vec2f(gEngine.room.getScreenSize())/2f
   info fmt"cameraPanTo: {pos}, dur={duration}, method={interpolation}"
   gEngine.follow(nil)
-  gEngine.camera.panTo(pos, duration, interpolation)
+  gEngine.camera.panTo(pos-vec2(0f,halfScreen.y), duration, interpolation)
   0
 
 proc cameraPos(v: HSQUIRRELVM): SQInteger {.cdecl.} =
