@@ -8,6 +8,7 @@ import vm
 proc regGblFun*(v: HSQUIRRELVM, f: SQFUNCTION, fname: cstring) =
   sq_pushstring(v,fname,-1)
   sq_newclosure(v,f,0) # create a new function
+  discard sq_setnativeclosurename(v,-1,fname)
   discard sq_newslot(v,-3,SQFalse)
 
 macro sqBind*(vm, body): untyped =
