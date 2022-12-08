@@ -30,6 +30,20 @@ You can even create your own `ggpack` and override the original assets à la [Do
 
 Rename your `ggpack` `ThimbleweedPark.ggpack3` or `ThimbleweedPark.ggpack4` or `ThimbleweedPark.ggpack5` or ... you get it now :smile:.
 
+## The game says "This is NOT a valid ggpack file"
+
+If it happens, create a file and named it `Prefs.json` and write this content:
+
+```json
+{
+  "key": "56ad"
+}
+```
+
+The key value can be one of these values: `"56ad"`, `"566d"`, `"5b6d"`, `"5bad"`.
+
+If it still doesn't work, try another key from above.
+
 ## You found a bug or have questions
 
 If you found a bug or something is annoying, don't give up! and please fill out a [bug report](https://github.com/scemino/engge2/issues/new/choose).
