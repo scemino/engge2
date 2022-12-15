@@ -1,4 +1,4 @@
-import ../libs/opengl
+import nglib/opengl
 import std/logging
 import std/strutils
 import std/strformat

@@ -2,7 +2,7 @@ import std/strformat
 import sqnim
 import ../debugtool
 import ../../game/ids
-import ../../libs/imgui
+import nglib
 import ../../script/vm
 import ../../script/squtils
 import ../../util/utils

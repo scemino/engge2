@@ -4,7 +4,7 @@ import glm
 import stb_image
 import image
 import glutils
-import ../libs/opengl
+import nglib/opengl
 
 type
   TextureObj* = object of RootObj

@@ -1,5 +1,6 @@
 type
   DebugTool* = ref object of RootObj
+  cstringConst* {.importc:"const char*".} = cstring
 
 var 
   gDebugTools: seq[DebugTool]

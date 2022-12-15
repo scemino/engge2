@@ -1,4 +1,4 @@
-import ../libs/opengl
+import nglib/opengl
 import std/[logging, strutils]
 
 template checkGLError*(info = "") =

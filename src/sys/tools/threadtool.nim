@@ -1,5 +1,5 @@
 import sqnim
-import ../../libs/imgui
+import nglib
 import ../../game/engine
 import ../../game/thread
 import ../debugtool

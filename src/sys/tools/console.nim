@@ -1,7 +1,7 @@
 import std/strutils
 import std/strformat
 import ../../script/vm
-import ../../libs/imgui
+import nglib
 
 type Console* = ref object of RootObj
   inputBuf: array[256, char]

@@ -5,10 +5,8 @@ import ../gfx/graphics
 import ../gfx/texture
 import ../game/screen
 import ../sys/input
-import ../libs/opengl
-import ../libs/imgui
-import ../libs/imgui/impl_sdl2
-import ../libs/imgui/impl_opengl
+import nglib/opengl
+import nglib
 # don't know why I need to include this, this is the only place where I can use igXXX methods
 include debug
 

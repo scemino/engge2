@@ -4,7 +4,7 @@ import sqnim
 import ../debugtool
 import ../../game/engine
 import ../../game/room
-import ../../libs/imgui
+import nglib
 import ../../script/squtils
 import ../../io/textdb
 import ../../scenegraph/node
@@ -29,9 +29,9 @@ proc animIndex(): int32 =
       return i.int32
   -1'i32
 
-proc getAnim(data: pointer, idx: int32, out_text: ptr constChar): bool {.cdecl.} =
+proc getAnim(data: pointer, idx: int32, out_text: ptr cstringConst): bool {.cdecl.} =
   if idx in 0..<gObject.anims.len:
-    out_text[] = cast[constChar](gObject.anims[idx].name[0].addr)
+    out_text[] = cast[cstringConst](gObject.anims[idx].name[0].addr)
     result = true
   else:
     result = false

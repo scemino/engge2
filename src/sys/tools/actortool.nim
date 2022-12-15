@@ -5,7 +5,7 @@ import ../../game/engine
 import ../../game/room
 import ../../game/actoranim
 import ../../game/motors/motor
-import ../../libs/imgui
+import nglib
 import ../../script/squtils
 import ../../io/textdb
 import ../../scenegraph/node

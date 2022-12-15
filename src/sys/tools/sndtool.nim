@@ -1,7 +1,7 @@
 import ../debugtool
 import ../../game/engine
 import ../../audio/audio
-import ../../libs/imgui
+import nglib
 
 type SoundTool = ref object of DebugTool
   visible*: bool

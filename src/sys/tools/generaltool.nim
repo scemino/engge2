@@ -12,7 +12,7 @@ import ../../scenegraph/dialog
 import ../../scenegraph/walkboxnode
 import ../../scenegraph/node
 import ../../scenegraph/pathnode
-import ../../libs/imgui
+import nglib
 import ../../sys/app
 import ../../script/vm
 
@@ -42,9 +42,9 @@ proc newGeneralTool*(): GeneralTool =
 proc addTool*(name: string, visible: ptr bool) =
   gWinVisibles.add  WinStatus(name: name, visible: visible)
 
-proc getRoom(data: pointer, idx: int32, outText: ptr constChar): bool {.cdecl.} =
+proc getRoom(data: pointer, idx: int32, outText: ptr cstringConst): bool {.cdecl.} =
   if idx in 0..<gEngine.rooms.len:
-    outText[] = cast[constChar](gEngine.rooms[idx].name[0].addr)
+    outText[] = cast[cstringConst](gEngine.rooms[idx].name[0].addr)
     result = true
   else:
     result = false
@@ -54,10 +54,10 @@ proc getSelActors(): seq[Object] =
     if slot.selectable:
       result.add slot.actor
 
-proc getActor(data: pointer, idx: int32, outText: ptr constChar): bool {.cdecl.} =
+proc getActor(data: pointer, idx: int32, outText: ptr cstringConst): bool {.cdecl.} =
   let actors = getSelActors()
   if idx in 0..<actors.len:
-    outText[] = cast[constChar](actors[idx].key[0].unsafeAddr)
+    outText[] = cast[cstringConst](actors[idx].key[0].unsafeAddr)
     result = true
   else:
     result = false
@@ -116,11 +116,11 @@ method render*(self: GeneralTool) =
   if igCollapsingHeader("Camera"):
     igText("Camera follow: %s", if gEngine.followActor.isNil: "(none)".cstring else: gEngine.followActor.key.cstring)
     igText("Camera isMoving: %s", if gEngine.camera.isMoving: "yes".cstring else: "no")
-    var camPos = gEngine.cameraPos()
+    let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
+    var camPos = gEngine.cameraPos() - halfScreenSize
     if igDragFloat2("Camera pos", camPos.arr):
       gEngine.follow(nil)
-      let halfScreenSize = vec2f(gEngine.room.getScreenSize()) / 2.0f
-      gEngine.cameraAt(camPos - halfScreenSize)
+      gEngine.cameraAt(camPos)
     igDragFloat4("Bounds", gEngine.camera.bounds.arr)
 
   if not room.isNil:

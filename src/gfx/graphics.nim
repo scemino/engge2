@@ -1,4 +1,4 @@
-import ../libs/opengl
+import nglib/opengl
 import glm
 import shader
 import glutils

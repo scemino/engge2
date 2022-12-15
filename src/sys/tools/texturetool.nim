@@ -3,7 +3,7 @@ import std/tables
 import ../debugtool
 import ../../game/resmanager
 import ../../gfx/texture
-import ../../libs/imgui
+import nglib
 
 type TextureTool = ref object of DebugTool
   visible*: bool
