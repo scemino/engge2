@@ -1,3 +1,0 @@
-[submodule "src/libs/private/cimgui/imgui"]
-	path = src/libs/private/cimgui/imgui
-	url = https://github.com/ocornut/imgui.git
